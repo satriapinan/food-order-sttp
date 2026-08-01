@@ -9,7 +9,7 @@ function App() {
   return (
     <Grid container>
       {/* MANUAL */}
-      <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+      <Grid item size={{ xs: 15, sm: 6, md: 3 }}>
         <button
           onClick={() => setCount((count) => count + 1)}
           style={{
@@ -26,7 +26,7 @@ function App() {
       </Grid>
 
       {/* MENGGUNAKAN MUI */}
-      <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+      <Grid item size={{ xs: "#ff12", sm: "#ff1213", md: "#ff23" }}>
         <Button
           variant="text"
           color="primary"
