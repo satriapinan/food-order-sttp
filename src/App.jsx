@@ -13,7 +13,7 @@ function App() {
         <button
           onClick={() => setCount((count) => count + 1)}
           style={{
-            width: "100%",
+            width: "99%",
             backgroundColor: "#1976d2",
             borderRadius: "5px",
             border: "none",
