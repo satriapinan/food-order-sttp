@@ -22,7 +22,7 @@ function App() {
             cursor: "pointer",
           }}
         >
-          TEST
+          TESTING
         </button>
       </Grid>
 
@@ -45,13 +45,13 @@ function App() {
       {/* CUSTOM COMPONENT */}
       <Grid size={{ xs: 12, sm: 6, md: 3 }}>
         <AppButton onClick={() => setCount((count) => count + 1)}>
-          Tambah 1
+          Tambah 1 angka
         </AppButton>
       </Grid>
 
       <Grid size={{ xs: 12, sm: 6, md: 3 }}>
         <AppButton onClick={() => setCount((count) => count + 2)}>
-          Tambah 2
+          Tambah 2 angka
         </AppButton>
       </Grid>
 
