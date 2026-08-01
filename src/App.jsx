@@ -16,7 +16,7 @@ function App() {
             width: "100%",
             backgroundColor: "#1976d2",
             borderRadius: "5px",
-            border: "1px solid #000",
+            border: "1px solid #FFF",
             color: "#FFF",
             padding: "10px",
           }}
