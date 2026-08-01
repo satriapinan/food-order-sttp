@@ -17,7 +17,7 @@ function App() {
             backgroundColor: "#1976d2",
             borderRadius: "5px",
             border: "none",
-            color: "#FFF",
+            color: "#cd1919",
             padding: "10px",
           }}
         >
