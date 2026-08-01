@@ -1,18 +1,17 @@
-import { useState } from "react"; // buat nyimpen angka yang bisa berubah-ubah
-import Button from "@mui/material/Button"; // pinjem tombol dari MUI, biar gak bikin css sendiri
-import Grid from "@mui/material/Grid"; // buat atur layout kolom biar rapi
-import AppButton from "./components/AppButton"; // tombol bikinan sendiri, biar gak nulis ulang-ulang
+import { useState } from "react";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import AppButton from "./components/AppButton";
 
 function App() {
-  const [count, setCount] = useState(0); // count mulai dari 0, setCount buat nambahin
+  const [count, setCount] = useState(0);
 
   return (
-    <Grid container> {/* wadah utama, isinya kolom-kolom di bawah */}
-
+    <Grid container>
       {/* MANUAL */}
       <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
         <button
-          onClick={() => setCount((count) => count + 1)} // klik = count nambah 1
+          onClick={() => setCount((count) => count + 1)}
           style={{
             width: "100%",
             backgroundColor: "#1976d2",
@@ -22,7 +21,7 @@ function App() {
             padding: "10px",
           }}
         >
-          TEST {/* tombol manual, css nulis sendiri */}
+          TEST
         </button>
       </Grid>
 
@@ -31,16 +30,15 @@ function App() {
         <Button
           variant="text"
           color="primary"
-          onClick={() => setCount((count) => count + 1)} // nambah count juga
+          onClick={() => setCount((count) => count + 1)}
           sx={{
             width: "100%",
-            // nyoba bikin warna beda-beda tiap ukuran layar (responsive color)
-            backgroundColor: { xs: "#FF12", sm: "#FF1213", md: "#FF12AD" },
+            backgroundColor: "#1976",
             borderRadius: "5px",
             boxShadow: "none",
           }}
         >
-          MUI {/* enak nih tinggal pake, gak perlu css manual */}
+          MUI
         </Button>
       </Grid>
 
@@ -50,15 +48,14 @@ function App() {
           Tambah 1
         </AppButton>
         <AppButton onClick={() => setCount((count) => count + 2)}>
-          Tambah 2 {/* nambahnya 2 langsung, biar keliatan bedanya */}
+          Tambah 2
         </AppButton>
       </Grid>
 
       {/* HASIL */}
       <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-        {count} {/* angka hasil klik, semua tombol nyambung ke sini */}
+        {count}
       </Grid>
-
     </Grid>
   );
 }
