@@ -7,7 +7,7 @@ const AppButton = ({ onClick, children }) => {
       color="primary"
       onClick={onClick}
       sx={{
-        backgroundColor: "#1976",
+        backgroundColor: "#3276",
         borderRadius: "5px",
         boxShadow: "none",
       }}

@@ -30,10 +30,21 @@ function App() {
       tambah 2
       </Button>
       </Grid>
+       <Grid item size={{ xs: 12, sm:6, md: 3}}>
+      <button onClick={() => setCount((count) => count + 1)}
+        style={{
+          backgroundColor: "#1976d2",
+          borderRadius: "5px",
+          border: "none",
+          color: "#FFF",
+          padding: "10px",
+        }}
+        >TAMBAH 1</button>
+        </Grid>
 
       <Grid item size={{xs: 12, sm:6, md: 3}}>
-      <AppButton onClick={() => setCount((count) => count + 1)}>
-      tambah 1
+      <AppButton onClick={() => setCount((count) => count + 3)}>
+      tambah 3
       </AppButton>
       </Grid>
 
