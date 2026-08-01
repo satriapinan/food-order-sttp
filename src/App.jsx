@@ -16,12 +16,12 @@ function App() {
             width: "100%",
             backgroundColor: "#1976d2",
             borderRadius: "5px",
-            border: "none",
+            border: "1px solid #000",
             color: "#FFF",
             padding: "10px",
           }}
         >
-          TEST
+          LOGIN
         </button>
       </Grid>
 

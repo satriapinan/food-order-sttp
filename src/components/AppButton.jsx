@@ -10,7 +10,7 @@ const AppButton = ({ onClick, children }) => {
       sx={{
         width: "100%",
         backgroundColor: "#1976",
-        borderRadius: "5px",
+        borderRadius: "8px",
         boxShadow: "none",
       }}
     >
