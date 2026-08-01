@@ -15,7 +15,7 @@ function App() {
           style={{
             width: "100%",
             backgroundColor: "#1976d2",
-            borderRadius: "5px",
+            borderRadius: "8px",
             border: "none",
             color: "#FFF",
             padding: "10px",
@@ -34,7 +34,7 @@ function App() {
           sx={{
             width: "100%",
             backgroundColor: "#1976",
-            borderRadius: "5px",
+            borderRadius: "8px",
             boxShadow: "none",
           }}
         >
