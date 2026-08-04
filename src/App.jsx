@@ -1,63 +1,39 @@
-import { useState } from "react";
-import AppButton from "./components/AppButton";
-import Button from "@mui/material/Button";
-import Grid from "@mui/material/Grid";
+import Container from '@mui/material/Container';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
 
-function App() {
-  const [count, setCount] = useState(0);
 
-  return (
-    <Grid container>
-      {/* MANUAL */}
-      <Grid item size={{ xs: 15, sm: 6, md: 3 }}>
-        <button
-          onClick={() => setCount((count) => count + 1)}
-          style={{
-            width: "100%",
-            backgroundColor: "#1976d2",
-            borderRadius: "5px",
-            border: "none",
-            color: "#FFF",
-            padding: "10px",
-          }}
-        >
-          TEST
-        </button>
-      </Grid>
+export default function App() {
+  return(
+    
+    <Container maxWidth="xs" sx={{ mt: 8, backgroundColor: '#30e8f5', p:5, borderRadius: 8}}>
+      {/*kotak isi from*/}
 
-      {/* MENGGUNAKAN MUI */}
-      <Grid item size={{ xs: "#ff12", sm: "#ff1213", md: "#ff23" }}>
+      <Paper elevation={3} sx={{ p: 4, textAlign: "center"}}>
+        <Typography 
+        variant='h3' sx={{ mb:1, fontWeight:"bold" }}>
+          Masuk
+        </Typography>
+        {/*tulisan masuk*/}
+        <TextField fullWidth margin="normal" label="Username / Email"/>
+        <TextField fullWidth margin='normal' label="Password" type='password'/>
+        {/*kotak pengisian user name dan password*/}
         <Button
-          variant="text"
-          color="primary"
-          onClick={() => setCount((count) => count + 1)}
-          sx={{
-            width: "100%",
-            backgroundColor: "#1976",
-            borderRadius: "5px",
-            boxShadow: "none",
-          }}
-        >
-          MUI
+          fullWidth variant="contained" 
+          sx={{ mt:2,
+            backgroundColor:"#30e8f5",
+            fontSize: '20px',
+            fontWeight:"bold",
+            '&:hover':{
+              backgroundColor:"#30e",
+            }
+          }}>
+          Masuk
         </Button>
-      </Grid>
-
-      {/* MENGGUNAKAN CUSTOM COMPONENT */}
-      <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-        <AppButton onClick={() => setCount((count) => count + 1)}>
-          Tambah 1
-        </AppButton>
-        <AppButton onClick={() => setCount((count) => count + 2)}>
-          Tambah 2
-        </AppButton>
-      </Grid>
-
-      {/* HASIL */}
-      <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-        {count}
-      </Grid>
-    </Grid>
+        {/*tombol masuk*/}
+      </Paper>
+    </Container>
   );
-}
-
-export default App;
+};
