@@ -1,61 +1,57 @@
-import { Button, Grid } from '@mui/material';
-import { useState } from 'react';
-import AppButton from './components/AppButton';
+import { Card, CardContent, TextField } from '@mui/material';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <Grid container>
-      {/* MANUAL */}
-      <Grid item size={{ xs: 12, sm:6, md: 3}}>
-      <button onClick={() => setCount((count) => count + 1)}
-        style={{
-          backgroundColor: "#1976d2",
-          borderRadius: "5px",
-          border: "none",
-          color: "#FFF",
-          padding: "10px",
-        }}
-        >TAMBAH 1</button>
-        </Grid>
-      {/* MUI */}
-
-      <Grid item size={{xs: 12, sm:6, md: 3}}>
-      <Button variant='contained'
-       onClick={() => setCount((count) => count + 2)}
-       sx={{
-        width: "100px"
-       }}>
-      tambah 2
-      </Button>
-      </Grid>
-       <Grid item size={{ xs: 12, sm:6, md: 3}}>
-      <button onClick={() => setCount((count) => count + 1)}
-        style={{
-          backgroundColor: "#1976d2",
-          borderRadius: "5px",
-          border: "none",
-          color: "#FFF",
-          padding: "10px",
-        }}
-        >TAMBAH 1</button>
-        </Grid>
-
-      <Grid item size={{xs: 12, sm:6, md: 3}}>
-      <AppButton onClick={() => setCount((count) => count + 3)}>
-      tambah 3
-      </AppButton>
-      </Grid>
-
-      <Grid item size={{xs: 12, sm:6, md: 3}}>
-      <AppButton onClick={() => setCount((count) => count + 2)}>
-      tambah 2
-      </AppButton>
-      </Grid>
-
-      {count}
-    </Grid>
+    <Box 
+    sx={{
+      backgroundColor: 'primary.main',
+      display: 'flex',
+      minHeight: '100vh',
+      alignItems: 'center',
+    }}
+    >
+    <Container maxWidth='xs'>
+    <Card sx={{ maxWidth: 400 }}>
+      <CardContent>
+      <div>
+        <Typography variant="h4" component="div" align='center' color='primary'>
+        Welcome Back
+        </Typography>
+        <Typography variant="subtitle1" align='center'>
+        Sign in to your account
+      </Typography>
+      </div>
+        <Stack spacing={2}>
+         <TextField
+          id="outlined-password-input"
+          label="username"
+          type="username"
+          autoComplete="current-password"
+        />
+         <TextField
+          id="outlined-password-input"
+          label="Password"
+          type="password"
+          autoComplete="current-password"
+        />
+        <Button variant="contained">Sign in</Button>
+        </Stack>
+        <Typography variant="subtitle1" align='center'>
+        don't have an account?
+      </Typography>
+      <Typography variant="subtitle1" align='center' color='primary'>
+        Sign up Here
+      </Typography>
+      </CardContent>
+    </Card>
+    </Container>
+    </Box>
   );
 }
 
