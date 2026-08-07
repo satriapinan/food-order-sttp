@@ -1,63 +1,80 @@
-import { useState } from "react";
-import Button from "@mui/material/Button";
-import Grid from "@mui/material/Grid";
-import AppButton from "./components/AppButton";
-
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
-    <Grid container>
-      {/* MANUAL */}
-      <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-        <button
-          onClick={() => setCount((count) => count + 1)}
-          style={{
-            width: "100%",
-            backgroundColor: "#1976d2",
-            borderRadius: "5px",
-            border: "none",
-            color: "#FFF",
-            padding: "10px",
-          }}
-        >
-          TEST
-        </button>
-      </Grid>
+    <div style={styles.page}>
+      <div style={styles.card}>
+        <h1 style={styles.title}>Welcome Back</h1>
+        <p style={styles.subtitle}>Sign in to your account</p>
 
-      {/* MENGGUNAKAN MUI */}
-      <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-        <Button
-          variant="text"
-          color="primary"
-          onClick={() => setCount((count) => count + 1)}
-          sx={{
-            width: "100%",
-            backgroundColor: "#1976",
-            borderRadius: "5px",
-            boxShadow: "none",
-          }}
-        >
-          MUI
-        </Button>
-      </Grid>
+        <input
+          type="text"
+          placeholder="Username"
+          style={styles.input}
+        />
 
-      {/* MENGGUNAKAN CUSTOM COMPONENT */}
-      <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-        <AppButton onClick={() => setCount((count) => count + 1)}>
-          Tambah 1
-        </AppButton>
-        <AppButton onClick={() => setCount((count) => count + 2)}>
-          Tambah 2
-        </AppButton>
-      </Grid>
+        <input
+          type="password"
+          placeholder="Password"
+          style={styles.input}
+        />
 
-      {/* HASIL */}
-      <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-        {count}
-      </Grid>
-    </Grid>
+        <button style={styles.button}>SIGN IN</button>
+
+        <p style={styles.footer}>
+          Don't have an account? <span style={styles.link}>Sign up here</span>
+        </p>
+      </div>
+    </div>
   );
 }
+
+const styles = {
+  page: {
+    minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  card: {
+    border: "1px solid #ddd",
+    borderRadius: "10px",
+    padding: "30px",
+    width: "320px",
+  },
+  title: {
+    textAlign: "center",
+    marginBottom: "4px",
+  },
+  subtitle: {
+    textAlign: "center",
+    color: "#888",
+    fontSize: "13px",
+    marginTop: 0,
+    marginBottom: "20px",
+  },
+  input: {
+    width: "100%",
+    padding: "10px",
+    marginBottom: "15px",
+    boxSizing: "border-box",
+  },
+  button: {
+    width: "100%",
+    padding: "10px",
+    background: "#06d6d6",
+    color: "#fff",
+    border: "none",
+  },
+  footer: {
+    textAlign: "center",
+    fontSize: "13px",
+    color: "#888",
+    marginTop: "15px",
+    marginBottom: 0,
+  },
+  link: {
+    color: "#06d6d6",
+    fontWeight: "bold",
+  },
+};
 
 export default App;
