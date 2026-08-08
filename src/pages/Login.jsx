@@ -64,7 +64,7 @@ function LoginPage() {
         </Box>
 
         <Typography variant="body2" sx={{ marginTop: 3 }}>
-          Belum punya akun? <a href="/register">Daftar di sini</a>
+          Belum punya akun? <a href="/register">Daftar disini</a>
         </Typography>
       </Paper>
     </Box>
