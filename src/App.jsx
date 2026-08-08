@@ -1,57 +1,18 @@
-import { Card, CardContent, TextField } from '@mui/material';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
-import Stack from '@mui/material/Stack';
-import Box from '@mui/material/Box';
-import AppButton from './components/AppButton';
+import { Routes, Route } from "react-router";
+import ExamplePage from "./pages/Example";
+import LoginPage from "./pages/Login";
+import RegisterPage from "./pages/Register";
 
 
 function App() {
-  return (
-    <Box 
-    sx={{
-      backgroundColor: 'primary.main',
-      display: 'flex',
-      minHeight: '100vh',
-      alignItems: 'center',
-    }}
-    >
-    <Container maxWidth='xs'>
-    <Card sx={{ maxWidth: 400 }}>
-      <CardContent>
-      <div>
-        <Typography variant="h4" component="div" align='center' color='primary'>
-        Welcome Back
-        </Typography>
-        <Typography variant="subtitle1" align='center'>
-        Sign in to your account
-      </Typography>
-      </div>
-        <Stack spacing={2}>
-         <TextField
-          id="outlined-password-input"
-          label="username"
-          type="username"
-          autoComplete="current-password"
-        />
-         <TextField
-          id="outlined-password-input"
-          label="Password"
-          type="Password"
-          autoComplete="current-password"
-        />
-        <AppButton>Sign in</AppButton>
-        </Stack>
-        <Typography variant="subtitle1" align='center'>
-        don't have an account?
-      </Typography>
-      <Typography variant="subtitle1" align='center' color='primary'>
-        Sign up Here
-      </Typography>
-      </CardContent>
-    </Card>
-    </Container>
-    </Box>
+  return(
+<Routes>
+  <Route index element={<ExamplePage />} />
+  <Route path="login" element={<LoginPage />} />
+  <Route path="register" element={<RegisterPage />} />
+  <Route path="example" element={<ExamplePage />} />
+  <Route path="example/:value" element={<ExamplePage />} />
+</Routes>
   );
 }
-export default App
+export default App;
