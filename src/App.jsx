@@ -2,8 +2,8 @@ import { Card, CardContent, TextField } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
+import AppButton from './components/AppButton';
 
 
 function App() {
@@ -37,10 +37,10 @@ function App() {
          <TextField
           id="outlined-password-input"
           label="Password"
-          type="password"
+          type="Password"
           autoComplete="current-password"
         />
-        <Button variant="contained">Sign in</Button>
+        <AppButton>Sign in</AppButton>
         </Stack>
         <Typography variant="subtitle1" align='center'>
         don't have an account?
@@ -54,5 +54,4 @@ function App() {
     </Box>
   );
 }
-
 export default App
