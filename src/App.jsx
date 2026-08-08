@@ -1,63 +1,139 @@
 import { useState } from "react";
-import Button from "@mui/material/Button";
-import Grid from "@mui/material/Grid";
-import AppButton from "./components/AppButton";
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Username:", username);
+    console.log("Password:", password);
+  };
 
   return (
-    <Grid container>
-      {/* MANUAL */}
-      <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-        <button
-          onClick={() => setCount((count) => count + 1)}
-          style={{
-            width: "100%",
-            backgroundColor: "#1976d2",
-            borderRadius: "8px",
-            border: "none",
-            color: "#FFF",
-            padding: "10px",
-          }}
-        >
-          TEST
-        </button>
-      </Grid>
+    <div style={styles.page}>
+      <div style={styles.card}>
+        <h1 style={styles.title}>Halo, Selamat Datang</h1>
+        <p style={styles.subtitle}>Masuk ke akunmu untuk melanjutkan</p>
 
-      {/* MENGGUNAKAN MUI */}
-      <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-        <Button
-          variant="text"
-          color="primary"
-          onClick={() => setCount((count) => count + 1)}
-          sx={{
-            width: "100%",
-            backgroundColor: "#1976",
-            borderRadius: "8px",
-            boxShadow: "none",
-          }}
-        >
-          MUI
-        </Button>
-      </Grid>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            style={styles.input}
+          />
 
-      {/* MENGGUNAKAN CUSTOM COMPONENT */}
-      <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-        <AppButton onClick={() => setCount((count) => count + 1)}>
-          Tambah 1
-        </AppButton>
-        <AppButton onClick={() => setCount((count) => count + 2)}>
-          Tambah 2
-        </AppButton>
-      </Grid>
+          <div style={styles.passwordWrapper}>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={styles.passwordInput}
+            />
+            <span
+              onClick={() => setShowPassword((prev) => !prev)}
+              style={styles.toggle}
+            >
+              {showPassword ? "Sembunyikan" : "Lihat"}
+            </span>
+          </div>
 
-      {/* HASIL */}
-      <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-        {count}
-      </Grid>
-    </Grid>
+          <button type="submit" style={styles.button}>
+            Masuk
+          </button>
+        </form>
+
+        <p style={styles.footerText}>
+          Belum punya akun? <span style={styles.link}>Daftar di sini</span>
+        </p>
+      </div>
+    </div>
   );
 }
+
+const styles = {
+  page: {
+    minHeight: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "linear-gradient(135deg, #6D5BD0, #8E7CF0)",
+    fontFamily: "Arial, sans-serif",
+  },
+  card: {
+    backgroundColor: "#fff",
+    padding: "40px 32px",
+    borderRadius: "14px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
+    width: "320px",
+    textAlign: "center",
+  },
+  title: {
+    margin: 0,
+    fontSize: "22px",
+    color: "#2E2A47",
+  },
+  subtitle: {
+    marginTop: "6px",
+    marginBottom: "24px",
+    fontSize: "13px",
+    color: "#8B87A3",
+  },
+  input: {
+    width: "100%",
+    padding: "10px 12px",
+    marginBottom: "14px",
+    border: "1px solid #E1DEEF",
+    borderRadius: "8px",
+    fontSize: "14px",
+    boxSizing: "border-box",
+  },
+  passwordWrapper: {
+    position: "relative",
+    marginBottom: "20px",
+  },
+  passwordInput: {
+    width: "100%",
+    padding: "10px 12px",
+    border: "1px solid #E1DEEF",
+    borderRadius: "8px",
+    fontSize: "14px",
+    boxSizing: "border-box",
+  },
+  toggle: {
+    position: "absolute",
+    right: "12px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    fontSize: "11px",
+    color: "#6D5BD0",
+    cursor: "pointer",
+  },
+  button: {
+    width: "100%",
+    padding: "11px",
+    backgroundColor: "#6D5BD0",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "15px",
+    fontWeight: "600",
+    cursor: "pointer",
+  },
+  footerText: {
+    marginTop: "18px",
+    fontSize: "13px",
+    color: "#8B87A3",
+  },
+  link: {
+    color: "#6D5BD0",
+    fontWeight: "600",
+    cursor: "pointer",
+  },
+};
 
 export default App;
