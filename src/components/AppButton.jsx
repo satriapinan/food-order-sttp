@@ -1,16 +1,23 @@
 import Button from "@mui/material/Button";
 
-const AppButton = ({ onClick, children }) => {
+const style = {
+  button: {
+    backgroundColor: "#1976d2",
+    borderRadius: "5px",
+    boxShadow: "none",
+    color: "#fff",
+  },
+};
+
+const AppButton = ({ onClick, children, type = "button" }) => {
   return (
     <Button
-      variant="text"
+      type={type}
+      variant="contained"
       color="primary"
       onClick={onClick}
-      sx={{
-        backgroundColor: "#1976",
-        borderRadius: "5px",
-        boxShadow: "none",
-      }}
+      fullWidth
+      sx={style.button}
     >
       {children}
     </Button>
