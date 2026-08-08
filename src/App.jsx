@@ -26,7 +26,7 @@ function App() {
       </Grid>
 
       {/* MENGGUNAKAN MUI */}
-      <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+      <Grid item size={{ xs: 15, sm: 6, md: 3 }}>
         <Button
           variant="text"
           color="primary"
