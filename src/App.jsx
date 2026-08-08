@@ -15,7 +15,7 @@ function App() {
     <div style={styles.page}>
       <div style={styles.card}>
         <h1 style={styles.title}>Selamat Datang</h1>
-        <p style={styles.subtitle}>Silakan masuk ke akun Anda</p>
+        <p style={styles.subtitle}>silakan masuk ke akun Anda</p>
 
         <form onSubmit={handleSubmit}>
           <input
