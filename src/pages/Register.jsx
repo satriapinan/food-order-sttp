@@ -6,7 +6,7 @@ function Register() {
       <div className="register-card">
         <h1>Food-Order</h1>
 
-        <p>Buat akun baru</p>
+        <p>Buat Akun Baru</p>
 
         <form>
           <div className="input-group">

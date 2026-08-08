@@ -6,7 +6,7 @@ function Login() {
       <div className="login-card">
         <h1>Food-Order</h1>
 
-        <p>Login ke dalam sistem</p>
+        <p>Login ke Dalam Sistem</p>
 
         <form>
           <div className="input-group">
