@@ -1,39 +1,20 @@
-import Container from '@mui/material/Container';
-import Paper from '@mui/material/Paper';
-import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
+import { Routes, Route } from "react-router-dom";
+import LoginPage from "./pages/Login";
+import ExamplePage from "./pages/Example";
+import RegisterPage from "./pages/register";
+import MasukPage from "./pages/masuk";
 
-
-export default function App() {
-  return(
-    
-    <Container maxWidth="xs" sx={{ mt: 8, backgroundColor: '#30e8f5', p:5, borderRadius: 8}}>
-      {/*kotak isi from*/}
-
-      <Paper elevation={3} sx={{ p: 4, textAlign: "center"}}>
-        <Typography 
-        variant='h3' sx={{ mb:1, fontWeight:"bold" }}>
-          Masuk
-        </Typography>
-        {/*tulisan masuk*/}
-        <TextField fullWidth margin="normal" label="Username / Email"/>
-        <TextField fullWidth margin='normal' label="Password" type='password'/>
-        {/*kotak pengisian user name dan password*/}
-        <Button
-          fullWidth variant="contained" 
-          sx={{ mt:2,
-            backgroundColor:"#30e8f5",
-            fontSize: '20px',
-            fontWeight:"bold",
-            '&:hover':{
-              backgroundColor:"#30e",
-            }
-          }}>
-          Masuk
-        </Button>
-        {/*tombol masuk*/}
-      </Paper>
-    </Container>
+function App() {
+  return (
+    <Routes>
+      <Route index element={<LoginPage />} />
+      <Route path="login" element={<LoginPage />} />
+      <Route path="login/:value" element={<LoginPage />} />
+      <Route path="example" element={<ExamplePage />} />
+      <Route path="register" element ={<RegisterPage />} />
+      <Route path="masuk" element ={<MasukPage />} />
+    </Routes>
   );
-};
+}
+
+export default App;
