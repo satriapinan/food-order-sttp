@@ -1,69 +1,17 @@
-import { useState } from "react";
-import {
-  Box,
-  Button,
-  Container,
-  CssBaseline,
-  Paper,
-  Stack,
-  TextField,
-  Typography,
-  ThemeProvider,
-  createTheme,
-} from "@mui/material";
-
-const theme = createTheme();
+import { Routes, Route } from "react-router-dom";
+import LoginPage from "./pages/Login";
+import RegisterPage from "./pages/register";
+import ExamplePage from "./pages/Example";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  const handleLogin = (event) => {
-    event.preventDefault();
-    setIsLoggedIn(true);
-  };
-
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Container maxWidth="sm" sx={{ py: 6 }}>
-        {!isLoggedIn ? (
-          <Paper elevation={2} sx={{ p: 4 }}>
-            <Typography variant="h5" gutterBottom>
-              Login
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Masukkan email dan password untuk masuk.
-            </Typography>
-
-            <Box component="form" onSubmit={handleLogin} noValidate>
-              <Stack spacing={2}>
-                <TextField label="Email" variant="outlined" fullWidth />
-                <TextField
-                  label="Password"
-                  type="password"
-                  variant="outlined"
-                  fullWidth
-                />
-                <Button type="submit" variant="contained" fullWidth>
-                  Login
-                </Button>
-              </Stack>
-            </Box>
-          </Paper>
-        ) : (
-          <Paper elevation={2} sx={{ p: 4, textAlign: "center" }}>
-            <Typography variant="h4">dashboard</Typography>
-            <Button
-              variant="outlined"
-              sx={{ mt: 3 }}
-              onClick={() => setIsLoggedIn(false)}
-            >
-              Logout
-            </Button>
-          </Paper>
-        )}
-      </Container>
-    </ThemeProvider>
+    <Routes>
+      <Route index element={<LoginPage />} />
+      <Route path="login" element={<LoginPage />} />
+      <Route path="login/:value" element={<LoginPage />} />
+      <Route path="register" element={<RegisterPage />} />
+      <Route path="example" element={<ExamplePage />} />
+    </Routes>
   );
 }
 
