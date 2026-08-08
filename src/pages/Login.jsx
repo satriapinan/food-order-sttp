@@ -4,7 +4,7 @@ function Login() {
   return (
     <div className="container">
       <div className="login-card">
-        <h1>Food-Order</h1>
+        <h1>Food Order</h1>
 
         <p>Login ke Dalam Sistem</p>
 

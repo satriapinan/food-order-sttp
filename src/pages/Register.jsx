@@ -4,7 +4,7 @@ function Register() {
   return (
     <div className="container">
       <div className="register-card">
-        <h1>Food-Order</h1>
+        <h1>Food Order</h1>
 
         <p>Buat Akun Baru</p>
 
