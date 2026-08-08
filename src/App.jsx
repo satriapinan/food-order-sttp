@@ -1,25 +1,22 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ExamplePage from "./pages/Example";
+
 import "./App.css";
 
 function App() {
   return (
-    <div className="container">
-      <div className="login-card">
-        <h1>Food-Order</h1>
-        <p>Login ke dalam sistem</p>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
-        <div className="input-group">
-          <label>Username</label>
-          <input type="text" placeholder="Masukkan username" />
-        </div>
-
-        <div className="input-group">
-          <label>Password</label>
-          <input type="password" placeholder="Masukkan password" />
-        </div>
-
-        <button>LOGIN</button>
-      </div>
-    </div>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/example" element={<ExamplePage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
