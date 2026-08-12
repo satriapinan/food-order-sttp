@@ -3,6 +3,7 @@ import LoginPage from "./pages/Login";
 import ExamplePage from "./pages/Example";
 import RegisterPage from "./pages/register";
 import MasukPage from "./pages/masuk";
+import BerandaPage from "./pages/beranda";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
       <Route path="example" element={<ExamplePage />} />
       <Route path="register" element ={<RegisterPage />} />
       <Route path="masuk" element ={<MasukPage />} />
+      <Route path="beranda" element ={<BerandaPage />} />
     </Routes>
   );
 }

@@ -45,7 +45,7 @@ export default function MasukPage() {
               backgroundColor:"rgb(17, 16, 20)",
             }
           }}>
-            <NavLink to="/masuk">
+            <NavLink to="/beranda">
             Masuk
             </NavLink>
         </Button>
