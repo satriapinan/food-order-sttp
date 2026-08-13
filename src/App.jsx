@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router";
 import LoginPages from "./pages/login";
 import ExamplePage from "./pages/example";
 import RegisterPages from "./pages/register";
+import MenuPages from "./pages/MenuPages";
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
       <Route path="login" element={<LoginPages />} />
       <Route path="example" element={<ExamplePage />} />
       <Route path="register" element={<RegisterPages />} />
+      <Route path="menu" element={<MenuPages />} />
     </Routes>
   );
 }
