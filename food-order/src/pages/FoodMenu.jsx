@@ -1,7 +1,24 @@
 import { useState } from "react";
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
+import { useNavigate } from "react-router-dom";
+import {
+  Box,
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  TextField,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
+import Grid from "@mui/material/Grid";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
 
+// IMPORT KOMPONEN TOMBOL BUATAN BOSS
+import AppButton from "../components/AppButton";
+
+// Data dummy makanan agar codingan lebih bersih dan tinggal di-map
 const foods = [
   {
     id: 1,
@@ -38,194 +55,136 @@ const foods = [
     price: "Rp. 15.000",
     image: "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=400",
   },
-  {id:6,
+  {
+    id: 6,
     category: "Desserts",
     name: "Es Krim Cokelat",
     price: "Rp. 15.000",
-    image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400"
-  }
+    image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400",
+  },
 ];
 
 function FoodMenuPage() {
+  // eslint-disable-next-line no-unused-vars
+  const navigate = useNavigate(); // Berjaga-jaga kalau Boss butuh navigasi nantinya
+
+  // State sementara untuk Select/Dropdown (Fungsinya belum jalan, cuma buat UI)
   const [search, setSearch] = useState("");
+  const [kategori, setKategori] = useState("");
+  const [sortBy, setSortBy] = useState("");
 
   return (
-    <div style={styles.page}>
-      {/* HEADER */}
-      <div style={styles.header}>
-        <Typography variant="h5" align="center" style={{ color: "#1c4b5c" }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        // Warna background biru tosca mirip seperti di gambar
+        backgroundColor: "#6B9CAE",
+        padding: { xs: 2, md: 5 },
+      }}
+    >
+      {/* 1. BAGIAN HEADER (Judul, Search Bar, & Filter) */}
+      <Card sx={{ maxWidth: 800, margin: "0 auto", padding: 3, borderRadius: 3, mb: 4, boxShadow: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: "bold", textAlign: "center", color: "#548394", mb: 0.5 }}>
           Food Menu
         </Typography>
-        <Typography variant="body2" align="center" style={{ color: "#888", marginBottom: 16 }}>
+        <Typography variant="body2" sx={{ textAlign: "center", color: "text.secondary", mb: 3 }}>
           Discover delicious meals just for you
         </Typography>
 
-        <input
-          type="text"
+        {/* Search Field */}
+        <TextField
+          fullWidth
+          size="small"
           placeholder="Search for food..."
+          variant="outlined"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={styles.searchInput}
+          sx={{ mb: 2 }}
         />
 
-        <div style={styles.filterRow}>
-          <select style={styles.select}>
-            <option>Kategori</option>
-            <option>Indonesian Food</option>
-            <option>Western Food</option>
-            <option>Asian Food</option>
-            <option>Desserts</option>
-          </select>
-          <select style={styles.select}>
-            <option>Sort By</option>
-          </select>
-        </div>
-      </div>
+        {/* Dropdown Kategori & Sort By */}
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Kategori</InputLabel>
+            <Select
+              value={kategori}
+              label="Kategori"
+              onChange={(e) => setKategori(e.target.value)}
+            >
+              <MenuItem value="indo">Indonesian</MenuItem>
+              <MenuItem value="western">Western</MenuItem>
+              <MenuItem value="asian">Asian</MenuItem>
+              <MenuItem value="dessert">Desserts</MenuItem>
+            </Select>
+          </FormControl>
 
-      {/* GRID MAKANAN */}
-      <div style={styles.grid}>
-        {foods.map((food) => (
-          <div key={food.id} style={styles.card}>
-            <img src={food.image} alt={food.name} style={styles.cardImage} />
-            <div style={styles.cardBody}>
-              <span style={styles.category}>{food.category}</span>
-              <p style={styles.foodName}>{food.name}</p>
-              <p style={styles.price}>{food.price}</p>
-              <p style={styles.available}>Available</p>
-              <Button
-                variant="contained"
-                fullWidth
-                sx={{ background: "linear-gradient(135deg, #2b7f9a, #4a9b7f)", fontWeight: 600 }}
-              >
-                Add to Cart
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Sort By</InputLabel>
+            <Select
+              value={sortBy}
+              label="Sort By"
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <MenuItem value="price">Price</MenuItem>
+              <MenuItem value="name">Name</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+      </Card>
 
-      {/* FOOTER / PAGINATION */}
-      <div style={styles.footer}>
-        <div style={styles.pageSize}>
-          <span>Page Size</span>
-          <select style={styles.select}>
-            <option>8</option>
-          </select>
-        </div>
+      {/* 2. BAGIAN GRID DAFTAR MAKANAN */}
+      <Box sx={{ maxWidth: 1000, margin: "0 auto" }}>
+        <Grid container spacing={3} justifyContent="center">
+          {/* Mapping data array menjadi barisan Card */}
+          {foods.map((food) => (
+            <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={food.id}>
+              <Card sx={{ borderRadius: 3, boxShadow: 3, height: "100%", display: "flex", flexDirection: "column" }}>
+                {/* Gambar Makanan */}
+                <CardMedia component="img" height="140" image={food.image} alt={food.name} />
 
-        <div style={styles.pageNumber}>1</div>
+                <CardContent sx={{ flexGrow: 1, padding: 2 }}>
+                  {/* Badge Label Kategori */}
+                  <Box
+                    sx={{
+                      backgroundColor: "#E4F0F6",
+                      color: "#548394",
+                      display: "inline-block",
+                      padding: "4px 8px",
+                      borderRadius: "12px",
+                      fontSize: "10px",
+                      fontWeight: "bold",
+                      mb: 1,
+                    }}
+                  >
+                    {food.category}
+                  </Box>
 
-        <span style={styles.showingText}>Showing 1-5 of 5 items</span>
-      </div>
-    </div>
+                  {/* Nama dan Harga Makanan */}
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                    {food.name}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: "#548394", fontWeight: "bold", mb: 2 }}>
+                    {food.price}
+                  </Typography>
+
+                  {/* Bintang dan Ketersediaan */}
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                    <StarBorderIcon fontSize="small" sx={{ color: "#BDBDBD" }} />
+                    <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "10px" }}>
+                      Available
+                    </Typography>
+                  </Box>
+
+                  {/* Menggunakan AppButton buatan Boss! */}
+                  <AppButton>Add to Cart</AppButton>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    </Box>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: "100vh",
-    padding: "30px",
-    background: "linear-gradient(135deg, #1e5f66, #3d8f95, #5fada0)",
-  },
-  header: {
-    background: "#fff",
-    borderRadius: "16px",
-    padding: "20px 30px",
-    maxWidth: "700px",
-    margin: "0 auto 30px",
-    boxShadow: "0 20px 50px rgba(0,0,0,0.2)",
-  },
-  searchInput: {
-    width: "100%",
-    padding: "10px",
-    border: "1px solid #d8dee8",
-    borderRadius: "8px",
-    marginBottom: "10px",
-    boxSizing: "border-box",
-    fontSize: "14px",
-  },
-  filterRow: {
-    display: "flex",
-    gap: "10px",
-  },
-  select: {
-    padding: "8px",
-    border: "1px solid #d8dee8",
-    borderRadius: "8px",
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-    gap: "20px",
-    maxWidth: "1000px",
-    margin: "0 auto",
-  },
-  card: {
-    background: "#fff",
-    borderRadius: "12px",
-    overflow: "hidden",
-    boxShadow: "0 20px 50px rgba(0,0,0,0.15)",
-  },
-  cardImage: {
-    width: "100%",
-    height: "100px",
-    objectFit: "cover",
-  },
-  cardBody: {
-    padding: "12px",
-  },
-  category: {
-    color: "#2b7f9a",
-    fontSize: "11px",
-    fontWeight: "bold",
-  },
-  foodName: {
-    fontWeight: "bold",
-    margin: "6px 0 2px",
-  },
-  price: {
-    color: "#1c4b5c",
-    fontWeight: "bold",
-    margin: "0 0 6px",
-  },
-  available: {
-    fontSize: "11px",
-    color: "#888",
-    marginBottom: "8px",
-  },
-  footer: {
-    maxWidth: "1000px",
-    margin: "30px auto 0",
-    background: "#fff",
-    borderRadius: "16px",
-    padding: "12px 20px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    boxShadow: "0 20px 50px rgba(0,0,0,0.2)",
-  },
-  pageSize: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    fontSize: "13px",
-    color: "#888",
-  },
-  pageNumber: {
-    background: "#2b7f9a",
-    color: "#fff",
-    width: "26px",
-    height: "26px",
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "13px",
-  },
-  showingText: {
-    fontSize: "13px",
-    color: "#888",
-  },
-};
 
 export default FoodMenuPage;
