@@ -1,55 +1,17 @@
-import { useState } from "react";
-import Button from '@mui/material/Button';
-import AppButton from "./commponents/AppButton";
-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-
-const theme = createTheme();
+import { Routes, Route } from "react-router-dom";
+import loginPage from "./components/pages/login";
+import ExamplePage from "./components/pages/Example";
+import RegisterPage from "./components/pages/register";
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <div style={{ display: "flex", gap: "15px", alignItems: "center", padding: "20px" }}>
-        {/* MANUAL */}
-        <button
-          onClick={() => setCount((count) => count + 1)}
-          style={{
-            backgroundColor: "#1976d2",
-            borderRadius: "5px",
-            border: "none",
-            color: "#FFF",
-            padding: "8px 16px",
-            cursor: "pointer",
-            fontWeight: "bold"
-          }}
-        >
-          MUI
-        </button>
-
-        {/* MENGGUNAKAN MUI */}
-        <Button
-          variant="contained"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          MUI
-        </Button>
-
-        {/* MENGGUNAKAN CUSTOM COMPONENT */}
-        <AppButton onClick={() => setCount((count) => count + 1)}>
-          Tambah 1
-        </AppButton>
-        <AppButton onClick={() => setCount((count) => count + 2)}>
-          Tambah 2
-        </AppButton>
-
-        {/* HASIL */}
-        <span style={{ fontSize: "20px", fontWeight: "bold" }}>
-          Count: {count}
-        </span>
-      </div>
-    </ThemeProvider>
+    <Routes>
+      <Route index element={<ExamplePage />} />
+      <Route path="login" element={<LoginPage />} />
+      <Route path="login/:value" element={<LoginPage />} />
+      <Route path="register" element={<RegisterPage />} />
+      <Route path="example" element={<ExamplePage />} />
+    </Routes>
   );
 }
 
