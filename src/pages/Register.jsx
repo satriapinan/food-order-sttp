@@ -3,7 +3,7 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
-import AppButton from '../components/AppButton';
+import AppButton2 from '../components/AppButton2';
 import {NavLink } from 'react-router-dom';
 
 function RegisterPage() {
@@ -52,7 +52,7 @@ function RegisterPage() {
           type="Confirm Password"
           autoComplete="current-password"
         />
-        <AppButton>Create Account</AppButton>
+        <AppButton2>Create Account</AppButton2>
         </Stack>
         <Typography variant="subtitle1" align='center'>
         Already Have Account?

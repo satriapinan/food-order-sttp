@@ -8,10 +8,7 @@ import {NavLink } from 'react-router-dom';
 
 
 function LoginPage() {
-    // const navigate = useNavigate();
-    // const toExample = () => {
-    //     navigate("/example")
-    // };
+
   return (
     <Box 
     sx={{
@@ -55,15 +52,6 @@ function LoginPage() {
         Sign up Here
       </Typography>
       </NavLink>
-      {/* <Stack>
-      <button onClick={toExample} variant="outlined"
-        >Pindah Halaman</button>
-        <Link to="/example">
-        <button onClick={toExample} variant="outlined"
-        >Pindah Halaman Menggunakan Link</button>
-        </Link>
-        <NavLink to="/example">Pindah Halaman Menggunakan NavLink</NavLink>
-        </Stack> */}
       </CardContent>
     </Card>
     </Container>

@@ -9,16 +9,16 @@ const styles ={
   }
 }
 
-const AppButton = ({ onClick, children }) => {
+const AppButton2 = ({ onClick, children }) => {
   return (
     <Button
       onClick={onClick}
       sx={styles.button}
-      href="/menu"
+      href="/login"
     >
       {children}
     </Button>
   );
 };
 
-export default AppButton;
+export default AppButton2;
