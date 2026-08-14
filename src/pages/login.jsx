@@ -1,17 +1,23 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
+import Link from "@mui/material/Link";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
+import { useParams, useSearchParams } from "react-router-dom";
 
-function Login() {
+export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+
+    // React Router hooks untuk menangkap parameter URL dan query string
+    const { value } = useParams();
+    const [searchParams] = useSearchParams();
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -53,7 +59,9 @@ function Login() {
                     align="center"
                     sx={{ color: "#757575", mb: 4 }}
                 >
-                    Sign in to your account
+                    Sign in to your account 
+                    {value ? ` - ${value}` : ""} 
+                    {searchParams.get("id") ? ` (ID: ${searchParams.get("id")})` : ""}
                 </Typography>
 
                 <form onSubmit={handleSubmit}>
@@ -113,18 +121,17 @@ function Login() {
                             sx={{ color: "#757575", mt: 1 }}
                         >
                             Don't have an account?{" "}
-                            <Typography
-                                component="span"
-                                onClick={() => alert("Membuka Halaman Registrasi")}
+                            <Link
+                                href="/register"
+                                underline="hover"
                                 sx={{
                                     color: "#c2185b",
                                     fontWeight: "bold",
                                     cursor: "pointer",
-                                    "&:hover": { textDecoration: "underline" },
                                 }}
                             >
                                 Sign up here
-                            </Typography>
+                            </Link>
                         </Typography>
                     </Stack>
                 </form>
@@ -132,5 +139,3 @@ function Login() {
         </Box>
     );
 }
-
-export default Login;
