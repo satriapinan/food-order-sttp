@@ -1,19 +1,17 @@
 import {
-  BrowserRouter,
   Routes,
   Route,
   Navigate,
-} from "react-router-dom";
-
+} from "react-router";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import FoodMenu from "./pages/FoodMenu";
-
+import AppLayout from "./components/AppLayout";
 import "./App.css";
 
 function App() {
   return (
-    <BrowserRouter>
+    <AppLayout>
       <Routes>
 
         <Route
@@ -35,9 +33,8 @@ function App() {
           path="/menu"
           element={<FoodMenu />}
         />
-
       </Routes>
-    </BrowserRouter>
+    </AppLayout>
   );
 }
 

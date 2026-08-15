@@ -3,16 +3,18 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
 import App from "./App.jsx";
-import AuthProviders from "./providers/AuthProvider.jsx";
-
+import { AuthProvider } from './providers/AuthProvider.jsx'
+import { ThemeProvider } from './hooks/useTheme.js'
 import "./index.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProviders>
+     <ThemeProvider>
+      <AuthProvider>
         <App />
-      </AuthProviders>
+      </AuthProvider>
+    </ThemeProvider>
     </BrowserRouter>
   </StrictMode>
 );
