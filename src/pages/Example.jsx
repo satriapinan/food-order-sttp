@@ -1,5 +1,5 @@
 import { useState } from "react";
-import AppButton from "./components/AppButton";
+import AppButton from "../components/AppButton";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import { Link, NavLink, useNavigate } from "react-router";
@@ -7,6 +7,13 @@ import { Link, NavLink, useNavigate } from "react-router";
 const styles = {}; 
 
 function ExamplePage() {
+  const navigate = useNavigate();
+
+  const tologin = () => {
+    // window.location.href = "/login";
+    navigate("/login");
+  };
+  
   const [count, setCount] = useState(0); 
   const show = true;
 
@@ -64,4 +71,4 @@ function ExamplePage() {
   );
 }
 
-export default ExamplePage; // Perbaikan 3: Disesuaikan dengan nama fungsi (ExamplePage)
+export default ExamplePage; 
