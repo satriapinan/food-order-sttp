@@ -1,29 +1,43 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
 import Link from "@mui/material/Link";
 import InputAdornment from "@mui/material/InputAdornment";
-import PersonIcon from "@mui/icons-material/Person";
 import LockIcon from "@mui/icons-material/Lock";
+import EmailIcon from "@mui/icons-material/Email";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
-export default function Login() {
+const loginSchema = Yup.object({
+  email: Yup.string()
+    .email("Format email tidak valid")
+    .required("Email harus diisi"),
+  password: Yup.string()
+    .min(6, "Password minimal 6 karakter")
+    .required("Password harus diisi"),
+});
+
+export default function LoginPage() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const { login } = useAuth();
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    alert(`Login Berhasil! Welcome back, ${username}`);
-  };
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validationSchema: loginSchema,
+    onSubmit: (values) => {
+      login({ email: values.email });
+      navigate("/food-order");
+    },
+  });
 
   return (
     <>
@@ -54,7 +68,7 @@ export default function Login() {
           }}
         >
           <Grid container sx={{ flex: 1 }}>
-            {/* SISI KIRI: BANNER GRADIENT */}
+            {/* BANNER GRADIENT KIRI */}
             <Grid
               item
               xs={12}
@@ -69,14 +83,14 @@ export default function Login() {
               }}
             >
               <Typography variant="h3" sx={{ fontWeight: 800, mb: 2, lineHeight: 1.2 }}>
-                Welcome to 
+                Welcome to
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.85, fontSize: "0.95rem" }}>
                 STTP Food Order Application Kelola pemesanan makanan kamu dengan cepat dan efisien
               </Typography>
             </Grid>
 
-            {/* SISI KANAN: FORM LOGIN */}
+            {/* FORM LOGIN KANAN */}
             <Grid
               item
               xs={12}
@@ -105,20 +119,25 @@ export default function Login() {
                   User Login
                 </Typography>
 
-                <form onSubmit={handleLogin}>
-                  {/* USERNAME */}
+                <form onSubmit={formik.handleSubmit}>
+                  {/* EMAIL */}
                   <TextField
                     fullWidth
-                    placeholder="Username"
+                    id="email"
+                    name="email"
+                    placeholder="Email"
                     variant="outlined"
                     margin="normal"
                     size="small"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    value={formik.values.email}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.touched.email && Boolean(formik.errors.email)}
+                    helperText={formik.touched.email && formik.errors.email}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <PersonIcon sx={{ color: "#a0aec0" }} />
+                          <EmailIcon sx={{ color: "#a0aec0" }} />
                         </InputAdornment>
                       ),
                       sx: {
@@ -133,13 +152,18 @@ export default function Login() {
                   {/* PASSWORD */}
                   <TextField
                     fullWidth
+                    id="password"
+                    name="password"
                     type="password"
                     placeholder="Password"
                     variant="outlined"
                     margin="normal"
                     size="small"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={formik.values.password}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.touched.password && Boolean(formik.errors.password)}
+                    helperText={formik.touched.password && formik.errors.password}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -155,33 +179,8 @@ export default function Login() {
                     }}
                   />
 
-                  {/* REMEMBER ME & FORGOT PASSWORD */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      my: 1.5,
-                    }}
-                  >
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          size="small"
-                          checked={rememberMe}
-                          onChange={(e) => setRememberMe(e.target.checked)}
-                          sx={{ color: "#764ba2", "&.Mui-checked": { color: "#764ba2" } }}
-                        />
-                      }
-                      label={<Typography variant="caption" sx={{ color: "#718096" }}>Remember</Typography>}
-                    />
-                    <Link href="#" variant="caption" underline="hover" sx={{ color: "#a0aec0" }}>
-                      Forgot password?
-                    </Link>
-                  </Box>
-
                   {/* TOMBOL LOGIN */}
-                  <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                  <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
                     <Button
                       type="submit"
                       variant="contained"

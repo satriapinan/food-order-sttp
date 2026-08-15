@@ -106,7 +106,7 @@ export default function FoodMenu() {
                 },
               }}
             >
-              {isDarkMode ? "LIGHT MODE ☀️" : "DARK MODE 🌙"}
+              {isDarkMode ? "LIGHT MODE " : "DARK MODE "}
             </Button>
           </Box>
 

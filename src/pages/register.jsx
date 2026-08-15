@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
@@ -7,28 +9,40 @@ import TextField from "@mui/material/TextField";
 import Link from "@mui/material/Link";
 import InputAdornment from "@mui/material/InputAdornment";
 import PersonIcon from "@mui/icons-material/Person";
-import BadgeIcon from "@mui/icons-material/Badge";
+import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
 import Button from "@mui/material/Button";
-import { useNavigate } from "react-router-dom";
 
-export default function Register() {
+const registerSchema = Yup.object({
+  name: Yup.string().required("Nama harus diisi"),
+  email: Yup.string()
+    .email("Format email tidak valid")
+    .required("Email harus diisi"),
+  password: Yup.string()
+    .min(6, "Password minimal 6 karakter")
+    .required("Password harus diisi"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("password")], "Password tidak cocok")
+    .required("Konfirmasi password harus diisi"),
+});
+
+export default function RegisterPage() {
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-
-  const handleRegister = (e) => {
-    e.preventDefault();
-    if (password !== confirmPassword) {
-      alert("Password dan Confirm Password tidak cocok!");
-      return;
-    }
-    alert(`Registrasi Berhasil!\nUsername: ${username}`);
-    navigate("/login");
-  };
+  const formik = useFormik({
+    initialValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+    validationSchema: registerSchema,
+    onSubmit: (values) => {
+      console.log("Register data:", values);
+      alert("Register berhasil! Silakan login.");
+      navigate("/login");
+    },
+  });
 
   return (
     <>
@@ -75,16 +89,21 @@ export default function Register() {
             Join us today and get started
           </Typography>
 
-          <form onSubmit={handleRegister}>
-            {/* USERNAME */}
+          <form onSubmit={formik.handleSubmit}>
+            {/* NAME */}
             <TextField
               fullWidth
-              placeholder="Username"
+              id="name"
+              name="name"
+              placeholder="Full Name"
               variant="outlined"
               margin="dense"
               size="small"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={formik.values.name}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.name && Boolean(formik.errors.name)}
+              helperText={formik.touched.name && formik.errors.name}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -100,19 +119,24 @@ export default function Register() {
               }}
             />
 
-            {/* FULL NAME */}
+            {/* EMAIL */}
             <TextField
               fullWidth
-              placeholder="Full Name"
+              id="email"
+              name="email"
+              placeholder="Email"
               variant="outlined"
               margin="dense"
               size="small"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              value={formik.values.email}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.email && Boolean(formik.errors.email)}
+              helperText={formik.touched.email && formik.errors.email}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <BadgeIcon sx={{ color: "#a0aec0" }} />
+                    <EmailIcon sx={{ color: "#a0aec0" }} />
                   </InputAdornment>
                 ),
                 sx: {
@@ -127,13 +151,18 @@ export default function Register() {
             {/* PASSWORD */}
             <TextField
               fullWidth
+              id="password"
+              name="password"
               type="password"
               placeholder="Password"
               variant="outlined"
               margin="dense"
               size="small"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.password && Boolean(formik.errors.password)}
+              helperText={formik.touched.password && formik.errors.password}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -152,13 +181,23 @@ export default function Register() {
             {/* CONFIRM PASSWORD */}
             <TextField
               fullWidth
+              id="confirmPassword"
+              name="confirmPassword"
               type="password"
               placeholder="Confirm Password"
               variant="outlined"
               margin="dense"
               size="small"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              value={formik.values.confirmPassword}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={
+                formik.touched.confirmPassword &&
+                Boolean(formik.errors.confirmPassword)
+              }
+              helperText={
+                formik.touched.confirmPassword && formik.errors.confirmPassword
+              }
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
