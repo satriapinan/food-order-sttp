@@ -12,21 +12,49 @@ import {
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import AppButton from "../components/AppButton";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+
+const loginSchema = Yup.object({
+  email: Yup.string()
+    .email("Format email tidak valid")
+    .required("Email harus diisi"),
+  password: Yup.string()
+    .min(6, "Password minimal 6 karakter")
+    .required("Password harus diisi"),
+});
 
 function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
+
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validationSchema: loginSchema,
+    onSubmit: (values) => {
+      login({ email: values.email });
+      navigate("/foodmenu");
+    },
+  });
+
   return (
     <Box
       sx={{
-        // Mengubah background utama
         height: "100vh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(to bottom right, #8b0000, #3e0000)",
+        // background: "linear-gradient(to bottom right, #8b0000, #3e0000)",
         padding: 2,
       }}
     >
@@ -41,7 +69,6 @@ function LoginPage() {
         <CardContent
           sx={{ display: "flex", flexDirection: "column", gap: 2, padding: 4 }}
         >
-          {/* Bagian Judul */}
           <Box sx={{ textAlign: "center", marginBottom: 2 }}>
             <Typography
               variant="h5"
@@ -57,36 +84,57 @@ function LoginPage() {
             </Typography>
           </Box>
 
-          {/* Form Input */}
-          <TextField label="Username" variant="outlined" fullWidth />
+          <form
+            onSubmit={formik.handleSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+          >
+            <TextField
+              label="Email"
+              type="email"
+              name="email"
+              variant="outlined"
+              fullWidth
+              value={formik.values.email}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.email && Boolean(formik.errors.email)}
+              helperText={formik.touched.email && formik.errors.email}
+            />
 
-          <TextField
-            label="Password"
-            type={showPassword ? "text" : "password"}
-            variant="outlined"
-            fullWidth
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={handleClickShowPassword} edge="end">
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
+            <TextField
+              label="Password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              variant="outlined"
+              fullWidth
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.password && Boolean(formik.errors.password)}
+              helperText={formik.touched.password && formik.errors.password}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={handleClickShowPassword} edge="end">
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
 
-          {/* Tombol Login */}
-          <AppButton fullWidth>Masuk</AppButton>
+            <AppButton type="submit" fullWidth>
+              Masuk
+            </AppButton>
+          </form>
 
-          {/* Link Sign Up */}
           <Typography
             variant="body2"
             sx={{ textAlign: "center", marginTop: 2, color: "text.secondary" }}
           >
-            Belum punya akun?
+            Belum punya akun?{" "}
             <Link
               href="/register"
               underline="hover"

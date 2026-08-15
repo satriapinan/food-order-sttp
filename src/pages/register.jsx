@@ -32,7 +32,7 @@ function RegisterPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(to bottom right, #8b0000, #3e0000)",
+        // background: "linear-gradient(to bottom right, #8b0000, #3e0000)",
         padding: 2,
       }}
     >
