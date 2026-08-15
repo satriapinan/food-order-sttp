@@ -2,44 +2,78 @@ import { Link } from "react-router-dom";
 
 function Login() {
   return (
-    <div className="container">
-      <div className="login-card">
-        <h1>Food Order</h1>
+    <>
+      <style>{`
+        .login-button {
+          width: 100%;
+          display: block;
+          padding: 14px;
+          margin-top: 5px;
 
-        <p>Login ke Dalam Sistem</p>
+          border-radius: 10px;
+          border: none;
 
-        <form>
-          <div className="input-group">
-            <label>Username</label>
+          background: #22c55e;
+          color: white;
 
-            <input
-              type="text"
-              placeholder="Masukkan username"
-            />
+          text-align: center;
+          text-decoration: none;
+
+          font-size: 16px;
+          font-weight: bold;
+
+          transition: 0.3s;
+          box-sizing: border-box;
+          cursor: pointer;
+        }
+
+        .login-button:hover {
+          background: #16a34a;
+          transform: translateY(-2px);
+        }
+      `}</style>
+
+      <div className="container">
+        <div className="login-card">
+          <h1>Food Order</h1>
+
+          <p>Login ke Dalam Sistem</p>
+
+          <form>
+            <div className="input-group">
+              <label htmlFor="username">Username</label>
+
+              <input
+                id="username"
+                type="text"
+                placeholder="Masukkan username"
+              />
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="password">Password</label>
+
+              <input
+                id="password"
+                type="password"
+                placeholder="Masukkan password"
+              />
+            </div>
+
+            <Link to="/menu" className="login-button">
+              LOGIN
+            </Link>
+          </form>
+
+          <div className="register-link">
+            Belum punya akun?{" "}
+            <Link to="/register">
+              Register
+            </Link>
           </div>
-
-          <div className="input-group">
-            <label>Password</label>
-
-            <input
-              type="password"
-              placeholder="Masukkan password"
-            />
-          </div>
-
-          <button type="submit">
-            LOGIN
-          </button>
-        </form>
-
-        <div className="register-link">
-          Belum punya akun?{" "}
-          <Link to="/register">
-            Register
-          </Link>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

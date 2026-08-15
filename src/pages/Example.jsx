@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import AppButton from "../components/AppButton";
 import Button from "@mui/material/Button";
@@ -35,6 +35,10 @@ function ExamplePage() {
   const toLogin = () => {
     navigate("/login");
   };
+
+useEffect(() => {
+  console.log("Component mounted or updated", count);
+}, [count]);
 
   return (
     <Grid container spacing={2}>
