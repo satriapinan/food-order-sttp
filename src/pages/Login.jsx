@@ -1,23 +1,47 @@
+import * as Yup from "yup";
 import { Card, CardContent, TextField } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
-import Box from '@mui/material/Box';
+// import Box from '@mui/material/Box';
 import AppButton from '../components/AppButton';
-import {NavLink } from 'react-router-dom';
+import {NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from "../hooks/useAuth";
+import { useFormik } from "formik";
 
+const loginScema = Yup.object({
+  email: Yup.string()
+  .email("Format email yang anda masukkan salah")
+  .required("email harus diisi"),
+  password: Yup.string()
+  .min(6,"password minimal 6 karakter")
+  .required("password harus diisi"),
+});
 
 function LoginPage() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validationSchema: loginScema,
+    onSubmit: (values) => {
+      login({ email: values.email});
+      navigate("/food-order");
+    },
+  });
 
   return (
-    <Box 
-    sx={{
-      backgroundColor: 'primary.main',
-      display: 'flex',
-      minHeight: '100vh',
-      alignItems: 'center',
-    }}
-    >
+    // <Box 
+    // sx={{
+    //   backgroundColor: 'primary.main',
+    //   display: 'flex',
+    //   minHeight: '100vh',
+    //   alignItems: 'center',
+    // }}
+    // >
     <Container maxWidth='xs'>
     <Card sx={{ maxWidth: 400 }}>
       <CardContent>
@@ -29,21 +53,31 @@ function LoginPage() {
         Sign in to your account
       </Typography>
       </div>
+        <form onSubmit={formik.handleSubmit}>
         <Stack spacing={2}>
          <TextField
-          id="outlined-password-input"
-          label="username"
-          type="username"
-          autoComplete="current-password"
+          label="Email"
+          type="email"
+          name="email"
+          value={formik.values.email}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.email && Boolean(formik.errors.email)}
+          helperText={formik.touched.email && formik.errors.email}
         />
          <TextField
-          id="outlined-password-input"
           label="Password"
-          type="Password"
-          autoComplete="current-password"
+          type="password"
+          name="password"
+          value={formik.values.password}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.password && Boolean(formik.errors.password)}
+          helperText={formik.touched.password && formik.errors.password}
         />
-        <AppButton>Sign in</AppButton>
+        <AppButton type="submit">Sign in</AppButton>
         </Stack>
+        </form>
         <Typography variant="subtitle1" align='center'>
         don't have an account?
       </Typography>
@@ -55,7 +89,7 @@ function LoginPage() {
       </CardContent>
     </Card>
     </Container>
-    </Box>
+  //</Box>
   );
 }
 export default LoginPage
