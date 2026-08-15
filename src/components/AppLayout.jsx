@@ -24,13 +24,11 @@ const AppLayout = ({ children }) => {
       >
         <Button
           onClick={toggleTheme}
-          variant="contained"
+          variant="text"
           size="small"
           sx={{
-            textTransform: "none",
             backgroundColor: isDark ? "#2a2a2a" : "#fff",
             color: isDark ? "#fff" : "#000",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
             "&:hover": {
               backgroundColor: isDark ? "#3a3a3a" : "#f0f0f0",
             },

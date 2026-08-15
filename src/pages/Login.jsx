@@ -1,37 +1,37 @@
-import { useState } from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { Link, useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 import AppButton from "../components/AppButton";
 import AppTextField from "../components/AppTextField";
 import AppCard from "../components/AppCard";
 import { useAuth } from "../hooks/useAuth";
 
+const loginSchema = Yup.object({
+  email: Yup.string()
+    .email("Format email tidak valid")
+    .required("Email harus diisi"),
+  password: Yup.string()
+    .min(6, "Password minimal 6 karakter")
+    .required("Password harus diisi"),
+});
+
 function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validationSchema: loginSchema,
+    onSubmit: (values) => {
+      login({ email: values.email });
+      navigate("/food-order");
+    },
   });
-
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleLogin = () => {
-    if (!form.email || !form.password) {
-      alert("Email dan Password harus diisi!");
-      return;
-    }
-
-    login({ email: form.email });
-    navigate("/food-order");
-  };
 
   return (
     <Box
@@ -43,30 +43,44 @@ function LoginPage() {
       }}
     >
       <AppCard>
-        <Typography variant="h5" sx={{ fontWeight: "bold", marginBottom: "8px" }}>
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: "bold", marginBottom: "8px" }}
+        >
           Login
         </Typography>
-        <Typography variant="body2" sx={{ color: "#888", marginBottom: "24px" }}>
+        <Typography
+          variant="body2"
+          sx={{ color: "#888", marginBottom: "24px" }}
+        >
           Masuk ke akun Food Order kamu
         </Typography>
 
-        <AppTextField
-          label="Email"
-          type="email"
-          name="email"
-          value={form.email}
-          onChange={handleChange}
-        />
+        <form onSubmit={formik.handleSubmit}>
+          <AppTextField
+            label="Email"
+            type="email"
+            name="email"
+            value={formik.values.email}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.email && Boolean(formik.errors.email)}
+            helperText={formik.touched.email && formik.errors.email}
+          />
 
-        <AppTextField
-          label="Password"
-          type="password"
-          name="password"
-          value={form.password}
-          onChange={handleChange}
-        />
+          <AppTextField
+            label="Password"
+            type="password"
+            name="password"
+            value={formik.values.password}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.password && Boolean(formik.errors.password)}
+            helperText={formik.touched.password && formik.errors.password}
+          />
 
-        <AppButton onClick={handleLogin}>Login</AppButton>
+          <AppButton type="submit">Login</AppButton>
+        </form>
 
         <Typography
           variant="body2"

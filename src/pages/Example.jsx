@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AppButton from "../components/AppButton";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
@@ -34,6 +34,10 @@ function ExamplePage() {
     navigate("/login");
   };
 
+  useEffect(() => {
+    console.log("Count has changed:", count);
+  }, [count]);
+
   if (show) {
     return (
       <Grid container>
@@ -48,24 +52,23 @@ function ExamplePage() {
         </Grid>
 
         {/* MENGGUNAKAN MUI */}
-        {count > 1 && (
-          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
-            <Button
-              variant="text"
-              color="primary"
-              onClick={() => setCount((count) => count + 1)}
-              sx={{
-                width: "100%",
-                backgroundColor: { xs: "#FF12", sm: "#FF1213", md: "#FF12AD" },
-                color: count < 5 ? "#FFF" : "#f2d600",
-                borderRadius: "5px",
-                boxShadow: "none",
-              }}
-            >
-              MUI
-            </Button>
-          </Grid>
-        )}
+
+        <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+          <Button
+            variant="text"
+            color="primary"
+            onClick={() => setCount((count) => count + 1)}
+            sx={{
+              width: "100%",
+              backgroundColor: { xs: "#FF12", sm: "#FF1213", md: "#FF12AD" },
+              color: count < 5 ? "#FFF" : "#f2d600",
+              borderRadius: "5px",
+              boxShadow: "none",
+            }}
+          >
+            MUI
+          </Button>
+        </Grid>
 
         {/* MENGGUNAKAN CUSTOM COMPONENT */}
         <Grid item size={{ xs: 12, sm: 6, md: 3 }}>

@@ -1,10 +1,11 @@
 import Button from "@mui/material/Button";
 
-const AppButton = ({ onClick, children, sx = {} }) => {
+const AppButton = ({ onClick, children, type = "button", sx = {} }) => {
   return (
     <Button
       variant="contained"
       color="primary"
+      type={type}
       onClick={onClick}
       sx={{
         width: "100%",
