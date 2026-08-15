@@ -1,8 +1,9 @@
 import Button from "@mui/material/Button";
 
-const AppButton = ({ onClick, children }) => {
+const AppButton = ({ onClick, children, type = "button" }) => {
   return (
     <Button
+      type={type}
       variant="contained"
       onClick={onClick}
       sx={{
@@ -11,6 +12,11 @@ const AppButton = ({ onClick, children }) => {
         color: "#FFF",
         borderRadius: "5px",
         boxShadow: "none",
+        py: 1.2,
+        fontWeight: "bold",
+        "&:hover": {
+          backgroundColor: "#115293",
+        },
       }}
     >
       {children}
