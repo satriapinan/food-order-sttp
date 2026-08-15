@@ -28,7 +28,7 @@ import gadoGadoImg from "../assets/gado-gado.jpeg";
 const INITIAL_FOODS = [
   {
     id: 1,
-    name: "Nasi Goreng",
+    name: "Nasi Goreng ",
     category: "Makanan Indonesia",
     price: 25000,
     isAvailable: true,
