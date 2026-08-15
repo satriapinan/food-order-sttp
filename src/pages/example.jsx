@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AppButton from "../components/AppButton";
 import Button from "@mui/material/Button";
@@ -29,10 +29,13 @@ function ExamplePage() {
   const [count, setCount] = useState(0);
   const navigate = useNavigate();
 
-  const toLogin = () => {
-    // window.location.href = "/login";
+  const toLoginPage = () => {
     navigate("/login");
-  }
+  };
+
+  useEffect(() => {
+    console.log("Count has changed:", count);
+  }, [count]);
 
   if (show) {
     return (
@@ -40,7 +43,8 @@ function ExamplePage() {
         {/* MANUAL */}
         <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
           <button
-            onClick={toLogin}
+            type="button"
+            onClick={toLoginPage}
             style={count < 5 ? styles.button : styles.buttonB}
           >
             LOGIN
@@ -85,7 +89,6 @@ function ExamplePage() {
   } else {
     return <Typography>Tidak muncul</Typography>
   }
-  
 }
 
 export default ExamplePage;

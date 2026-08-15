@@ -1,107 +1,122 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 import AppButton from "../components/AppButton";
+import AppLayout from "../components/AppLayout";
+import { useAuth } from "../hooks/useAuth";
 import {
   Box,
   Container,
-  CssBaseline,
-  IconButton,
-  InputAdornment,
   Paper,
   Stack,
   TextField,
   Typography,
-  ThemeProvider,
-  createTheme,
 } from "@mui/material";
 
-const theme = createTheme();
+const loginSchema = Yup.object({
+  email: Yup.string()
+    .email("Format email tidak valid")
+    .required("Email harus diisi"),
+  password: Yup.string()
+    .min(6, "Password minimal 6 karakter")
+    .required("Password harus diisi"),
+});
 
 function LoginPage() {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validationSchema: loginSchema,
+    onSubmit: (values) => {
+      login({ email: values.email });
+      navigate("/dashboard");
+    },
   });
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const toggleShowPassword = () => {
-    setShowPassword((prev) => !prev);
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    alert(`Login dengan email ${formData.email}`);
-  };
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Container maxWidth="sm" sx={{ py: 6 }}>
-        <Paper elevation={2} sx={{ p: 4 }}>
-          <Typography variant="h5" gutterBottom>
-            Login
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Masukkan email dan password untuk masuk.
-          </Typography>
+    <AppLayout center={true}>
+      <Container maxWidth="xs">
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 4, sm: 5 },
+            bgcolor: "background.paper",
+          }}
+        >
+          <Box sx={{ textAlign: "center", mb: 4 }}>
+            <Typography
+              variant="h4"
+              fontWeight="bold"
+              color="primary.main"
+              gutterBottom
+            >
+              Welcome Back
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Masuk ke akun Food Order kamu
+            </Typography>
+          </Box>
 
-          <Box component="form" onSubmit={handleSubmit} noValidate>
-            <Stack spacing={2}>
+          <form onSubmit={formik.handleSubmit}>
+            <Stack spacing={2.5}>
               <TextField
                 label="Email"
-                name="email"
                 type="email"
-                value={formData.email}
-                onChange={handleChange}
+                name="email"
+                value={formik.values.email}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.email && Boolean(formik.errors.email)}
+                helperText={formik.touched.email && formik.errors.email}
                 variant="outlined"
                 fullWidth
               />
               <TextField
                 label="Password"
+                type="password"
                 name="password"
-                type={showPassword ? "text" : "password"}
-                value={formData.password}
-                onChange={handleChange}
+                value={formik.values.password}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.password && Boolean(formik.errors.password)}
+                helperText={formik.touched.password && formik.errors.password}
                 variant="outlined"
                 fullWidth
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={toggleShowPassword}
-                        edge="end"
-                        size="small"
-                        aria-label="toggle password visibility"
-                      >
-                        {showPassword ? "🙈" : "👁"}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
               />
-              <AppButton type="submit" variant="contained" fullWidth>
+              <AppButton
+                type="submit"
+                variant="contained"
+                fullWidth
+                size="large"
+                sx={{ mt: 1 }}
+              >
                 Login
               </AppButton>
             </Stack>
-          </Box>
+          </form>
 
-          <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 3 }}>
-            Don't have an account?{' '}
-            <Link to="/register" style={{ color: "#1976d2", textDecoration: "none", fontWeight: 600 }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            align="center"
+            sx={{ mt: 4 }}
+          >
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              style={{ color: "#f97316", textDecoration: "none", fontWeight: 600 }}
+            >
               Sign up here
             </Link>
           </Typography>
         </Paper>
       </Container>
-    </ThemeProvider>
+    </AppLayout>
   );
 }
 
