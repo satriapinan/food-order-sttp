@@ -4,12 +4,11 @@ import Button from "@mui/material/Button";
 const AppButton = ({ onClick, children }) => {
   return (
     <Button
-      variant="text"
+      variant="contained"
       color="primary"
       onClick={onClick}
       sx={{
         width: "100%",
-        backgroundColor: "#1976",
         borderRadius: "5px",
         boxShadow: "none",
       }}
