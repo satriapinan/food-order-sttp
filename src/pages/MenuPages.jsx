@@ -28,7 +28,7 @@ const foodData = [
 ];
 
 function MenuPages() {
-  const navigate = useNavigate(); // Berjaga-jaga kalau Boss butuh navigasi nantinya
+  const navigate = useNavigate();
   
   // Dropdown
   const [kategori, setKategori] = useState("");

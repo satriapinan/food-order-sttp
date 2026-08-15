@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import AppButton from "../components/AppButton";
 import Button from "@mui/material/Button";
@@ -33,7 +33,11 @@ function ExamplePages() {
 
   const toLogin = () => {
     navigate("/login");
+    
   };
+  useEffect(() => {
+    console.log("count has change: ", count);
+  }, [count]);
 
   if (show) {
     return (
