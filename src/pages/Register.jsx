@@ -45,8 +45,7 @@ function RegisterPage() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        minHeight: "100vh",
-        backgroundColor: "#f5f5f5",
+        minHeight: "80vh",
       }}
     >
       <AppCard>

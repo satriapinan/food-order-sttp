@@ -1,6 +1,5 @@
 import TextField from "@mui/material/TextField";
 
-// CUSTOM COMPONENT TEXT FIELD
 const AppTextField = ({ label, type = "text", value, onChange, ...props }) => {
   return (
     <TextField

@@ -5,9 +5,11 @@ import { Link, useNavigate } from "react-router-dom";
 import AppButton from "../components/AppButton";
 import AppTextField from "../components/AppTextField";
 import AppCard from "../components/AppCard";
+import { useAuth } from "../hooks/useAuth";
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [form, setForm] = useState({
     email: "",
@@ -27,8 +29,7 @@ function LoginPage() {
       return;
     }
 
-    console.log("Login data:", form);
-    alert("Login berhasil!");
+    login({ email: form.email });
     navigate("/food-order");
   };
 
@@ -38,8 +39,7 @@ function LoginPage() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        minHeight: "100vh",
-        backgroundColor: "#f5f5f5",
+        minHeight: "80vh",
       }}
     >
       <AppCard>

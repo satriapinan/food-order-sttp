@@ -1,7 +1,6 @@
 import Button from "@mui/material/Button";
 
-// CUSTOM COMPONENT BUTTON
-const AppButton = ({ onClick, children }) => {
+const AppButton = ({ onClick, children, sx = {} }) => {
   return (
     <Button
       variant="contained"
@@ -11,6 +10,7 @@ const AppButton = ({ onClick, children }) => {
         width: "100%",
         borderRadius: "5px",
         boxShadow: "none",
+        ...sx,
       }}
     >
       {children}

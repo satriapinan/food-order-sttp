@@ -1,7 +1,6 @@
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 
-// CUSTOM COMPONENT CARD
 const AppCard = ({ children, sx = {} }) => {
   return (
     <Card
