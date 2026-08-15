@@ -3,7 +3,7 @@ import { ThemeContext } from "./ThemeContext";
 
 export const ThemeProvider = ({ children }) => {
   const [mode, setMode] = useState(
-    localStorage.getItem("theme") || "light"
+    localStorage.getItem("theme") ||  "light"
   );
 
   const toggleTheme = () => {
