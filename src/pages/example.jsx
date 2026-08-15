@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppButton from "../components/AppButton";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
@@ -32,7 +32,11 @@ function ExamplePage() {
   const toLogin = () => {
     // window.location.href = "/login";
     navigate("/login");
-  }
+  };
+
+  useEffect(() => {
+    console.log("Count has changed:", count);
+  }, [count]); 
 
   if (show) {
     return (
@@ -41,7 +45,7 @@ function ExamplePage() {
         <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
           <button
             onClick={toLogin}
-            style={count < 5 ? styles.buttonA : styles.buttonB}
+            style={count < 5 ? styles.button : styles.buttonB}
           >
             LOGIN
           </button>

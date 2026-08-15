@@ -1,4 +1,10 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import * as Yup from "yup";
+import { useFormik } from "formik";
+import { useAuth } from "../hooks/useAuth";
+import { useTheme } from "../hooks/useTheme";
+import AppButton from "../components/AppButton";
 import {
   Box,
   Typography,
@@ -28,7 +34,7 @@ import gadoGadoImg from "../assets/gado-gado.jpeg";
 const INITIAL_FOODS = [
   {
     id: 1,
-    name: "Nasi Goreng ",
+    name: "Nasi Goreng",
     category: "Makanan Indonesia",
     price: 25000,
     isAvailable: true,
@@ -64,15 +70,42 @@ const INITIAL_FOODS = [
   },
 ];
 
+// Skema Validasi Yup untuk Filter & Pencarian Makanan
+const foodMenuSchema = Yup.object({
+  searchQuery: Yup.string().max(50, "Pencarian maksimal 50 karakter"),
+  categoryFilter: Yup.string(),
+  sortBy: Yup.string(),
+});
+
 export default function FoodMenuPage() {
+  const navigate = useNavigate();
+  const auth = useAuth();
+  const user = auth?.user;
+  const logout = auth?.logout || (() => {});
+
+  const theme = useTheme();
+  const isDark = theme?.mode === "dark";
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   const [foods, setFoods] = useState(INITIAL_FOODS);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("All");
-  const [sortBy, setSortBy] = useState("default");
 
   // Status/state untuk notifikasi Snackbar
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+
+  // Menggunakan Formik untuk mengelola state filter dan pencarian
+  const formik = useFormik({
+    initialValues: {
+      searchQuery: "",
+      categoryFilter: "All",
+      sortBy: "default",
+    },
+    validationSchema: foodMenuSchema,
+  });
 
   // Mengubah status favorit (suka/bintang)
   const handleToggleFavorite = (id) => {
@@ -89,16 +122,18 @@ export default function FoodMenuPage() {
     setSnackbarOpen(true);
   };
 
-  // Memproses daftar makanan (pencarian, penyaringan kategori, pengurutan)
+  // Memproses daftar makanan berdasarkan nilai Formik
   const processedFoods = useMemo(() => {
     let result = [...foods];
+    const { searchQuery, categoryFilter, sortBy } = formik.values;
 
     // Filter berdasarkan kata kunci pencarian
     if (searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase();
-      result = result.filter((item) =>
-        item.name.toLowerCase().includes(query) ||
-        item.category.toLowerCase().includes(query)
+      result = result.filter(
+        (item) =>
+          item.name.toLowerCase().includes(query) ||
+          item.category.toLowerCase().includes(query)
       );
     }
 
@@ -117,69 +152,167 @@ export default function FoodMenuPage() {
     }
 
     return result;
-  }, [foods, searchQuery, categoryFilter, sortBy]);
+  }, [foods, formik.values]);
 
   return (
-    <Box sx={styles.container}>
+    <Box
+      sx={{
+        ...styles.container,
+        background: isDark
+          ? "linear-gradient(135deg, #121212 0%, #1e1e1e 50%, #2a081a 100%)"
+          : "linear-gradient(135deg, #fce4ec 0%, #f48fb1 50%, #ad1457 100%)",
+      }}
+    >
       <Box sx={styles.innerWrapper}>
-
         {/* Kontainer Kartu Header Atas */}
-        <Box sx={styles.headerCard}>
-          <Typography component="h1" variant="h3" sx={styles.headerTitle}>
-            Menu Makanan
-          </Typography>
-          <Typography variant="body1" sx={styles.headerSubtitle}>
-            Temukan makanan lezat khusus untuk Anda
-          </Typography>
-
-          <TextField
-            placeholder="Cari makanan..."
-            variant="outlined"
-            fullWidth
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "#c2185b" }} />
-                </InputAdornment>
-              ),
+        <Box
+          sx={{
+            ...styles.headerCard,
+            backgroundColor: isDark ? "#1e1e1e" : "#ffffff",
+            color: isDark ? "#ffffff" : "inherit",
+            boxShadow: isDark
+              ? "0px 12px 40px rgba(0, 0, 0, 0.6)"
+              : "0px 12px 40px rgba(173, 20, 87, 0.25)",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              width: "100%",
+              gap: 2,
             }}
-            sx={styles.searchField}
-          />
+          >
+            {/* Element kosong di kiri untuk menyeimbangkan posisi judul di tengah */}
+            <Box sx={{ flex: 1, display: { xs: "none", sm: "block" } }} />
 
-          <Box sx={styles.filtersRow}>
-            <Select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              displayEmpty
-              sx={styles.selectFilter}
+            <Typography
+              component="h1"
+              variant="h3"
+              sx={{
+                ...styles.headerTitle,
+                color: isDark ? "#f48fb1" : "#c2185b",
+                flex: { xs: "1", sm: "2" },
+                textAlign: "center",
+              }}
             >
-              <MenuItem value="All">Kategori</MenuItem>
-              <MenuItem value="Makanan Indonesia">Makanan Indonesia</MenuItem>
-              <MenuItem value="Makanan Barat">Makanan Barat</MenuItem>
-              <MenuItem value="Makanan Asia">Makanan Asia</MenuItem>
-            </Select>
+              Food Order
+            </Typography>
 
-            <Select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              displayEmpty
-              sx={styles.selectFilter}
-            >
-              <MenuItem value="default">Urutkan</MenuItem>
-              <MenuItem value="price-asc">Harga: Terendah - Tertinggi</MenuItem>
-              <MenuItem value="price-desc">Harga: Tertinggi - Terendah</MenuItem>
-              <MenuItem value="name-asc">Nama: A - Z</MenuItem>
-            </Select>
+            <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
+              <AppButton
+                onClick={handleLogout}
+                sx={{
+                  width: "auto",
+                  px: 3,
+                  py: 1,
+                  fontSize: "14px",
+                }}
+              >
+                Logout
+              </AppButton>
+            </Box>
+          </Box>
+
+          <Typography
+            variant="body1"
+            sx={{ marginTop: "8px", color: isDark ? "#bbb" : "#888" }}
+          >
+            Selamat datang, {user ? user.email : "Guest"}!
+          </Typography>
+
+          {/* Form Pencarian & Filter menggunakan Formik */}
+          <Box component="form" onSubmit={formik.handleSubmit} sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+            <TextField
+              placeholder="Cari makanan..."
+              variant="outlined"
+              fullWidth
+              name="searchQuery"
+              value={formik.values.searchQuery}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.searchQuery && Boolean(formik.errors.searchQuery)}
+              helperText={formik.touched.searchQuery && formik.errors.searchQuery}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: isDark ? "#f48fb1" : "#c2185b" }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                ...styles.searchField,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "30px",
+                  backgroundColor: isDark ? "#2d2d2d" : "#ffffff",
+                  color: isDark ? "#ffffff" : "inherit",
+                  paddingLeft: "15px",
+                  "& fieldset": { borderColor: isDark ? "#444" : "#f48fb1" },
+                  "&:hover fieldset": { borderColor: "#c2185b" },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#c2185b",
+                    borderWidth: "1.5px",
+                  },
+                },
+              }}
+            />
+
+            <Box sx={styles.filtersRow}>
+              <Select
+                name="categoryFilter"
+                value={formik.values.categoryFilter}
+                onChange={formik.handleChange}
+                displayEmpty
+                sx={{
+                  ...styles.selectFilter,
+                  backgroundColor: isDark ? "#2d2d2d" : "#ffffff",
+                  color: isDark ? "#ffffff" : "#4b5563",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: isDark ? "#444" : "#f48fb1",
+                  },
+                }}
+              >
+                <MenuItem value="All">Kategori (Semua)</MenuItem>
+                <MenuItem value="Makanan Indonesia">Makanan Indonesia</MenuItem>
+                <MenuItem value="Makanan Barat">Makanan Barat</MenuItem>
+                <MenuItem value="Makanan Asia">Makanan Asia</MenuItem>
+              </Select>
+
+              <Select
+                name="sortBy"
+                value={formik.values.sortBy}
+                onChange={formik.handleChange}
+                displayEmpty
+                sx={{
+                  ...styles.selectFilter,
+                  backgroundColor: isDark ? "#2d2d2d" : "#ffffff",
+                  color: isDark ? "#ffffff" : "#4b5563",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: isDark ? "#444" : "#f48fb1",
+                  },
+                }}
+              >
+                <MenuItem value="default">Urutkan </MenuItem>
+                <MenuItem value="price-asc">Harga: Terendah - Tertinggi</MenuItem>
+                <MenuItem value="price-desc">Harga: Tertinggi - Terendah</MenuItem>
+                <MenuItem value="name-asc">Nama: A - Z</MenuItem>
+              </Select>
+            </Box>
           </Box>
         </Box>
 
         {/* Grid Daftar Makanan */}
         <Grid container spacing={3.5} sx={styles.gridContainer}>
           {processedFoods.map((item) => (
-            <Grid item key={item.id} size={{ xs: 12, sm: 6, md: 3 }}>
-              <Box sx={styles.foodCard}>
+            <Grid key={item.id} size={{ xs: 12, sm: 6, md: 3 }}>
+              <Box
+                sx={{
+                  ...styles.foodCard,
+                  backgroundColor: isDark ? "#1e1e1e" : "#ffffff",
+                  color: isDark ? "#ffffff" : "inherit",
+                }}
+              >
                 {/* Gambar Makanan */}
                 <Box
                   component="img"
@@ -200,11 +333,23 @@ export default function FoodMenuPage() {
                     }}
                   />
 
-                  <Typography variant="h6" sx={styles.foodName}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      ...styles.foodName,
+                      color: isDark ? "#ffffff" : "#1f2937",
+                    }}
+                  >
                     {item.name}
                   </Typography>
 
-                  <Typography variant="h5" sx={styles.foodPrice}>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      ...styles.foodPrice,
+                      color: isDark ? "#f48fb1" : "#c2185b",
+                    }}
+                  >
                     Rp. {item.price.toLocaleString("id-ID")}
                   </Typography>
 
@@ -214,13 +359,19 @@ export default function FoodMenuPage() {
                       sx={styles.favButton}
                     >
                       {item.isFavorite ? (
-                        <StarIcon sx={{ color: "#370344ff" }} />
+                        <StarIcon sx={{ color: "#e91e63" }} />
                       ) : (
-                        <StarBorderIcon sx={{ color: "#d1d5db" }} />
+                        <StarBorderIcon sx={{ color: isDark ? "#666" : "#d1d5db" }} />
                       )}
                     </IconButton>
 
-                    <Typography variant="caption" sx={styles.statusText}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        ...styles.statusText,
+                        color: isDark ? "#aaa" : "#9ca3af",
+                      }}
+                    >
                       Tersedia
                     </Typography>
                   </Box>
@@ -240,7 +391,7 @@ export default function FoodMenuPage() {
           ))}
 
           {processedFoods.length === 0 && (
-            <Grid item size={{ xs: 12 }}>
+            <Grid size={{ xs: 12 }}>
               <Box sx={styles.noResultsBox}>
                 <Typography variant="h6" sx={{ color: "#ffffff", fontWeight: 600 }}>
                   Makanan tidak ditemukan. Silakan cari menu lain!
@@ -261,7 +412,13 @@ export default function FoodMenuPage() {
         <Alert
           onClose={() => setSnackbarOpen(false)}
           severity="success"
-          sx={{ width: "100%", borderRadius: "12px", fontWeight: "bold", backgroundColor: "#c2185b", color: "#fff" }}
+          sx={{
+            width: "100%",
+            borderRadius: "12px",
+            fontWeight: "bold",
+            backgroundColor: "#c2185b",
+            color: "#fff",
+          }}
         >
           {snackbarMessage}
         </Alert>
@@ -273,11 +430,11 @@ export default function FoodMenuPage() {
 const styles = {
   container: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #fce4ec 0%, #f48fb1 50%, #ad1457 100%)",
     padding: { xs: 2, sm: 4, md: 6 },
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    transition: "background 0.3s ease",
   },
   innerWrapper: {
     width: "100%",
@@ -287,39 +444,22 @@ const styles = {
     gap: 4,
   },
   headerCard: {
-    backgroundColor: "#ffffff",
     borderRadius: "28px",
     padding: { xs: 3, sm: 4, md: 5 },
-    boxShadow: "0px 12px 40px rgba(173, 20, 87, 0.25)",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     gap: 2.5,
+    transition: "all 0.3s ease",
   },
   headerTitle: {
     fontWeight: 800,
-    color: "#c2185b",
     fontSize: { xs: "32px", sm: "40px" },
     textAlign: "center",
   },
-  headerSubtitle: {
-    color: "#757575",
-    fontSize: "15px",
-    fontWeight: 500,
-    textAlign: "center",
-    marginTop: "-12px",
-    marginBottom: "8px",
-  },
   searchField: {
     maxWidth: "800px",
-    "& .MuiOutlinedInput-root": {
-      borderRadius: "30px",
-      backgroundColor: "#ffffff",
-      paddingLeft: "15px",
-      "& fieldset": { borderColor: "#f48fb1" },
-      "&:hover fieldset": { borderColor: "#c2185b" },
-      "&.Mui-focused fieldset": { borderColor: "#c2185b", borderWidth: "1.5px" },
-    },
+    width: "100%",
     "& .MuiInputBase-input": { padding: "14px 10px", fontSize: "15px" },
   },
   filtersRow: {
@@ -331,22 +471,10 @@ const styles = {
     justifyContent: "flex-start",
   },
   selectFilter: {
-    minWidth: "150px",
+    minWidth: "160px",
     borderRadius: "20px",
-    backgroundColor: "#ffffff",
     fontSize: "14px",
-    color: "#4b5563",
     fontWeight: 600,
-    "& .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#f48fb1",
-    },
-    "&:hover .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#c2185b",
-    },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#c2185b",
-      borderWidth: "1.5px",
-    },
     "& .MuiSelect-select": {
       padding: "10px 18px",
     },
@@ -356,7 +484,6 @@ const styles = {
     margin: 0,
   },
   foodCard: {
-    backgroundColor: "#ffffff",
     borderRadius: "24px",
     overflow: "hidden",
     boxShadow: "0px 12px 35px rgba(173, 20, 87, 0.15)",
@@ -400,13 +527,11 @@ const styles = {
   },
   foodName: {
     fontWeight: 700,
-    color: "#1f2937",
     fontSize: "18px",
     lineHeight: 1.3,
   },
   foodPrice: {
     fontWeight: 800,
-    color: "#c2185b",
     fontSize: "20px",
   },
   cardFooter: {
@@ -420,7 +545,6 @@ const styles = {
     marginLeft: "-4px",
   },
   statusText: {
-    color: "#9ca3af",
     fontWeight: 600,
     fontSize: "12px",
   },

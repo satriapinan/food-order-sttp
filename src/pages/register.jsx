@@ -1,135 +1,224 @@
 import React, { useState } from "react";
-import { Box, Typography, TextField, Button, Link, InputAdornment, IconButton } from "@mui/material";
+import * as Yup from "yup";
+import { useFormik } from "formik";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Stack from "@mui/material/Stack";
+import Link from "@mui/material/Link";
+import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
-const EyeIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: 18, height: 18 }}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-  </svg>
-);
+import AppButton from "../components/AppButton";
+import AppTextField from "../components/AppTextField";
+import AppCard from "../components/AppCard";
+import { useAuth } from "../hooks/useAuth";
+import { useTheme } from "../hooks/useTheme";
 
-const EyeOffIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: 18, height: 18 }}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
-  </svg>
-);
+// Skema Validasi Yup untuk Register
+const registerSchema = Yup.object({
+  username: Yup.string()
+    .min(3, "Username minimal 3 karakter")
+    .required("Username wajib diisi"),
+  fullName: Yup.string()
+    .required("Nama lengkap wajib diisi"),
+  email: Yup.string()
+    .email("Format email tidak valid")
+    .required("Email wajib diisi"),
+  password: Yup.string()
+    .min(6, "Password minimal 6 karakter")
+    .required("Password wajib diisi"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("password"), null], "Konfirmasi password tidak cocok")
+    .required("Konfirmasi password wajib diisi"),
+});
 
 export default function RegisterPage() {
-  const [showPass, setShowPass] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const navigate = useNavigate();
+  const auth = useAuth();
+  const login = auth?.login || (() => {});
+  const theme = useTheme();
+  const isDark = theme?.mode === "dark";
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const formik = useFormik({
+    initialValues: {
+      username: "",
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+    validationSchema: registerSchema,
+    onSubmit: (values) => {
+      login({ email: values.email, username: values.username, fullName: values.fullName });
+      navigate("/food-menu");
+    },
+  });
 
   return (
-    <Box sx={styles.container}>
-      <Box sx={styles.card}>
-        <Typography component="h1" variant="h4" sx={styles.title}>
-          Create Account
+    <Box
+      sx={{
+        minHeight: "calc(100vh - 70px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: isDark
+          ? "linear-gradient(135deg, #121212 0%, #1e1e1e 50%, #2a081a 100%)"
+          : "linear-gradient(135deg, #fce4ec 0%, #f48fb1 50%, #ad1457 100%)",
+        padding: { xs: 2, sm: 3 },
+        transition: "background 0.3s ease",
+      }}
+    >
+      <AppCard sx={{ maxWidth: 480 }}>
+        <Typography
+          variant="h4"
+          align="center"
+          sx={{
+            fontWeight: 800,
+            color: isDark ? "#f48fb1" : "#c2185b",
+            mb: 0.5,
+            fontSize: { xs: "26px", sm: "32px" },
+          }}
+        >
+          Buat Akun
         </Typography>
-        <Typography variant="body2" sx={styles.subtitle}>
-          Join us today and get started
+
+        <Typography
+          variant="body2"
+          align="center"
+          sx={{
+            color: isDark ? "#aaaaaa" : "#757575",
+            mb: 3.5,
+            fontSize: "14px",
+            fontWeight: 500,
+          }}
+        >
+          Daftar sekarang untuk mulai memesan makanan favoritmu
         </Typography>
 
-        <Box component="form" onSubmit={(e) => e.preventDefault()} sx={styles.form}>
-          <TextField placeholder="Username" variant="outlined" fullWidth sx={styles.input} />
-          <TextField placeholder="Full Name" variant="outlined" fullWidth sx={styles.input} />
-          
-          <TextField
-            placeholder="Password"
-            type={showPass ? "text" : "password"}
-            variant="outlined"
-            fullWidth
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPass(!showPass)} edge="end" sx={styles.iconButton}>
-                    {showPass ? <EyeOffIcon /> : <EyeIcon />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            sx={styles.input}
-          />
+        <Box component="form" onSubmit={formik.handleSubmit} noValidate>
+          <Stack spacing={2}>
+            <AppTextField
+              label="Username"
+              name="username"
+              placeholder="Contoh: user123"
+              value={formik.values.username}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.username && Boolean(formik.errors.username)}
+              helperText={formik.touched.username && formik.errors.username}
+            />
 
-          <TextField
-            placeholder="Confirm Password"
-            type={showConfirm ? "text" : "password"}
-            variant="outlined"
-            fullWidth
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowConfirm(!showConfirm)} edge="end" sx={styles.iconButton}>
-                    {showConfirm ? <EyeOffIcon /> : <EyeIcon />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            sx={styles.input}
-          />
+            <AppTextField
+              label="Nama Lengkap"
+              name="fullName"
+              placeholder="Contoh: Budi Santoso"
+              value={formik.values.fullName}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.fullName && Boolean(formik.errors.fullName)}
+              helperText={formik.touched.fullName && formik.errors.fullName}
+            />
 
-          <Button type="submit" fullWidth sx={styles.button}>
-            Create Account
-          </Button>
+            <AppTextField
+              label="Email"
+              type="email"
+              name="email"
+              placeholder="contoh@domain.com"
+              value={formik.values.email}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.email && Boolean(formik.errors.email)}
+              helperText={formik.touched.email && formik.errors.email}
+            />
+
+            <AppTextField
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Minimal 6 karakter"
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.password && Boolean(formik.errors.password)}
+              helperText={formik.touched.password && formik.errors.password}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      edge="end"
+                      sx={{ color: isDark ? "#bbb" : "#757575" }}
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <AppTextField
+              label="Konfirmasi Password"
+              type={showConfirmPassword ? "text" : "password"}
+              name="confirmPassword"
+              placeholder="Ulangi password anda"
+              value={formik.values.confirmPassword}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.confirmPassword && Boolean(formik.errors.confirmPassword)}
+              helperText={formik.touched.confirmPassword && formik.errors.confirmPassword}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle confirm password visibility"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      edge="end"
+                      sx={{ color: isDark ? "#bbb" : "#757575" }}
+                    >
+                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <AppButton type="submit" sx={{ mt: 1 }}>
+              Daftar Akun
+            </AppButton>
+
+            <Typography
+              variant="body2"
+              align="center"
+              sx={{
+                color: isDark ? "#aaaaaa" : "#757575",
+                mt: 1.5,
+                fontSize: "14px",
+                fontWeight: 500,
+              }}
+            >
+              Sudah punya akun?{" "}
+              <Link
+                component={RouterLink}
+                to="/login"
+                underline="hover"
+                sx={{
+                  color: isDark ? "#f48fb1" : "#c2185b",
+                  fontWeight: 700,
+                }}
+              >
+                Masuk di sini
+              </Link>
+            </Typography>
+          </Stack>
         </Box>
-
-        <Typography variant="body2" sx={styles.footerText}>
-          Already have an account?{" "}
-          <Link href="/login" underline="hover" sx={styles.link}>
-            Sign in here
-          </Link>
-        </Typography>
-      </Box>
+      </AppCard>
     </Box>
   );
 }
-
-const styles = {
-  container: {
-    minHeight: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "linear-gradient(135deg, #f472b6 0%, #db2777 100%)",
-    p: 2,
-  },
-  card: {
-    backgroundColor: "#fff",
-    p: { xs: 3, sm: 5 },
-    borderRadius: "24px",
-    boxShadow: "0px 20px 40px rgba(0,0,0,0.1)",
-    width: "100%",
-    maxWidth: "460px",
-    textAlign: "center",
-  },
-  title: { fontWeight: 700, color: "#be185d", mb: 1, fontSize: { xs: "28px", sm: "32px" } },
-  subtitle: { color: "#6b7280", mb: 4, fontSize: "14px", fontWeight: 500 },
-  form: { display: "flex", flexDirection: "column", gap: 2 },
-  input: {
-    "& .MuiOutlinedInput-root": {
-      borderRadius: "12px",
-      backgroundColor: "#fff",
-      "& fieldset": { borderColor: "#e5e7eb" },
-      "&:hover fieldset": { borderColor: "#d1d5db" },
-      "&.Mui-focused fieldset": { borderColor: "#db2777", borderWidth: "1.5px" },
-    },
-    "& .MuiInputBase-input": { p: "16px 20px", fontSize: "15px", color: "#374151" },
-  },
-  iconButton: {
-    color: "#9ca3af",
-    p: "8px",
-    "&:hover": { backgroundColor: "transparent", color: "#4b5563" },
-  },
-  button: {
-    mt: 1,
-    p: 1.5,
-    borderRadius: "12px",
-    backgroundColor: "#be185d",
-    color: "#fff",
-    fontWeight: 700,
-    fontSize: "15px",
-    textTransform: "none",
-    boxShadow: "0px 8px 20px rgba(190, 24, 93, 0.25)",
-    "&:hover": { backgroundColor: "#9d174d" },
-  },
-  footerText: { mt: 3.5, color: "#6b7280", fontSize: "14px", fontWeight: 500 },
-  link: { color: "#be185d", fontWeight: 700 },
-};
