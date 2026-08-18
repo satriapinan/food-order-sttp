@@ -1,9 +1,10 @@
 import Button from "@mui/material/Button";
 
-
-function AppButton({ children }) {
+function AppButton({ children, type = "button", onClick }) {
   return (
     <Button
+      type={type} // Tambahkan ini agar bisa jadi type="submit"
+      onClick={onClick} // Tambahkan ini agar bisa menerima event klik
       variant="contained"
       fullWidth
       sx={{

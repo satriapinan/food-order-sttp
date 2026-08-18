@@ -13,8 +13,7 @@ function App() {
         <Route path="login" element={<LoginPages />} />
         <Route path="example" element={<ExamplePage />} />
         <Route path="register" element={<RegisterPages />} />
-        
-        <Route path="food-order" element={<MenuPages />} />
+        <Route path="menu" element={<MenuPages />} />
       </Routes>
     </AppLayout>
   );
