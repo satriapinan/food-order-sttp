@@ -7,9 +7,13 @@ const AppButton = ({ onClick, children }) => {
       color="primary"
       onClick={onClick}
       sx={{
-        backgroundColor: "#1976",
+        backgroundColor: "#1976d2", // Saya tambahkan 'd2' agar warna biru Material UI-nya valid
         borderRadius: "5px",
         boxShadow: "none",
+        color: "#fff",
+        "&:hover": {
+          backgroundColor: "#115293",
+        },
       }}
     >
       {children}
