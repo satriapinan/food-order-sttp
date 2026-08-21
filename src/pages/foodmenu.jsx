@@ -1,22 +1,17 @@
-import { useState } from "react";
+// src/pages/FoodMenu.jsx
 import {
   Box,
   Card,
-  CardContent,
-  CardMedia,
   Typography,
   TextField,
   MenuItem,
   Grid,
-  Chip,
-  IconButton,
 } from "@mui/material";
-import StarBorderIcon from "@mui/icons-material/StarBorder";
-// Memanggil komponen AppButton yang sudah kamu buat sebelumnya
-import AppButton from "../components/AppButton";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import FoodCard from "../components/FoodCard";
 
-// 1. DATA DUMMY: Daftar menu makanan
-//Pisahkan data dari tampilan agar rapi
+// DATA DUMMY
 const menuData = [
   {
     id: 1,
@@ -55,10 +50,37 @@ const menuData = [
   },
 ];
 
+const getPriceNumber = (priceString) => {
+  return parseInt(priceString.replace(/[^0-9]/g, ""), 10);
+};
+
+const filterSchema = Yup.object({
+  search: Yup.string().max(30, "Maksimal 30 karakter pencarian"),
+});
+
 function FoodMenu() {
-  // State untuk menyimpan pilihan filter
-  const [kategori, setKategori] = useState("");
-  const [sortBy, setSortBy] = useState("");
+  const formik = useFormik({
+    initialValues: { search: "", kategori: "all", sortBy: "" },
+    validationSchema: filterSchema,
+  });
+
+  const displayedMenu = menuData
+    .filter((menu) => {
+      const matchSearch = menu.title
+        .toLowerCase()
+        .includes(formik.values.search.toLowerCase());
+      const matchCategory =
+        formik.values.kategori === "all" ||
+        menu.category === formik.values.kategori;
+      return matchSearch && matchCategory;
+    })
+    .sort((a, b) => {
+      if (formik.values.sortBy === "murah")
+        return getPriceNumber(a.price) - getPriceNumber(b.price);
+      if (formik.values.sortBy === "mahal")
+        return getPriceNumber(b.price) - getPriceNumber(a.price);
+      return 0;
+    });
 
   return (
     <Box
@@ -68,7 +90,7 @@ function FoodMenu() {
         padding: 4,
       }}
     >
-      {/* BAGIAN ATAS: Header & Filter Pencarian */}
+      {/* HEADER & FILTER */}
       <Card
         sx={{
           borderRadius: 4,
@@ -84,127 +106,69 @@ function FoodMenu() {
           >
             Menu Makanan
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Temukan hidangan lezat khusus untuk Anda
-          </Typography>
         </Box>
 
-        {/* Kolom Pencarian */}
         <TextField
           fullWidth
-          placeholder="Cari makanan..."
+          name="search"
+          placeholder="Cari nama makanan..."
           variant="outlined"
           size="small"
           sx={{ marginBottom: 2 }}
+          value={formik.values.search}
+          onChange={formik.handleChange}
+          error={formik.touched.search && Boolean(formik.errors.search)}
+          helperText={formik.touched.search && formik.errors.search}
         />
 
-        {/* Dropdown Kategori & Sort By */}
         <Box sx={{ display: "flex", gap: 2 }}>
           <TextField
             select
+            name="kategori"
             label="Kategori"
             size="small"
-            value={kategori}
-            onChange={(e) => setKategori(e.target.value)}
             sx={{ minWidth: 150 }}
+            value={formik.values.kategori}
+            onChange={formik.handleChange}
           >
-            <MenuItem value="all">Semua</MenuItem>
-            <MenuItem value="indonesian">Indonesian Food</MenuItem>
-            <MenuItem value="Western">Western Food</MenuItem>
-            <MenuItem value="Asian">Asian Food</MenuItem>
+            <MenuItem value="all">Semua Kategori</MenuItem>
+            <MenuItem value="Indonesian Food">Indonesian Food</MenuItem>
+            <MenuItem value="Western Food">Western Food</MenuItem>
+            <MenuItem value="Asian Food">Asian Food</MenuItem>
           </TextField>
 
           <TextField
             select
-            label="Sort By"
+            name="sortBy"
+            label="Urutkan Harga"
             size="small"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
             sx={{ minWidth: 150 }}
+            value={formik.values.sortBy}
+            onChange={formik.handleChange}
           >
+            <MenuItem value="">Normal</MenuItem>
             <MenuItem value="murah">Termurah</MenuItem>
             <MenuItem value="mahal">Termahal</MenuItem>
           </TextField>
         </Box>
       </Card>
 
-      {/* BAGIAN BAWAH: Grid Daftar Makanan */}
+      {/* GRID KARTU MAKANAN YANG SUDAH BERSIH */}
       <Grid container spacing={3}>
-        {/* Melakukan perulangan (looping) data menuData menjadi kartu */}
-        {menuData.map((menu) => (
-          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={menu.id}>
-            <Card
-              sx={{
-                borderRadius: 4,
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-              }}
-            >
-              {/* Gambar Makanan */}
-              <CardMedia
-                component="img"
-                height="160"
-                image={menu.image}
-                alt={menu.title}
-              />
-
-              <CardContent
-                sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}
-              >
-                {/* Label Kategori */}
-                <Box sx={{ mb: 1 }}>
-                  <Chip
-                    label={menu.category}
-                    size="small"
-                    sx={{
-                      backgroundColor: "#ffebee",
-                      color: "#b22222",
-                      fontWeight: "bold",
-                      fontSize: "11px",
-                    }}
-                  />
-                </Box>
-
-                {/* Judul & Harga */}
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                  {menu.title}
-                </Typography>
-                <Typography
-                  variant="h6"
-                  sx={{ fontWeight: "bold", color: "#b22222", mb: 2 }}
-                >
-                  {menu.price}
-                </Typography>
-
-                {/* Bintang & Status Available */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mt: "auto",
-                    mb: 1,
-                  }}
-                >
-                  <IconButton size="small">
-                    <StarBorderIcon sx={{ color: "#b0bec5" }} />
-                  </IconButton>
-                  <Typography
-                    variant="caption"
-                    sx={{ color: "text.secondary", fontWeight: "bold" }}
-                  >
-                    Tersedia
-                  </Typography>
-                </Box>
-
-                {/* Tombol Add to Cart memanggil AppButton */}
-                <AppButton fullWidth>Tambahkan ke Keranjang</AppButton>
-              </CardContent>
-            </Card>
+        {displayedMenu.length === 0 ? (
+          <Grid item xs={12}>
+            <Typography variant="h6" color="white" textAlign="center">
+              Makanan tidak ditemukan.
+            </Typography>
           </Grid>
-        ))}
+        ) : (
+          displayedMenu.map((menu) => (
+            <Grid item xs={12} sm={6} md={3} key={menu.id}>
+              {/* Memanggil komponen FoodCard */}
+              <FoodCard menu={menu} />
+            </Grid>
+          ))
+        )}
       </Grid>
     </Box>
   );
