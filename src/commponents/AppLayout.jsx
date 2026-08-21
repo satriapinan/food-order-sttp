@@ -1,3 +1,7 @@
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import { useTheme } from "../hooks/useTheme";
+
 const AppLayout = ({ children }) => {
   const { mode, toggleTheme } = useTheme();
   const isDark = mode === "dark";
@@ -29,3 +33,5 @@ const AppLayout = ({ children }) => {
     </Box>
   );
 };
+
+export default AppLayout;
