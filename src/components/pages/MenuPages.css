@@ -1,0 +1,439 @@
+.menu-page {
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: var(--page-bg);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+.menu-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.menu-header {
+  margin-bottom: 35px;
+}
+
+.menu-heading-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.menu-eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: #369fc1;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.menu-header h1 {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.menu-header p {
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+.cart-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 170px;
+  padding: 12px 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.cart-icon {
+  font-size: 22px;
+}
+
+.cart-summary strong {
+  display: block;
+  font-size: 17px;
+}
+
+.cart-summary small {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+/* =========================
+   SEARCH
+========================= */
+
+.search-box {
+  width: 100%;
+  max-width: 600px;
+  height: 50px;
+  margin: 25px auto 20px;
+
+  display: flex;
+  align-items: center;
+
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.search-icon {
+  padding-left: 16px;
+  font-size: 22px;
+  color: var(--text-secondary);
+}
+
+.search-box input {
+  flex: 1;
+  height: 100%;
+
+  padding: 0 15px;
+
+  border: none;
+  outline: none;
+
+  font-size: 15px;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.search-box input::placeholder {
+  color: var(--text-secondary);
+}
+
+.clear-search {
+  margin-right: 10px;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* =========================
+   FILTER
+========================= */
+
+.filter-area {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.select-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.select-wrapper label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.select-wrapper select {
+  min-width: 190px;
+  height: 45px;
+
+  padding: 0 12px;
+
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+
+  background: var(--surface);
+  color: var(--text-primary);
+
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+}
+
+.select-wrapper select:focus {
+  border-color: #3c9fc0;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.result-row strong {
+  color: var(--text-primary);
+}
+
+.reset-filter {
+  border: 0;
+  background: transparent;
+  color: #369fc1;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* =========================
+   FOOD GRID
+========================= */
+
+.food-grid {
+  display: grid;
+
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(280px, 1fr)
+  );
+
+  gap: 25px;
+}
+
+/* =========================
+   FOOD CARD
+========================= */
+
+.food-card {
+  background: var(--surface);
+  border-radius: 16px;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 5px 20px var(--shadow-color);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.3s ease;
+}
+
+.food-card:hover {
+  transform: translateY(-5px);
+
+  box-shadow:
+    0 10px 30px var(--shadow-color);
+}
+
+/* =========================
+   FOOD IMAGE
+========================= */
+
+.food-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 210px;
+  overflow: hidden;
+}
+
+.food-image {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  display: block;
+
+  transition: transform 0.3s ease;
+}
+
+.food-card:hover .food-image {
+  transform: scale(1.05);
+}
+
+.food-category {
+  position: absolute;
+
+  top: 12px;
+  left: 12px;
+
+  padding: 6px 10px;
+
+  border-radius: 20px;
+
+  background: rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* =========================
+   FOOD CONTENT
+========================= */
+
+.food-content {
+  padding: 20px;
+}
+
+.food-content h2 {
+  margin: 0 0 10px;
+
+  font-size: 21px;
+  color: var(--text-primary);
+}
+
+.food-description {
+  margin: 0 0 20px;
+
+  color: var(--text-secondary);
+
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* =========================
+   PRICE + BUTTON
+========================= */
+
+.food-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.food-price {
+  font-size: 17px;
+  font-weight: bold;
+  color: #369fc1;
+}
+
+.order-button {
+  border: none;
+
+  padding: 10px 15px;
+
+  border-radius: 9px;
+
+  background: linear-gradient(
+    90deg,
+    #369fc1,
+    #76a699
+  );
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition: opacity 0.2s ease;
+}
+
+.order-button:hover {
+  opacity: 0.85;
+}
+
+/* =========================
+   NO FOOD
+========================= */
+
+.no-food {
+  grid-column: 1 / -1;
+
+  text-align: center;
+
+  padding: 60px 20px;
+
+  background: var(--surface);
+
+  border-radius: 15px;
+}
+
+.no-food-icon {
+  font-size: 50px;
+  margin-bottom: 15px;
+}
+
+.no-food h2 {
+  margin: 0 0 10px;
+
+  color: var(--text-primary);
+}
+
+.no-food p {
+  margin: 0;
+
+  color: var(--text-secondary);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 600px) {
+  .menu-page {
+    padding: 25px 15px;
+  }
+
+  .menu-header h1 {
+    font-size: 28px;
+  }
+
+  .menu-heading-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cart-summary {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .menu-header p {
+    font-size: 14px;
+  }
+
+  .filter-area {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .select-wrapper select {
+    width: 100%;
+  }
+
+  .food-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .food-bottom {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .order-button {
+    width: 100%;
+  }
+}

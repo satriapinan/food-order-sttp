@@ -1,153 +1,157 @@
-```jsx
-import { useState } from "react";
+import * as Yup from "yup";
+import { useFormik } from "formik";
+import { useNavigate } from "react-router-dom";
+import { Typography, Box } from "@mui/material";
 
-function App() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+import AppButton from "../AppButton";
+import AppTextField from "../AppTextField";
+import AppCard from "../AppCard";
+import { useAuth } from "../../assets/hooks/useAuth";
 
-  const login = (e) => {
-    e.preventDefault();
-    console.log("Login:", email, password);
-  };
+const loginSchema = Yup.object({
+  email: Yup.string()
+    .email("Format email tidak valid")
+    .required("Email harus diisi"),
+
+  password: Yup.string()
+    .min(6, "Password minimal 6 karakter")
+    .required("Password harus diisi"),
+});
+
+function LoginPage() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+
+    validationSchema: loginSchema,
+
+    onSubmit: (values) => {
+      login({
+        email: values.email,
+      });
+
+      navigate("/food-order");
+    },
+  });
 
   return (
-    <div style={styles.page}>
-      <div style={styles.box}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "var(--page-bg)",
+        color: "var(--text-primary)",
+        transition: "background-color 0.3s ease, color 0.3s ease",
+        padding: 2,
+      }}
+    >
+      <AppCard>
+        <Box
+          sx={{
+            width: {
+              xs: "100%",
+              sm: 400,
+            },
+            padding: 3,
+          }}
+        >
+          <Typography
+            variant="h4"
+            component="h1"
+            textAlign="center"
+            fontWeight="bold"
+            gutterBottom
+          >
+            Food Order
+          </Typography>
 
-        <div style={styles.info}>
-          <div>
-            <h1>Let's Get Started!</h1>
-            <p>
-              Selamat datang kembali. Masuk ke akunmu
-              dan lanjutkan perjalananmu hari ini.
-            </p>
-          </div>
-        </div>
+          <Typography
+            variant="h6"
+            textAlign="center"
+            gutterBottom
+          >
+            Masuk ke akun Food Order kamu
+          </Typography>
 
-        <form onSubmit={login} style={styles.form}>
-          <h2>Welcome Back</h2>
-          <p style={styles.text}>
-            Senang melihatmu kembali 👋
-          </p>
+          <Typography
+            variant="body2"
+            textAlign="center"
+            color="text.secondary"
+            sx={{ mb: 3 }}
+          >
+            Silakan masukkan email dan password kamu
+          </Typography>
 
-          <label>Email</label>
-          <input
-            style={styles.input}
-            type="email"
-            placeholder="Masukkan email kamu"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          <form onSubmit={formik.handleSubmit}>
+            <AppTextField
+              label="Email"
+              type="email"
+              name="email"
+              value={formik.values.email}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={
+                formik.touched.email &&
+                Boolean(formik.errors.email)
+              }
+              helperText={
+                formik.touched.email &&
+                formik.errors.email
+              }
+            />
 
-          <label>Password</label>
-          <input
-            style={styles.input}
-            type="password"
-            placeholder="Masukkan password kamu"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+            <AppTextField
+              label="Password"
+              type="password"
+              name="password"
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={
+                formik.touched.password &&
+                Boolean(formik.errors.password)
+              }
+              helperText={
+                formik.touched.password &&
+                formik.errors.password
+              }
+            />
 
-          <div style={styles.forgot}>
-            Lupa password?
-          </div>
+            <Box sx={{ mt: 3 }}>
+              <AppButton type="submit">
+                Login
+              </AppButton>
+            </Box>
+          </form>
 
-          <button style={styles.button} type="submit">
-            Masuk Sekarang
-          </button>
+          <Box
+            sx={{
+              mt: 3,
+              textAlign: "center",
+            }}
+          >
+            <Typography variant="body2">
+              Belum punya akun?
+            </Typography>
 
-          <p style={styles.bottom}>
-            Belum memiliki akun?{" "}
-            <b style={{ color: "#16a34a" }}>
-              Buat akun
-            </b>
-          </p>
-        </form>
-
-      </div>
-    </div>
+            <AppButton
+              type="button"
+              onClick={() => navigate("/register")}
+            >
+              Daftar Sekarang
+            </AppButton>
+          </Box>
+        </Box>
+      </AppCard>
+    </Box>
   );
 }
 
-const styles = {
-  page: {
-    minHeight: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "linear-gradient(135deg, #dcfce7, #bbf7d0)",
-    fontFamily: "Arial, sans-serif",
-  },
-
-  box: {
-    width: "700px",
-    display: "flex",
-    background: "#fff",
-    borderRadius: "20px",
-    overflow: "hidden",
-    boxShadow: "0 12px 35px rgba(22, 101, 52, 0.18)",
-  },
-
-  info: {
-    width: "40%",
-    padding: "45px 30px",
-    background: "linear-gradient(160deg, #16a34a, #166534)",
-    color: "white",
-    display: "flex",
-    alignItems: "center",
-  },
-
-  form: {
-    width: "60%",
-    padding: "40px",
-  },
-
-  text: {
-    color: "#777",
-    marginBottom: "25px",
-  },
-
-  input: {
-    width: "100%",
-    padding: "12px",
-    marginTop: "8px",
-    marginBottom: "15px",
-    border: "1px solid #d1d5db",
-    borderRadius: "8px",
-    boxSizing: "border-box",
-    fontSize: "14px",
-    outline: "none",
-  },
-
-  forgot: {
-    textAlign: "right",
-    color: "#16a34a",
-    fontSize: "13px",
-    cursor: "pointer",
-    marginBottom: "18px",
-  },
-
-  button: {
-    width: "100%",
-    padding: "13px",
-    border: "none",
-    borderRadius: "8px",
-    background: "#16a34a",
-    color: "white",
-    fontSize: "16px",
-    fontWeight: "bold",
-    cursor: "pointer",
-  },
-
-  bottom: {
-    textAlign: "center",
-    color: "#777",
-    marginTop: "22px",
-    fontSize: "14px",
-  },
-};
-
-export default App;
-```
+export default LoginPage;
