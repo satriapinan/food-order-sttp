@@ -1,19 +1,21 @@
 import { Routes, Route } from "react-router-dom";
+import AppLayout from "./components/AppLayout";
 import LoginPage from "./pages/Login";
-import ExamplePage from "./pages/Example";
 import RegisterPage from "./pages/Register";
-import FoodMenuPage from "./pages/FoodMenu";
+import FoodOrderPage from "./pages/FoodMenu";
+import ExamplePage from "./pages/Example";
 
 function App() {
   return (
-    <Routes>
-      <Route index element={<LoginPage />} />
-      <Route path="login" element={<LoginPage />} />
-      <Route path="login/:value" element={<LoginPage />} />
-      <Route path="example" element={<ExamplePage />} />
-      <Route path="register" element={<RegisterPage />} />
-      <Route path="food-menu" element={<FoodMenuPage />} />
-    </Routes>
+    <AppLayout>
+      <Routes>
+        <Route index element={<LoginPage />} />
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+        <Route path="food-menu" element={<FoodOrderPage />} />
+        <Route path="example" element={<ExamplePage />} />
+      </Routes>
+    </AppLayout>
   );
 }
 

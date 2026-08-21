@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useFormik } from "formik"; // ganti useState jadi formik buat nyimpen search & filter
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -68,10 +68,14 @@ function FoodMenuPage() {
   // eslint-disable-next-line no-unused-vars
   const navigate = useNavigate(); // Berjaga-jaga kalau Boss butuh navigasi nantinya
 
-  // State sementara untuk Select/Dropdown (Fungsinya belum jalan, cuma buat UI)
-  const [search, setSearch] = useState("");
-  const [kategori, setKategori] = useState("");
-  const [sortBy, setSortBy] = useState("");
+  // formik nyimpen state search & filter (belum ada submit, cuma buat nampung value)
+  const formik = useFormik({
+    initialValues: {
+      search: "",
+      kategori: "",
+      sortBy: "",
+    },
+  });
 
   return (
     <Box
@@ -97,8 +101,9 @@ function FoodMenuPage() {
           size="small"
           placeholder="Search for food..."
           variant="outlined"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          name="search" // name wajib ada biar formik tau ini field apa
+          value={formik.values.search}
+          onChange={formik.handleChange} // sebelumnya onChange={(e) => setSearch(e.target.value)}
           sx={{ mb: 2 }}
         />
 
@@ -107,9 +112,10 @@ function FoodMenuPage() {
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Kategori</InputLabel>
             <Select
-              value={kategori}
+              name="kategori"
+              value={formik.values.kategori}
               label="Kategori"
-              onChange={(e) => setKategori(e.target.value)}
+              onChange={formik.handleChange} // sebelumnya onChange={(e) => setKategori(e.target.value)}
             >
               <MenuItem value="indo">Indonesian</MenuItem>
               <MenuItem value="western">Western</MenuItem>
@@ -121,9 +127,10 @@ function FoodMenuPage() {
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Sort By</InputLabel>
             <Select
-              value={sortBy}
+              name="sortBy"
+              value={formik.values.sortBy}
               label="Sort By"
-              onChange={(e) => setSortBy(e.target.value)}
+              onChange={formik.handleChange} // sebelumnya onChange={(e) => setSortBy(e.target.value)}
             >
               <MenuItem value="price">Price</MenuItem>
               <MenuItem value="name">Name</MenuItem>

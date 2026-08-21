@@ -1,16 +1,32 @@
-import { useState } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 import { Link, useNavigate } from "react-router-dom";
 
+// aturan validasi form login
+const loginSchema = Yup.object({
+  username: Yup.string().required("Username harus diisi"),
+  password: Yup.string()
+    .min(6, "Password minimal 6 karakter")
+    .max(8, "Password maksimal 8 karakter")
+    .required("Password harus diisi"),
+});
+
 function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert("Login berhasil!");
-    navigate("/");
-  };
+  // formik ngatur semua state form (value, error, touched) sekaligus
+  const formik = useFormik({
+    initialValues: {
+      username: "",
+      password: "",
+    },
+    validationSchema: loginSchema, // divalidasi pakai schema di atas
+    onSubmit: (values) => {
+      console.log(values); // cek data yang diinput user
+      alert("Login berhasil!");
+      navigate("/"); // pindah ke halaman utama setelah login
+    },
+  });
 
   return (
     <div style={styles.page}>
@@ -18,23 +34,35 @@ function LoginPage() {
         <h1 style={styles.title}>Welcome Back</h1>
         <p style={styles.subtitle}>Sign in to your account</p>
 
-        <form onSubmit={handleSubmit}>
+        {/* pakai formik.handleSubmit, bukan handleSubmit manual lagi */}
+        <form onSubmit={formik.handleSubmit}>
           <input
             type="text"
             placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            name="username" // name wajib ada biar formik tau ini field apa
+            value={formik.values.username}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur} // buat nandain field ini udah pernah diklik/diisi
             style={styles.input}
-            required
           />
+          {/* munculin pesan error cuma kalau field udah disentuh & ada error */}
+          {formik.touched.username && formik.errors.username && (
+            <p style={styles.error}>{formik.errors.username}</p>
+          )}
+
           <input
             type="password"
             placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            name="password"
+            value={formik.values.password}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
             style={styles.input}
-            required
           />
+          {formik.touched.password && formik.errors.password && (
+            <p style={styles.error}>{formik.errors.password}</p>
+          )}
+
           <button type="submit" style={styles.button}>
             SIGN IN
           </button>
@@ -78,8 +106,15 @@ const styles = {
   input: {
     width: "100%",
     padding: "10px",
-    marginBottom: "15px",
+    marginBottom: "5px", // dikecilin dari 15px biar ada ruang buat teks error
     boxSizing: "border-box",
+  },
+  error: {
+    // buat nampilin pesan error validasi di bawah input
+    color: "red",
+    fontSize: "12px",
+    marginTop: 0,
+    marginBottom: "10px",
   },
   button: {
     width: "100%",
@@ -87,6 +122,7 @@ const styles = {
     background: "#06d6d6",
     color: "#fff",
     border: "none",
+    marginTop: "5px", // biar ada jarak sama teks error di atasnya
   },
   footer: {
     textAlign: "center",
