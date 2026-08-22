@@ -1,37 +1,40 @@
-import { useState } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
-import { Link, useNavigate } from "react-router-dom"; // 1. Gunakan useNavigate, hapus useParams
+import { Link, useNavigate } from "react-router-dom";
 
 import AppButton from "../components/AppButton";
 import AppInput from "../components/AppInput";
+import { useAuth } from "../hooks/useAuth";
+
+
+const loginSchema = Yup.object({
+  email: Yup.string()
+    .email("Format email tidak valid")
+    .required("Email harus diisi"),
+  password: Yup.string()
+    .min(6, "Password minimal 6 karakter")
+    .required("Password harus diisi"),
+});
 
 function LoginPage() {
-  const navigate = useNavigate(); // 2. Inisialisasi fungsi navigasi
-  
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validationSchema: loginSchema,
+    onSubmit: (values) => {
+      login({ email: values.email });
+      navigate("/menu");
+    },
   });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Data Login:", formData);
-    alert(`Login Berhasil!\nEmail: ${formData.email}`);
-    
-    // 3. Tambahkan baris ini agar halaman berpindah ke Food Menu
-    navigate("/menu");
-  };
 
   return (
     <Container maxWidth="xs">
@@ -72,21 +75,28 @@ function LoginPage() {
             Silakan masukkan email dan password kamu
           </Typography>
 
-          <Box component="form" onSubmit={handleSubmit}>
+          {/* Form dipicu oleh Formik */}
+          <form onSubmit={formik.handleSubmit}>
             <AppInput
-              label="Alamat Email"
+              label="Email"
               type="email"
               name="email"
-              value={formData.email}
-              onChange={handleChange}
+              value={formik.values.email}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.email && Boolean(formik.errors.email)}
+              helperText={formik.touched.email && formik.errors.email}
             />
 
             <AppInput
               label="Password"
               type="password"
               name="password"
-              value={formData.password}
-              onChange={handleChange}
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.password && Boolean(formik.errors.password)}
+              helperText={formik.touched.password && formik.errors.password}
             />
 
             <Box sx={{ mt: 3 }}>
@@ -108,7 +118,7 @@ function LoginPage() {
                 </Link>
               </Typography>
             </Box>
-          </Box>
+          </form>
         </Paper>
       </Box>
     </Container>

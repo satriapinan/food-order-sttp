@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -8,37 +9,38 @@ import { Link, useNavigate } from "react-router-dom";
 import AppButton from "../components/AppButton";
 import AppInput from "../components/AppInput";
 
+
+const registerSchema = Yup.object({
+  fullName: Yup.string().required("Nama lengkap harus diisi"),
+  email: Yup.string()
+    .email("Format email tidak valid")
+    .required("Email harus diisi"),
+  password: Yup.string()
+    .min(6, "Password minimal 6 karakter")
+    .required("Password harus diisi"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("password"), null], "Konfirmasi password tidak cocok")
+    .required("Konfirmasi password harus diisi"),
+});
+
 function RegisterPage() {
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+  
+  const formik = useFormik({
+    initialValues: {
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+    validationSchema: registerSchema,
+    onSubmit: (values) => {
+      console.log("Data Register:", values);
+      alert(`Pendaftaran Berhasil!\nSelamat datang, ${values.fullName}`);
+      navigate("/login");
+    },
   });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (formData.password !== formData.confirmPassword) {
-      alert("Password dan Konfirmasi Password tidak cocok!");
-      return;
-    }
-
-    console.log("Data Register:", formData);
-    alert(`Pendaftaran Berhasil!\nSelamat datang, ${formData.fullName}`);
-
-    navigate("/login");
-  };
 
   return (
     <Container maxWidth="xs">
@@ -80,37 +82,54 @@ function RegisterPage() {
             Buat akun baru untuk mulai memesan
           </Typography>
 
-          <Box component="form" onSubmit={handleSubmit}>
+          <form onSubmit={formik.handleSubmit}>
             <AppInput
               label="Nama Lengkap"
               type="text"
               name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
+              value={formik.values.fullName}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.fullName && Boolean(formik.errors.fullName)}
+              helperText={formik.touched.fullName && formik.errors.fullName}
             />
 
             <AppInput
               label="Alamat Email"
               type="email"
               name="email"
-              value={formData.email}
-              onChange={handleChange}
+              value={formik.values.email}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.email && Boolean(formik.errors.email)}
+              helperText={formik.touched.email && formik.errors.email}
             />
 
             <AppInput
               label="Password"
               type="password"
               name="password"
-              value={formData.password}
-              onChange={handleChange}
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.password && Boolean(formik.errors.password)}
+              helperText={formik.touched.password && formik.errors.password}
             />
 
             <AppInput
               label="Konfirmasi Password"
               type="password"
               name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
+              value={formik.values.confirmPassword}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={
+                formik.touched.confirmPassword &&
+                Boolean(formik.errors.confirmPassword)
+              }
+              helperText={
+                formik.touched.confirmPassword && formik.errors.confirmPassword
+              }
             />
 
             <Box sx={{ mt: 3 }}>
@@ -132,7 +151,7 @@ function RegisterPage() {
                 </Link>
               </Typography>
             </Box>
-          </Box>
+          </form>
         </Paper>
       </Box>
     </Container>
