@@ -28,8 +28,8 @@ function LoginPage() {
     },
     validationSchema: loginScema,
     onSubmit: (values) => {
-      login({ email: values.email});
-      navigate("/food-order");
+      login({ email: values.email, password: values.password });
+      navigate("/menu");
     },
   });
 

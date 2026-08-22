@@ -1,28 +1,33 @@
-import { Card, Container,Grid, Typography } from "@mui/material"
+import { Card, Container, Grid, Typography } from "@mui/material"
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import FoodCard from '../components/FoodCard';
 import foodImage from '../assets/food.jpg';
+import { useFormik } from "formik";
 
 const kategori = [
-  {
-    label: 'Makanan',
-  },
-   {
-    label: 'Minuman',
-  },
+  { label: 'Makanan' },
+  { label: 'Minuman' },
 ];
 
 const shortby = [
-  {
-    label: 'Harga',
-  },
-   {
-    label: 'Kategori',
-  },
+  { label: 'Harga' },
+  { label: 'Kategori' },
 ];
+
 function MenuPage() {
+
+    const formik = useFormik({
+        initialValues: {
+            search: "",
+            kategori: "",
+            sortby: "",
+        },
+        onSubmit: (values) => {
+            console.log("Filter values:", values);
+        },
+    });
 
     return(
         <Box
@@ -46,38 +51,51 @@ function MenuPage() {
                 id="outlined-size-small"
                 size="small"
                 margin="normal"
+                name="search"
+                value={formik.values.search}
+                onChange={formik.handleChange}
                 />
                 <Stack direction="row" spacing={2}>
                 <TextField
                 id="outlined-select-currency-native"
+                id="select-kategori"
                 label="Kategori"
                 select
                 size="small"
+                name="kategori"
+                value={formik.values.kategori}
+                onChange={formik.handleChange}
                 slotProps={{
                 select: {
                   native: true,
                 },
                 }}
                 >
+                <option value="" disabled></option>
                 {kategori.map((option) => (
-                <option>
+                <option key={option.label} value={option.label}>
                     {option.label}
                 </option>
                 ))}
                 </TextField>
                 <TextField
                 id="outlined-select-currency-native"
+                id="select-sortby" 
                 label="ShortBy"
                 select
                 size="small"
+                name="sortby"
+                value={formik.values.sortby}
+                onChange={formik.handleChange}
                 slotProps={{
                 select: {
                   native: true,
                 },
                 }}
                 >
+                <option value="" disabled></option>
                 {shortby.map((option) => (
-                <option>
+                <option key={option.label} value={option.label}>
                     {option.label}
                 </option>
                 ))}
