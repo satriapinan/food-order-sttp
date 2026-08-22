@@ -3,8 +3,10 @@ import CardMedia from "@mui/material/CardMedia";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import Chip from "@mui/material/Chip";
-import Box from "@mui/material/Box";
 import AppButton from "./AppButton";
+
+const FOOD_IMAGE =
+  "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop";
 
 const FoodCard = ({ food, isDark, onAddToCart }) => {
   return (
@@ -27,13 +29,13 @@ const FoodCard = ({ food, isDark, onAddToCart }) => {
       <CardMedia
         component="img"
         height="160"
-        image={food.image}
+        image={FOOD_IMAGE}
         alt={food.name}
         sx={{ objectFit: "cover" }}
       />
       <CardContent sx={{ padding: "12px 16px" }}>
         <Chip
-          label={food.category}
+          label={food.categories?.categoryName}
           size="small"
           sx={{
             fontSize: "0.7rem",
@@ -46,32 +48,28 @@ const FoodCard = ({ food, isDark, onAddToCart }) => {
 
         <Typography
           variant="subtitle1"
-          sx={{ color: isDark ? "#fff" : "#1e1e1e", fontWeight: 600, lineHeight: 1.3 }}
+          sx={{
+            color: isDark ? "#fff" : "#1e1e1e",
+            fontWeight: 600,
+            lineHeight: 1.3,
+          }}
         >
           {food.name}
         </Typography>
 
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            margin: "6px 0 12px",
-          }}
+        <Typography
+          variant="caption"
+          sx={{ color: "#888", display: "block", margin: "4px 0 8px" }}
         >
-          <Typography
-            variant="body2"
-            sx={{ fontWeight: 700, color: "#1976d2" }}
-          >
-            Rp. {food.price.toLocaleString("id-ID")}
-          </Typography>
-          <Typography
-            variant="caption"
-            sx={{ color: food.available ? "#4caf50" : "#e53935" }}
-          >
-            {food.available ? "Available" : "Unavailable"}
-          </Typography>
-        </Box>
+          {food.description}
+        </Typography>
+
+        <Typography
+          variant="body2"
+          sx={{ fontWeight: 700, color: "#1976d2", marginBottom: "12px" }}
+        >
+          Rp. {food.price.toLocaleString("id-ID")}
+        </Typography>
 
         <AppButton
           onClick={() => onAddToCart(food)}

@@ -1,96 +1,28 @@
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { useFormik } from "formik";
 import AppTextField from "../components/AppTextField";
 import AppSelect from "../components/AppSelect";
 import FoodCard from "../components/FoodCard";
+import AppSnackbar, { useSnackbar } from "../components/AppSnackbar";
 import { useTheme } from "../hooks/useTheme";
-
-const FOOD_DATA = [
-  {
-    id: 1,
-    name: "Nasi Goreng",
-    price: 25000,
-    category: "Indonesian Food",
-    image: "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400&h=300&fit=crop",
-    available: true,
-  },
-  {
-    id: 2,
-    name: "Mie Ayam",
-    price: 20000,
-    category: "Indonesian Food",
-    image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&h=300&fit=crop",
-    available: true,
-  },
-  {
-    id: 3,
-    name: "Ayam Bakar",
-    price: 35000,
-    category: "Indonesian Food",
-    image: "https://images.unsplash.com/photo-1632778149955-e80f8ceca2e8?w=400&h=300&fit=crop",
-    available: true,
-  },
-  {
-    id: 4,
-    name: "Gado-Gado",
-    price: 18000,
-    category: "Indonesian Food",
-    image: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&h=300&fit=crop",
-    available: true,
-  },
-  {
-    id: 5,
-    name: "Spaghetti Carbonara",
-    price: 45000,
-    category: "Western Food",
-    image: "https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400&h=300&fit=crop",
-    available: true,
-  },
-  {
-    id: 6,
-    name: "Burger Deluxe",
-    price: 40000,
-    category: "Western Food",
-    image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop",
-    available: false,
-  },
-  {
-    id: 7,
-    name: "Es Krim Vanilla",
-    price: 15000,
-    category: "Desserts",
-    image: "https://images.unsplash.com/photo-1570197571499-166b36435e9f?w=400&h=300&fit=crop",
-    available: true,
-  },
-  {
-    id: 8,
-    name: "Brownies Coklat",
-    price: 22000,
-    category: "Desserts",
-    image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop",
-    available: true,
-  },
-];
-
-const CATEGORY_OPTIONS = [
-  { value: "", label: "Semua" },
-  { value: "Indonesian Food", label: "Indonesian Food" },
-  { value: "Western Food", label: "Western Food" },
-  { value: "Desserts", label: "Desserts" },
-];
+import api from "../services/api";
 
 const SORT_OPTIONS = [
   { value: "", label: "Default" },
-  { value: "price_asc", label: "Harga Terendah" },
-  { value: "price_desc", label: "Harga Tertinggi" },
-  { value: "name_asc", label: "Nama A-Z" },
+  { value: "price,asc", label: "Harga Terendah" },
+  { value: "price,desc", label: "Harga Tertinggi" },
+  { value: "name,asc", label: "Nama A-Z" },
 ];
 
 function FoodOrderPage() {
   const { mode } = useTheme();
   const isDark = mode === "dark";
+
+  const [foods, setFoods] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
 
   const formik = useFormik({
     initialValues: { search: "", category: "", sortBy: "" },
@@ -98,32 +30,41 @@ function FoodOrderPage() {
 
   const { search, category, sortBy } = formik.values;
 
-  const filteredFoods = useMemo(() => {
-    let result = [...FOOD_DATA];
+  useEffect(() => {
+    api.get("/food-order/categories").then((res) => {
+      setCategories(res.data.data || []);
+    });
+  }, []);
 
-    if (search) {
-      result = result.filter((f) =>
-        f.name.toLowerCase().includes(search.toLowerCase()),
-      );
-    }
+  useEffect(() => {
+    const params = { pageSize: 100 };
 
-    if (category) {
-      result = result.filter((f) => f.category === category);
-    }
+    if (search) params.foodName = search;
+    if (category) params.categoryId = category;
+    if (sortBy) params.sortBy = sortBy;
 
-    if (sortBy === "price_asc") {
-      result.sort((a, b) => a.price - b.price);
-    } else if (sortBy === "price_desc") {
-      result.sort((a, b) => b.price - a.price);
-    } else if (sortBy === "name_asc") {
-      result.sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    return result;
+    api.get("/food-order/foods", { params }).then((res) => {
+      setFoods(res.data.data || []);
+    });
   }, [search, category, sortBy]);
 
-  const handleAddToCart = (food) => {
-    alert(`${food.name} ditambahkan ke keranjang!`);
+  const categoryOptions = useMemo(() => {
+    return [
+      { value: "", label: "Semua" },
+      ...categories.map((c) => ({
+        value: String(c.id),
+        label: c.categoryName,
+      })),
+    ];
+  }, [categories]);
+
+  const handleAddToCart = async (food) => {
+    try {
+      await api.post("/food-order/cart", { foodId: food.id });
+      showSnackbar(`${food.name} ditambahkan ke keranjang!`);
+    } catch {
+      showSnackbar("Gagal menambahkan ke keranjang", "error");
+    }
   };
 
   return (
@@ -155,7 +96,7 @@ function FoodOrderPage() {
           name="category"
           value={formik.values.category}
           onChange={formik.handleChange}
-          options={CATEGORY_OPTIONS}
+          options={categoryOptions}
         />
         <AppSelect
           label="Sort By"
@@ -173,7 +114,7 @@ function FoodOrderPage() {
           gap: "16px",
         }}
       >
-        {filteredFoods.map((food) => (
+        {foods.map((food) => (
           <FoodCard
             key={food.id}
             food={food}
@@ -183,7 +124,7 @@ function FoodOrderPage() {
         ))}
       </Box>
 
-      {filteredFoods.length === 0 && (
+      {foods.length === 0 && (
         <Typography
           variant="body2"
           sx={{ textAlign: "center", color: "#888", marginTop: "40px" }}
@@ -191,6 +132,13 @@ function FoodOrderPage() {
           Tidak ada makanan ditemukan.
         </Typography>
       )}
+
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={closeSnackbar}
+      />
     </Box>
   );
 }

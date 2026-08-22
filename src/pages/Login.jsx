@@ -6,12 +6,12 @@ import * as Yup from "yup";
 import AppButton from "../components/AppButton";
 import AppTextField from "../components/AppTextField";
 import AppCard from "../components/AppCard";
+import AppSnackbar, { useSnackbar } from "../components/AppSnackbar";
 import { useAuth } from "../hooks/useAuth";
+import api from "../services/api";
 
 const loginSchema = Yup.object({
-  email: Yup.string()
-    .email("Format email tidak valid")
-    .required("Email harus diisi"),
+  username: Yup.string().required("Username harus diisi"),
   password: Yup.string()
     .min(6, "Password minimal 6 karakter")
     .required("Password harus diisi"),
@@ -20,16 +20,25 @@ const loginSchema = Yup.object({
 function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
 
   const formik = useFormik({
     initialValues: {
-      email: "",
+      username: "",
       password: "",
     },
     validationSchema: loginSchema,
-    onSubmit: (values) => {
-      login({ email: values.email });
-      navigate("/food-order");
+    onSubmit: async (values) => {
+      try {
+        const res = await api.post("/user-management/users/sign-in", values);
+        login(res.data);
+        navigate("/food-order");
+      } catch (err) {
+        // Gunakan ini untuk sekarang
+        alert(err.response?.data?.message || "Login gagal");
+        // Ini contoh penggunaan custom snackbar
+        showSnackbar(err.response?.data?.message || "Login gagal", "error");
+      }
     },
   });
 
@@ -56,16 +65,16 @@ function LoginPage() {
           Masuk ke akun Food Order kamu
         </Typography>
 
+
         <form onSubmit={formik.handleSubmit}>
           <AppTextField
-            label="Email"
-            type="email"
-            name="email"
-            value={formik.values.email}
+            label="Username"
+            name="username"
+            value={formik.values.username}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            error={formik.touched.email && Boolean(formik.errors.email)}
-            helperText={formik.touched.email && formik.errors.email}
+            error={formik.touched.username && Boolean(formik.errors.username)}
+            helperText={formik.touched.username && formik.errors.username}
           />
 
           <AppTextField
@@ -92,6 +101,13 @@ function LoginPage() {
           </Link>
         </Typography>
       </AppCard>
+
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={closeSnackbar}
+      />
     </Box>
   );
 }

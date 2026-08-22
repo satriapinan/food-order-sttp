@@ -52,7 +52,7 @@ const AppLayout = ({ children }) => {
             variant="body2"
             sx={{ fontWeight: 500, color: isDark ? "#ccc" : "#555" }}
           >
-            Hi, {user.email}
+            Hi, {user.fullname}!
           </Typography>
         )}
 

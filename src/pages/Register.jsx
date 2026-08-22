@@ -6,31 +6,40 @@ import * as Yup from "yup";
 import AppButton from "../components/AppButton";
 import AppTextField from "../components/AppTextField";
 import AppCard from "../components/AppCard";
+import AppSnackbar, { useSnackbar } from "../components/AppSnackbar";
+import api from "../services/api";
 
 const registerSchema = Yup.object({
-  name: Yup.string().required("Nama harus diisi"),
-  email: Yup.string().email("Format email tidak valid").required("Email harus diisi"),
-  password: Yup.string().min(6, "Password minimal 6 karakter").required("Password harus diisi"),
-  confirmPassword: Yup.string()
+  username: Yup.string().required("Username harus diisi"),
+  fullname: Yup.string().required("Nama lengkap harus diisi"),
+  password: Yup.string()
+    .min(6, "Password minimal 6 karakter")
+    .required("Password harus diisi"),
+  retypePassword: Yup.string()
     .oneOf([Yup.ref("password")], "Password tidak sama")
     .required("Konfirmasi password harus diisi"),
 });
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
 
   const formik = useFormik({
     initialValues: {
-      name: "",
-      email: "",
+      username: "",
+      fullname: "",
       password: "",
-      confirmPassword: "",
+      retypePassword: "",
     },
     validationSchema: registerSchema,
-    onSubmit: (values) => {
-      console.log("Register data:", values);
-      alert("Register berhasil! Silakan login.");
-      navigate("/login");
+    onSubmit: async (values) => {
+      try {
+        await api.post("/user-management/users/sign-up", values);
+        showSnackbar("Register berhasil! Silakan login.");
+        setTimeout(() => navigate("/login"), 1500);
+      } catch (err) {
+        showSnackbar(err.response?.data?.message || "Register gagal", "error");
+      }
     },
   });
 
@@ -44,33 +53,39 @@ function RegisterPage() {
       }}
     >
       <AppCard>
-        <Typography variant="h5" sx={{ fontWeight: "bold", marginBottom: "8px" }}>
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: "bold", marginBottom: "8px" }}
+        >
           Register
         </Typography>
-        <Typography variant="body2" sx={{ color: "#888", marginBottom: "24px" }}>
+        <Typography
+          variant="body2"
+          sx={{ color: "#888", marginBottom: "24px" }}
+        >
           Buat akun Food Order baru
         </Typography>
 
+
         <form onSubmit={formik.handleSubmit}>
           <AppTextField
-            label="Nama Lengkap"
-            name="name"
-            value={formik.values.name}
+            label="Username"
+            name="username"
+            value={formik.values.username}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            error={formik.touched.name && Boolean(formik.errors.name)}
-            helperText={formik.touched.name && formik.errors.name}
+            error={formik.touched.username && Boolean(formik.errors.username)}
+            helperText={formik.touched.username && formik.errors.username}
           />
 
           <AppTextField
-            label="Email"
-            type="email"
-            name="email"
-            value={formik.values.email}
+            label="Nama Lengkap"
+            name="fullname"
+            value={formik.values.fullname}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            error={formik.touched.email && Boolean(formik.errors.email)}
-            helperText={formik.touched.email && formik.errors.email}
+            error={formik.touched.fullname && Boolean(formik.errors.fullname)}
+            helperText={formik.touched.fullname && formik.errors.fullname}
           />
 
           <AppTextField
@@ -87,12 +102,17 @@ function RegisterPage() {
           <AppTextField
             label="Konfirmasi Password"
             type="password"
-            name="confirmPassword"
-            value={formik.values.confirmPassword}
+            name="retypePassword"
+            value={formik.values.retypePassword}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            error={formik.touched.confirmPassword && Boolean(formik.errors.confirmPassword)}
-            helperText={formik.touched.confirmPassword && formik.errors.confirmPassword}
+            error={
+              formik.touched.retypePassword &&
+              Boolean(formik.errors.retypePassword)
+            }
+            helperText={
+              formik.touched.retypePassword && formik.errors.retypePassword
+            }
           />
 
           <AppButton type="submit">Register</AppButton>
@@ -108,6 +128,13 @@ function RegisterPage() {
           </Link>
         </Typography>
       </AppCard>
+
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={closeSnackbar}
+      />
     </Box>
   );
 }
