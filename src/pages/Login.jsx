@@ -9,15 +9,18 @@ import TextField from "@mui/material/TextField";
 import Link from "@mui/material/Link";
 import InputAdornment from "@mui/material/InputAdornment";
 import LockIcon from "@mui/icons-material/Lock";
-import EmailIcon from "@mui/icons-material/Email";
+import PersonIcon from "@mui/icons-material/Person";
 import Button from "@mui/material/Button";
-import Grid from "@mui/material/Grid";
+import Grid from "@mui/material/Grid"; // Cukup gunakan import Grid standar
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+
 import { useAuth } from "../hooks/useAuth";
+import { useSnackbar } from "../hooks/useSnackbar";
+import api from "../services/api";
 
 const loginSchema = Yup.object({
-  email: Yup.string()
-    .email("Format email tidak valid")
-    .required("Email harus diisi"),
+  username: Yup.string().required("Username harus diisi"),
   password: Yup.string()
     .min(6, "Password minimal 6 karakter")
     .required("Password harus diisi"),
@@ -26,16 +29,20 @@ const loginSchema = Yup.object({
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { open, message, severity, showSnackbar, handleClose } = useSnackbar();
 
   const formik = useFormik({
-    initialValues: {
-      email: "",
-      password: "",
-    },
+    initialValues: { username: "", password: "" },
     validationSchema: loginSchema,
-    onSubmit: (values) => {
-      login({ email: values.email });
-      navigate("/food-order");
+    onSubmit: async (values) => {
+      try {
+        const res = await api.post("/user-management/users/sign-in", values);
+        login(res.data);
+        showSnackbar("Login berhasil!", "success");
+        setTimeout(() => navigate("/food-order"), 1000);
+      } catch (err) {
+        showSnackbar(err.response?.data?.message || "Login gagal", "error");
+      }
     },
   });
 
@@ -49,7 +56,7 @@ export default function LoginPage() {
           left: 0,
           width: "100vw",
           height: "100vh",
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          backgroundColor: "#3AAFA9",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -57,176 +64,150 @@ export default function LoginPage() {
         }}
       >
         <Paper
-          elevation={12}
+          elevation={10}
           sx={{
             width: "100%",
-            maxWidth: "850px",
-            minHeight: "480px",
+            maxWidth: "800px",
             borderRadius: "24px",
             overflow: "hidden",
-            display: "flex",
           }}
         >
-          <Grid container sx={{ flex: 1 }}>
-            {/* BANNER GRADIENT KIRI */}
+          <Grid container>
+            {/* BANNER KIRI */}
             <Grid
-              item
-              xs={12}
-              md={6}
+              size={{ xs: 12, md: 6 }}
               sx={{
-                background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
+                background: "linear-gradient(135deg, #2B7A78 0%, #17252A 100%)",
                 color: "white",
                 display: { xs: "none", md: "flex" },
                 flexDirection: "column",
                 justifyContent: "center",
-                p: 5,
+                p: 4,
               }}
             >
-              <Typography variant="h3" sx={{ fontWeight: 800, mb: 2, lineHeight: 1.2 }}>
-                Welcome to
+              <Typography variant="h4" sx={{ fontWeight: 800, mb: 2, color: "#DEF2F1" }}>
+                Welcome Back!
               </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.85, fontSize: "0.95rem" }}>
-                STTP Food Order Application Kelola pemesanan makanan kamu dengan cepat dan efisien
+              <Typography variant="body2" sx={{ opacity: 0.85, lineHeight: 1.6 }}>
+                Nikmati kemudahan memesan makanan favoritmu di STTP Food Order Application.
               </Typography>
             </Grid>
 
-            {/* FORM LOGIN KANAN */}
+            {/* FORM KANAN */}
             <Grid
-              item
-              xs={12}
-              md={6}
+              size={{ xs: 12, md: 6 }}
               sx={{
                 backgroundColor: "#ffffff",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
-                alignItems: "center",
                 p: { xs: 4, sm: 5 },
               }}
             >
-              <Box sx={{ width: "100%", maxWidth: "320px" }}>
-                <Typography
-                  variant="subtitle1"
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 800,
+                  color: "#2B7A78",
+                  textAlign: "center",
+                  letterSpacing: 1.5,
+                  mb: 3,
+                  textTransform: "uppercase",
+                }}
+              >
+                User Login
+              </Typography>
+
+              <form onSubmit={formik.handleSubmit}>
+                <TextField
+                  fullWidth
+                  id="username"
+                  name="username"
+                  placeholder="Username"
+                  size="small"
+                  margin="normal"
+                  value={formik.values.username}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  error={formik.touched.username && Boolean(formik.errors.username)}
+                  helperText={formik.touched.username && formik.errors.username}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PersonIcon sx={{ color: "#3AAFA9" }} />
+                        </InputAdornment>
+                      ),
+                      sx: { borderRadius: "12px", backgroundColor: "#F7FAFC" },
+                    },
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="Password"
+                  size="small"
+                  margin="normal"
+                  value={formik.values.password}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  error={formik.touched.password && Boolean(formik.errors.password)}
+                  helperText={formik.touched.password && formik.errors.password}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LockIcon sx={{ color: "#3AAFA9" }} />
+                        </InputAdornment>
+                      ),
+                      sx: { borderRadius: "12px", backgroundColor: "#F7FAFC" },
+                    },
+                  }}
+                />
+
+                <Button
+                  fullWidth
+                  type="submit"
+                  variant="contained"
                   sx={{
-                    fontWeight: 800,
-                    color: "#764ba2",
-                    textAlign: "center",
-                    letterSpacing: 2,
-                    mb: 3,
+                    mt: 3,
+                    mb: 2,
+                    py: 1.2,
+                    borderRadius: "12px",
+                    backgroundColor: "#2B7A78",
+                    fontWeight: "bold",
                     textTransform: "uppercase",
+                    "&:hover": { backgroundColor: "#17252A" },
                   }}
                 >
-                  User Login
-                </Typography>
+                  Login
+                </Button>
 
-                <form onSubmit={formik.handleSubmit}>
-                  {/* EMAIL */}
-                  <TextField
-                    fullWidth
-                    id="email"
-                    name="email"
-                    placeholder="Email"
-                    variant="outlined"
-                    margin="normal"
-                    size="small"
-                    value={formik.values.email}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.touched.email && Boolean(formik.errors.email)}
-                    helperText={formik.touched.email && formik.errors.email}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <EmailIcon sx={{ color: "#a0aec0" }} />
-                        </InputAdornment>
-                      ),
-                      sx: {
-                        borderRadius: "25px",
-                        backgroundColor: "#f3f4f6",
-                        "& fieldset": { border: "none" },
-                        px: 1,
-                      },
-                    }}
-                  />
-
-                  {/* PASSWORD */}
-                  <TextField
-                    fullWidth
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="Password"
-                    variant="outlined"
-                    margin="normal"
-                    size="small"
-                    value={formik.values.password}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.touched.password && Boolean(formik.errors.password)}
-                    helperText={formik.touched.password && formik.errors.password}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <LockIcon sx={{ color: "#a0aec0" }} />
-                        </InputAdornment>
-                      ),
-                      sx: {
-                        borderRadius: "25px",
-                        backgroundColor: "#f3f4f6",
-                        "& fieldset": { border: "none" },
-                        px: 1,
-                      },
-                    }}
-                  />
-
-                  {/* TOMBOL LOGIN */}
-                  <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      sx={{
-                        borderRadius: "25px",
-                        px: 5,
-                        py: 1,
-                        background: "linear-gradient(90deg, #8E2DE2 0%, #4A00E0 100%)",
-                        fontWeight: "bold",
-                        boxShadow: "0 4px 15px rgba(118, 75, 162, 0.4)",
-                        textTransform: "uppercase",
-                        "&:hover": {
-                          background: "linear-gradient(90deg, #4A00E0 0%, #8E2DE2 100%)",
-                        },
-                      }}
-                    >
-                      Login
-                    </Button>
-                  </Box>
-
-                  {/* NAVIGASI KE REGISTER */}
-                  <Typography
-                    variant="body2"
-                    sx={{ textAlign: "center", mt: 3, color: "#718096", fontSize: "0.85rem" }}
+                <Typography variant="body2" sx={{ textAlign: "center", color: "#718096" }}>
+                  Don't have an account?{" "}
+                  <Link
+                    component="button"
+                    type="button"
+                    onClick={() => navigate("/register")}
+                    sx={{ color: "#2B7A78", fontWeight: "bold", textDecoration: "none" }}
                   >
-                    Don't have an account?{" "}
-                    <Link
-                      component="button"
-                      type="button"
-                      onClick={() => navigate("/register")}
-                      sx={{
-                        color: "#764ba2",
-                        fontWeight: "bold",
-                        textDecoration: "none",
-                        "&:hover": { textDecoration: "underline" },
-                      }}
-                    >
-                      Sign up here
-                    </Link>
-                  </Typography>
-                </form>
-              </Box>
+                    Sign up
+                  </Link>
+                </Typography>
+              </form>
             </Grid>
           </Grid>
         </Paper>
       </Box>
+
+      <Snackbar open={open} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{ vertical: "top", horizontal: "right" }}>
+        <Alert onClose={handleClose} severity={severity} variant="filled" sx={{ width: "100%" }}>
+          {message}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

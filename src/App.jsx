@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/Login";
-import RegisterPage from "./pages/Register";
+import RegisterPage from "./pages/register";
 import FoodMenu from "./pages/foodmenu";
 import { ThemeProvider } from "./providers/ThemeProvider";
 

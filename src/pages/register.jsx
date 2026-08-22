@@ -9,38 +9,38 @@ import TextField from "@mui/material/TextField";
 import Link from "@mui/material/Link";
 import InputAdornment from "@mui/material/InputAdornment";
 import PersonIcon from "@mui/icons-material/Person";
-import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
 import Button from "@mui/material/Button";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+
+import { useSnackbar } from "../hooks/useSnackbar";
+import api from "../services/api";
 
 const registerSchema = Yup.object({
-  name: Yup.string().required("Nama harus diisi"),
-  email: Yup.string()
-    .email("Format email tidak valid")
-    .required("Email harus diisi"),
-  password: Yup.string()
-    .min(6, "Password minimal 6 karakter")
-    .required("Password harus diisi"),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref("password")], "Password tidak cocok")
+  username: Yup.string().required("Username harus diisi"),
+  fullname: Yup.string().required("Nama lengkap harus diisi"),
+  password: Yup.string().min(6, "Password minimal 6 karakter").required("Password harus diisi"),
+  retypePassword: Yup.string()
+    .oneOf([Yup.ref("password")], "Password tidak sama")
     .required("Konfirmasi password harus diisi"),
 });
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const { open, message, severity, showSnackbar, handleClose } = useSnackbar();
 
   const formik = useFormik({
-    initialValues: {
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    },
+    initialValues: { username: "", fullname: "", password: "", retypePassword: "" },
     validationSchema: registerSchema,
-    onSubmit: (values) => {
-      console.log("Register data:", values);
-      alert("Register berhasil! Silakan login.");
-      navigate("/login");
+    onSubmit: async (values) => {
+      try {
+        await api.post("/user-management/users/sign-up", values);
+        showSnackbar("Register berhasil! Silakan login.", "success");
+        setTimeout(() => navigate("/login"), 1500);
+      } catch (err) {
+        showSnackbar(err.response?.data?.message || "Register gagal", "error");
+      }
     },
   });
 
@@ -54,7 +54,7 @@ export default function RegisterPage() {
           left: 0,
           width: "100vw",
           height: "100vh",
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          backgroundColor: "#3AAFA9",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -62,22 +62,22 @@ export default function RegisterPage() {
         }}
       >
         <Paper
-          elevation={12}
+          elevation={10}
           sx={{
             width: "100%",
             maxWidth: "420px",
             borderRadius: "24px",
             p: { xs: 4, sm: 5 },
-            textAlign: "center",
             backgroundColor: "#ffffff",
           }}
         >
           <Typography
-            variant="subtitle1"
+            variant="h6"
             sx={{
               fontWeight: 800,
-              color: "#764ba2",
-              letterSpacing: 2,
+              color: "#2B7A78",
+              textAlign: "center",
+              letterSpacing: 1.5,
               mb: 1,
               textTransform: "uppercase",
             }}
@@ -85,176 +85,147 @@ export default function RegisterPage() {
             Create Account
           </Typography>
 
-          <Typography variant="body2" sx={{ color: "#a0aec0", mb: 3 }}>
+          <Typography variant="body2" sx={{ textAlign: "center", color: "#A0AEC0", mb: 3 }}>
             Join us today and get started
           </Typography>
 
           <form onSubmit={formik.handleSubmit}>
-            {/* NAME */}
             <TextField
               fullWidth
-              id="name"
-              name="name"
+              id="username"
+              name="username"
+              placeholder="Username"
+              size="small"
+              margin="dense"
+              value={formik.values.username}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.username && Boolean(formik.errors.username)}
+              helperText={formik.touched.username && formik.errors.username}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon sx={{ color: "#3AAFA9" }} />
+                    </InputAdornment>
+                  ),
+                  sx: { borderRadius: "12px", backgroundColor: "#F7FAFC" },
+                },
+              }}
+            />
+
+            <TextField
+              fullWidth
+              id="fullname"
+              name="fullname"
               placeholder="Full Name"
-              variant="outlined"
-              margin="dense"
               size="small"
-              value={formik.values.name}
+              margin="dense"
+              value={formik.values.fullname}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={formik.touched.name && Boolean(formik.errors.name)}
-              helperText={formik.touched.name && formik.errors.name}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PersonIcon sx={{ color: "#a0aec0" }} />
-                  </InputAdornment>
-                ),
-                sx: {
-                  borderRadius: "25px",
-                  backgroundColor: "#f3f4f6",
-                  "& fieldset": { border: "none" },
-                  px: 1,
+              error={formik.touched.fullname && Boolean(formik.errors.fullname)}
+              helperText={formik.touched.fullname && formik.errors.fullname}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon sx={{ color: "#3AAFA9" }} />
+                    </InputAdornment>
+                  ),
+                  sx: { borderRadius: "12px", backgroundColor: "#F7FAFC" },
                 },
               }}
             />
 
-            {/* EMAIL */}
-            <TextField
-              fullWidth
-              id="email"
-              name="email"
-              placeholder="Email"
-              variant="outlined"
-              margin="dense"
-              size="small"
-              value={formik.values.email}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={formik.touched.email && Boolean(formik.errors.email)}
-              helperText={formik.touched.email && formik.errors.email}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <EmailIcon sx={{ color: "#a0aec0" }} />
-                  </InputAdornment>
-                ),
-                sx: {
-                  borderRadius: "25px",
-                  backgroundColor: "#f3f4f6",
-                  "& fieldset": { border: "none" },
-                  px: 1,
-                },
-              }}
-            />
-
-            {/* PASSWORD */}
             <TextField
               fullWidth
               id="password"
               name="password"
               type="password"
               placeholder="Password"
-              variant="outlined"
-              margin="dense"
               size="small"
+              margin="dense"
               value={formik.values.password}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               error={formik.touched.password && Boolean(formik.errors.password)}
               helperText={formik.touched.password && formik.errors.password}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon sx={{ color: "#a0aec0" }} />
-                  </InputAdornment>
-                ),
-                sx: {
-                  borderRadius: "25px",
-                  backgroundColor: "#f3f4f6",
-                  "& fieldset": { border: "none" },
-                  px: 1,
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon sx={{ color: "#3AAFA9" }} />
+                    </InputAdornment>
+                  ),
+                  sx: { borderRadius: "12px", backgroundColor: "#F7FAFC" },
                 },
               }}
             />
 
-            {/* CONFIRM PASSWORD */}
             <TextField
               fullWidth
-              id="confirmPassword"
-              name="confirmPassword"
+              id="retypePassword"
+              name="retypePassword"
               type="password"
-              placeholder="Confirm Password"
-              variant="outlined"
-              margin="dense"
+              placeholder="Retype Password"
               size="small"
-              value={formik.values.confirmPassword}
+              margin="dense"
+              value={formik.values.retypePassword}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={
-                formik.touched.confirmPassword &&
-                Boolean(formik.errors.confirmPassword)
-              }
-              helperText={
-                formik.touched.confirmPassword && formik.errors.confirmPassword
-              }
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon sx={{ color: "#a0aec0" }} />
-                  </InputAdornment>
-                ),
-                sx: {
-                  borderRadius: "25px",
-                  backgroundColor: "#f3f4f6",
-                  "& fieldset": { border: "none" },
-                  px: 1,
+              error={formik.touched.retypePassword && Boolean(formik.errors.retypePassword)}
+              helperText={formik.touched.retypePassword && formik.errors.retypePassword}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon sx={{ color: "#3AAFA9" }} />
+                    </InputAdornment>
+                  ),
+                  sx: { borderRadius: "12px", backgroundColor: "#F7FAFC" },
                 },
               }}
             />
 
-            {/* TOMBOL REGISTER */}
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 3, mb: 2 }}>
-              <Button
-                type="submit"
-                variant="contained"
-                sx={{
-                  borderRadius: "25px",
-                  px: 5,
-                  py: 1,
-                  background: "linear-gradient(90deg, #8E2DE2 0%, #4A00E0 100%)",
-                  fontWeight: "bold",
-                  boxShadow: "0 4px 15px rgba(118, 75, 162, 0.4)",
-                  textTransform: "uppercase",
-                  "&:hover": {
-                    background: "linear-gradient(90deg, #4A00E0 0%, #8E2DE2 100%)",
-                  },
-                }}
-              >
-                Register
-              </Button>
-            </Box>
+            <Button
+              fullWidth
+              type="submit"
+              variant="contained"
+              sx={{
+                mt: 3,
+                mb: 2,
+                py: 1.2,
+                borderRadius: "12px",
+                backgroundColor: "#2B7A78",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                "&:hover": { backgroundColor: "#17252A" },
+              }}
+            >
+              Register
+            </Button>
 
-            {/* NAVIGASI KE LOGIN */}
-            <Typography variant="body2" sx={{ color: "#718096", fontSize: "0.85rem" }}>
+            <Typography variant="body2" sx={{ textAlign: "center", color: "#718096" }}>
               Already have an account?{" "}
               <Link
                 component="button"
                 type="button"
                 onClick={() => navigate("/login")}
-                sx={{
-                  color: "#764ba2",
-                  fontWeight: "bold",
-                  textDecoration: "none",
-                  "&:hover": { textDecoration: "underline" },
-                }}
+                sx={{ color: "#2B7A78", fontWeight: "bold", textDecoration: "none" }}
               >
-                Sign in here
+                Sign in
               </Link>
             </Typography>
           </form>
         </Paper>
       </Box>
+
+      <Snackbar open={open} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{ vertical: "top", horizontal: "right" }}>
+        <Alert onClose={handleClose} severity={severity} variant="filled" sx={{ width: "100%" }}>
+          {message}
+        </Alert>
+      </Snackbar>
     </>
   );
 }
