@@ -76,7 +76,6 @@ Contoh:
 VITE_API_URL=http://localhost:8000/api
 ```
 
-> Jangan upload `.env` ke GitHub jika berisi API key, token, password, atau informasi sensitif.
 
 Gunakan `.env.example` sebagai template:
 
@@ -121,7 +120,6 @@ food-order/
 └── README.md
 ```
 
-> Struktur folder dapat berbeda tergantung struktur project yang kamu gunakan.
 
 ## ▶️ Menjalankan Build Production
 
@@ -138,8 +136,6 @@ npm run preview
 ```
 
 ## 🔐 Environment Variable
-
-Environment variable disimpan di file `.env` dan **tidak disarankan untuk di-push ke GitHub**.
 
 Tambahkan `.env` ke `.gitignore`:
 
