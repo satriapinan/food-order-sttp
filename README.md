@@ -1,16 +1,49 @@
-# React + Vite
+# 🍔 Food Order — Final Project
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Halo semuanya! 👋
 
-Currently, two official plugins are available:
+Selamat telah menyelesaikan kelas **React Beginner** bersama. Perjalanan dari nol hingga bisa membangun aplikasi React adalah sesuatu yang patut dibanggakan. Terima kasih sudah semangat belajar, bertanya, dan tidak menyerah ketika ada error 😄
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Semoga ilmu yang didapat bisa menjadi bekal untuk terus berkembang. Ini bukan akhir, tapi awal dari perjalanan kalian sebagai developer. **Keep coding, keep learning!** 🚀
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 📋 Instruksi Final Project
 
-## Expanding the ESLint configuration
+Final project kalian adalah membangun aplikasi **Food Order** menggunakan React. Aplikasi ini mencakup semua materi yang sudah kita pelajari selama kelas.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Fitur yang Harus Dibuat
+
+1. **Halaman Login** — Form login dengan validasi menggunakan Formik & Yup
+2. **Halaman Register** — Form registrasi user baru dengan validasi
+3. **Halaman Food Order** — Menampilkan daftar menu makanan dari API, lengkap dengan:
+   - 🔍 Search makanan berdasarkan nama
+   - 📂 Filter berdasarkan kategori
+   - 🔃 Sorting (harga terendah/tertinggi, nama A-Z)
+   - 🛒 Tombol tambah ke keranjang
+
+### Tech Stack
+
+- **React** (Vite)
+- **React Router** — untuk navigasi antar halaman
+- **MUI (Material UI)** — untuk komponen UI
+- **Formik + Yup** — untuk form handling & validasi
+- **Axios** — untuk komunikasi dengan API
+- **Context API** — untuk state management (Auth & Theme)
+
+### 📌 Butuh Contoh?
+
+Jika kalian butuh referensi atau contoh implementasi, silakan lihat branch **`example`**:
+
+```bash
+git checkout example
+```
+
+Atau bisa langsung dilihat di GitHub:
+👉 [Branch example](https://github.com/satriapinan/food-order-sttp/tree/example)
+
+> **Catatan:** Branch `example` hanya untuk referensi. Pastikan kalian mengerjakan di branch masing-masing dan memahami setiap baris kode yang kalian tulis. Jangan hanya copy-paste! 😉
+
+---
+
+Sukses selalu untuk kalian semua! 💪
