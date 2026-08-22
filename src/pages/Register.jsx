@@ -6,44 +6,46 @@ import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import AppButton2 from '../components/AppButton2';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from "../hooks/useAuth";
+//import { useAuth } from "../hooks/useAuth";
 import { useFormik } from "formik";
+import api from "../services/api";
 
 const registerSchema = Yup.object({
-  username: Yup.string()
-    .min(3, "Username minimal 3 karakter")
-    .required("Username harus diisi"),
-  fullName: Yup.string()
-    .required("Nama lengkap harus diisi"),
+  username: Yup.string().required("username harus diisi"),
+  fullname: Yup.string().required("nama lengkap harus diisi"),
   password: Yup.string()
-    .min(6, "Password minimal 6 karakter")
-    .required("Password harus diisi"),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref("password")], "Konfirmasi password tidak cocok")
-    .required("Konfirmasi password harus diisi"),
+    .min(6, "passwor minimal harus 6 karakter")
+    .required("passwordharus diisi"),
+  retypePassword: Yup.string()
+    .oneOf([Yup.ref("password")], "Password tidak sama")
+    .required("konfirmasi password harus diisi"),
 });
 
 function RegisterPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+
 
   const formik = useFormik({
     initialValues: {
       username: "",
       fullName: "",
       password: "",
-      confirmPassword: "",
+      retypePassword: "",
     },
     validationSchema: registerSchema,
-    onSubmit: (values) => {
-      login({
-        username: values.username,
-        fullName: values.fullName,
-        password: values.password,
-      });
-      navigate("/login");
+    onSubmit: async (values) => {
+      try{
+        console.log(values)
+        await api.post("/user-management/users/sign-up",values);
+        alert("Register telah berhasil silahkan login.");
+        setTimeout(() => navigate("/login"), 1500);
+      } catch (err) {
+        alert(err.response?.data?.message || "Register gagal");
+        }
     },
   });
+
+  console.log(formik.values)
 
   return (
     <Box
@@ -96,14 +98,14 @@ function RegisterPage() {
                   helperText={formik.touched.password && formik.errors.password}
                 />
                 <TextField
-                  label="Confirm Password"
+                  label="retypePassword"
                   type="password"
-                  name="confirmPassword"
-                  value={formik.values.confirmPassword}
+                  name="retypePassword"
+                  value={formik.values.retypePassword}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  error={formik.touched.confirmPassword && Boolean(formik.errors.confirmPassword)}
-                  helperText={formik.touched.confirmPassword && formik.errors.confirmPassword}
+                  error={formik.touched.retypePassword && Boolean(formik.errors.retypePassword)}
+                  helperText={formik.touched.retypePassword && formik.errors.retypePassword}
                 />
                 <AppButton2 type="submit">Create Account</AppButton2>
               </Stack>
