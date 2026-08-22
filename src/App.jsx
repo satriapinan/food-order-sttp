@@ -2,7 +2,7 @@ import {
   Routes,
   Route,
   Navigate,
-} from "react-router";
+} from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import FoodMenu from "./pages/FoodMenu";

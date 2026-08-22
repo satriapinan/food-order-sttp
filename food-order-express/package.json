@@ -1,0 +1,45 @@
+{
+  "name": "sttp-be",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^9.3.1",
+    "bcryptjs": "3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^5.1.0",
+    "formik": "^2.4.9",
+    "jsonwebtoken": "9.0.2",
+    "mysql2": "^3.23.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router": "^8.3.0",
+    "react-router-dom": "^7.18.2",
+    "yup": "^1.7.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.0",
+    "nodemon": "^3.1.14",
+    "vite": "^8.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/indratjgcs/food-order.git"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/indratjgcs/food-order/issues"
+  },
+  "homepage": "https://github.com/indratjgcs/food-order#readme"
+}

@@ -5,9 +5,8 @@ import * as Yup from "yup";
 import { useAuth } from "../hooks/useAuth";
 
 const loginSchema = Yup.object({
-  email: Yup.string()
-    .email("Format email tidak valid")
-    .required("Email harus diisi"),
+  username: Yup.string()
+    .required("Username harus diisi"),
 
   password: Yup.string()
     .min(6, "Password minimal 6 karakter")
@@ -23,19 +22,24 @@ function Login() {
 
   const formik = useFormik({
     initialValues: {
-      email: "",
-      password: "",
-    },
+  username: "",
+  password: "",
+},
 
     validationSchema: loginSchema,
 
-    onSubmit: (values) => {
-      login({
-        email: values.email,
-      });
+    onSubmit: async (values) => {
+  try {
+    await login({
+      username: values.username,
+      password: values.password,
+    });
 
-      navigate("/menu");
-    },
+    navigate("/menu");
+  } catch (error) {
+    alert(error.message);
+  }
+},
   });
 
   return (
@@ -306,25 +310,25 @@ function Login() {
             {/* EMAIL */}
 
             <div className="input-group">
-              <label htmlFor="email">
-                Email
-              </label>
+             <label htmlFor="username">
+  Username
+</label>
 
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Masukkan email"
-                value={formik.values.email}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-              />
+<input
+  id="username"
+  name="username"
+  type="text"
+  placeholder="Masukkan username"
+  value={formik.values.username}
+  onChange={formik.handleChange}
+  onBlur={formik.handleBlur}
+/>
 
-              {formik.touched.email && formik.errors.email && (
-                <div className="input-error">
-                  {formik.errors.email}
-                </div>
-              )}
+{formik.touched.username && formik.errors.username && (
+  <div className="input-error">
+    {formik.errors.username}
+  </div>
+)}
             </div>
 
             {/* PASSWORD */}

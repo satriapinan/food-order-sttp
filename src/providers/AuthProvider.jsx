@@ -1,26 +1,65 @@
-import { useMemo,useState } from "react";
-import {AuthContext} from "./AuthContext";
+import { useState } from "react";
+import { AuthContext } from "./AuthContext";
 
-export const AuthProvider = ({children}) => {
-    const [user,setUser] = useState(
-        JSON.parse(localStorage.getItem("user")) || null,
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
+  const [token, setToken] = useState(() => {
+    return localStorage.getItem("token") || null;
+  });
+
+  const login = async ({ username, password }) => {
+    const response = await fetch(
+      "http://localhost:8080/user-management/users/sign-in",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      }
     );
-    
-    const login = (userData) => {
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
-    };
 
-    const logout = () => {
-        setUser(null);
-        localStorage.removeItem("user");
-    };
+    const data = await response.json();
 
-    const contextValue = useMemo(() => ({user,login,logout }), [user]);
+    if (!response.ok) {
+      throw new Error(data.message || "Login gagal");
+    }
 
-    return (
-        <AuthContext.Provider value={contextValue}>
-            {children}
-        </AuthContext.Provider>
-    );
-};
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    setToken(data.token);
+    setUser(data.user);
+
+    return data;
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    setToken(null);
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        login,
+        logout,
+        isAuthenticated: !!token,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
