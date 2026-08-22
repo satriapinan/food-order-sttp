@@ -31,6 +31,55 @@ Final project kalian adalah membangun aplikasi **Food Order** menggunakan React.
 - **Axios** — untuk komunikasi dengan API
 - **Context API** — untuk state management (Auth & Theme)
 
+### ✅ Kriteria Penilaian
+
+#### 1. Penggunaan Provider & Context API
+- Menggunakan **AuthProvider** untuk mengelola state autentikasi (login, logout, data user)
+- Menggunakan **ThemeProvider** untuk mengelola dark/light mode
+- Provider membungkus seluruh aplikasi dengan benar
+
+#### 2. Custom Hooks
+- Menggunakan **custom hooks** (`useAuth`, `useTheme`) untuk mengakses context
+- Tidak mengakses context secara langsung di komponen, melainkan melalui hooks
+
+#### 3. Custom Component yang Reusable
+- Membuat komponen-komponen reusable seperti (tidak wajib semua):
+  - `AppButton` — tombol yang konsisten di seluruh aplikasi
+  - `AppTextField` — input field dengan styling seragam
+  - `AppSelect` — dropdown select yang reusable
+  - `AppCard` — card wrapper yang bisa dipakai ulang
+  - `AppSnackbar` — notifikasi/feedback untuk user
+  - `AppLayout` — layout utama dengan navbar (toggle theme, logout, dll)
+  - `FoodCard` — card untuk menampilkan data makanan
+- Komponen harus menerima **props** dan bisa digunakan di berbagai halaman
+
+#### 4. Form Handling & Validasi
+- Menggunakan **Formik** untuk mengelola state form
+- Menggunakan **Yup** untuk validasi (required, min length, dll)
+- Menampilkan **pesan error** validasi dengan jelas di bawah input field
+
+#### 5. Integrasi API
+- Menggunakan **Axios** untuk melakukan request ke API
+- Menggunakan **useEffect** untuk fetch data saat komponen dimount
+- Menangani **loading state** dan **error handling** dengan baik
+
+#### 6. Routing & Navigasi
+- Menggunakan **React Router** untuk navigasi antar halaman
+- Redirect setelah login berhasil ke halaman Food Order
+- Navigasi antara halaman Login dan Register berjalan dengan baik
+
+#### 7. Tampilan Responsive & Rapih
+- Layout menyesuaikan di berbagai ukuran layar (desktop, tablet, mobile)
+- Menggunakan **flexbox/grid** yang responsive
+- Spacing, typography, dan warna konsisten di seluruh halaman
+- Mendukung **dark mode & light mode** dengan tampilan yang tetap rapih di kedua mode
+
+#### 8. Kualitas Kode
+- Struktur folder rapi (`components/`, `pages/`, `hooks/`, `providers/`, `services/`)
+- Penamaan file dan variabel jelas dan konsisten
+- Tidak ada kode yang tidak terpakai atau di-comment tanpa alasan
+- Setiap komponen memiliki tanggung jawab yang jelas (Single Responsibility)
+
 ### 📌 Butuh Contoh?
 
 Jika kalian butuh referensi atau contoh implementasi, silakan lihat branch **`example`**:

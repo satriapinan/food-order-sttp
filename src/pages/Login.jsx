@@ -34,9 +34,6 @@ function LoginPage() {
         login(res.data);
         navigate("/food-order");
       } catch (err) {
-        // Gunakan ini untuk sekarang
-        alert(err.response?.data?.message || "Login gagal");
-        // Ini contoh penggunaan custom snackbar
         showSnackbar(err.response?.data?.message || "Login gagal", "error");
       }
     },
