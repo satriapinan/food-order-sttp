@@ -1,19 +1,33 @@
-import { useState } from "react";
+import React from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import AppButton from "../components/AppButton";
 
-function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+const loginSchema = Yup.object({
+  email: Yup.string()
+    .email("Format email tidak valid")
+    .required("Email harus diisi"),
+  password: Yup.string()
+    .min(6, "Password minimal 6 karakter")
+    .required("Password harus diisi"),
+});
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Username:", username);
-    console.log("Password:", password);
-  };
+function LoginPage() {
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validationSchema: loginSchema,
+    onSubmit: (values) => {
+      console.log("Data Login:", values);
+      // Panggil fungsi API/Auth kamu di sini
+    },
+  });
 
   return (
     <Box
@@ -40,22 +54,32 @@ function LoginPage() {
           Login
         </Typography>
 
-        <Box component="form" onSubmit={handleSubmit}>
+        <Box component="form" onSubmit={formik.handleSubmit}>
           <TextField
             fullWidth
-            label="Username"
+            id="email"
+            name="email"
+            label="Email"
             margin="normal"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={formik.values.email}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.email && Boolean(formik.errors.email)}
+            helperText={formik.touched.email && formik.errors.email}
           />
 
           <TextField
             fullWidth
+            id="password"
+            name="password"
             label="Password"
             type="password"
             margin="normal"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formik.values.password}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.password && Boolean(formik.errors.password)}
+            helperText={formik.touched.password && formik.errors.password}
           />
 
           <Box sx={{ marginTop: 3 }}>

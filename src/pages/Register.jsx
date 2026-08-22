@@ -1,22 +1,36 @@
-import { useState } from "react";
+import React from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import AppButton from "../components/AppButton";
 
-function RegisterPage() {
-  const [username, setUsername] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+const registerSchema = Yup.object({
+  username: Yup.string().required("Username harus diisi"),
+  fullName: Yup.string().required("Nama lengkap harus diisi"),
+  password: Yup.string()
+    .min(6, "Password minimal 6 karakter")
+    .required("Password harus diisi"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("password"), null], "Password tidak cocok")
+    .required("Konfirmasi password harus diisi"),
+});
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Username:", username);
-    console.log("Nama Lengkap:", fullName);
-    console.log("Password:", password);
-  };
+function RegisterPage() {
+  const formik = useFormik({
+    initialValues: {
+      username: "",
+      fullName: "",
+      password: "",
+      confirmPassword: "",
+    },
+    validationSchema: registerSchema,
+    onSubmit: (values) => {
+      console.log("Data Register:", values);
+    },
+  });
 
   return (
     <Box
@@ -43,39 +57,64 @@ function RegisterPage() {
           Daftar Akun
         </Typography>
 
-        <Box component="form" onSubmit={handleSubmit}>
+        <Box component="form" onSubmit={formik.handleSubmit}>
           <TextField
             fullWidth
+            id="username"
+            name="username"
             label="Username"
             margin="normal"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={formik.values.username}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.username && Boolean(formik.errors.username)}
+            helperText={formik.touched.username && formik.errors.username}
           />
 
           <TextField
             fullWidth
+            id="fullName"
+            name="fullName"
             label="Nama Lengkap"
             margin="normal"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
+            value={formik.values.fullName}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.fullName && Boolean(formik.errors.fullName)}
+            helperText={formik.touched.fullName && formik.errors.fullName}
           />
 
           <TextField
             fullWidth
+            id="password"
+            name="password"
             label="Password"
             type="password"
             margin="normal"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formik.values.password}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.password && Boolean(formik.errors.password)}
+            helperText={formik.touched.password && formik.errors.password}
           />
 
           <TextField
             fullWidth
+            id="confirmPassword"
+            name="confirmPassword"
             label="Konfirmasi Password"
             type="password"
             margin="normal"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            value={formik.values.confirmPassword}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={
+              formik.touched.confirmPassword &&
+              Boolean(formik.errors.confirmPassword)
+            }
+            helperText={
+              formik.touched.confirmPassword && formik.errors.confirmPassword
+            }
           />
 
           <Box sx={{ marginTop: 3 }}>
