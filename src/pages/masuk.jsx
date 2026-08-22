@@ -2,18 +2,22 @@ import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import Snackbar from '@mui/material/Snackbar'; 
+import Alert from '@mui/material/Alert';
 import {Link, NavLink, useNavigate} from "react-router-dom";
 import { useState } from 'react';
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useAuth } from '../hooks/useAuth';
 import AppTextField from '../components/AppTextField';
+import api from '../services/api';
 
 const masukSchema = Yup.object({
   email:Yup.string()
   .email("Format email tidak valid")
   .required("Email harus diisi"),
-  passwor: Yup.string()
+  password: Yup.string()
   .min(6, "Password minimal 6 karakter")
   .required("Password harus diisi"),
 });
@@ -27,20 +31,53 @@ export default function MasukPage() {
         navigate("/login");
     }
 
-    const{ masuk }= useAuth();
+    const { masuk } = useAuth();
     
+    const [notification, setNotification] = useState({
+      open:false,
+      message:'',
+      severity:'success',
+    });
+
+    const handleCloseNotification = () => {
+      setNotification((prev) => ({...prev, open: false}));
+    };
+
     const formik = useFormik({
       initialValues:{
-        emaill:"tiara@gmail.com",
+        email:"tiara@gmail.com",
         password:"taf12345",
       },
       validationSchema:masukSchema,
       onSubmit: async (values) =>{
-        await masuk(values.email, values.password);
-        navigate("/food-order");
+        try {
+          await api.post("/user-management/users/sign-in", values);
+          if (masuk){
+            await masuk(values.email, values.password);
+          }
+
+          setNotification({
+            open:true,
+            message:'Login berhasil!',
+            severity:"success",
+          });
+
+          setTimeout(() => {
+            navigate("/food-order");
+          }, 1500);
+
+        } catch(err){
+          const errorMessage = err.response?.data?.message || "Login gagal! Periksa email dan password Anda.";
+          setNotification({
+            open:true,
+            message:errorMessage,
+            severity:"error",
+          });
+        }
       }
-    })
-    if (show)
+    });
+
+    if (!show) return null;
   return(
     
     <Container maxWidth="xs" sx={{ mt: 8, backgroundColor: '#30e8f5', p:5, borderRadius: 8}}>
@@ -52,8 +89,7 @@ export default function MasukPage() {
             <Link to="/masuk"></Link>
           Masuk
         </Typography>
-        <Typography>
-          <form onSubmit={formik.handleSubmit}>
+          <Box component="form" onSubmit={formik.handleSubmit} noValidate>
 
             <AppTextField
             label="Email"
@@ -75,12 +111,12 @@ export default function MasukPage() {
             error={formik.touched.password && Boolean(formik.errors.password)}
             helperText={formik.touched.password && formik.errors.password}/>
 
-          </form>
-        </Typography>
+          </Box>
         <Button
+        type='submit'
         onClick={tologin}
         style={count < 5 ? StyleSheet.Button : StyleSheet.buttonB}
-        onClick ={() => setCount ()}
+        onClick={() => setCount(count + 1)}
           fullWidth variant="contained" 
           sx={{ mt:2,
             backgroundColor:"#30e8f5",
@@ -96,6 +132,21 @@ export default function MasukPage() {
         </Button>
         {/*tombol masuk*/}
       </Paper>
+      <Snackbar
+      open={notification.open}
+      autoHideDuration={4000}
+      onClose={handleCloseNotification}
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }} // Posisi di atas tengah
+      >
+        <Alert
+        onClose={handleCloseNotification}
+        severity={notification.severity}
+        variant='filled'
+        sx={{width: '100%'}}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
