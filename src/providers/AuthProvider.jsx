@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo,useState } from "react";
 import { AuthContext } from "./AuthContext";
 
 export function AuthProvider({ children }) {
@@ -49,6 +49,7 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const contextValue = useMemo(() => ({ user,login,logout }), [user]);
   return (
     <AuthContext.Provider
       value={{
