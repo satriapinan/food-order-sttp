@@ -1,11 +1,27 @@
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import {Link, NavLink, useNavigate} from "react-router-dom";
 import { useState } from 'react';
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { useAuth } from '../hooks/useAuth';
+import AppTextField from '../components/AppTextField';
 
+const registerScehema = Yup.object({
+  name: Yup.string()
+  .required("Nama harus diisi"),
+  email: Yup.string()
+  .email("Format email tidak valid")
+  .required("Email harus diisi"),
+  password: Yup.string()
+  .min(6, "Password minimal 6 karakter")
+  .required("Password harus diisi"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("password")], "Password tidak sama")
+    .required("Konfirmasi password harus diisi"),
+});
 
 export default function RegisterPage() {
     const show = true;
@@ -15,7 +31,24 @@ export default function RegisterPage() {
     const tologin = () => {
         navigate("/login");
     }
-    
+
+    const{ register }= useAuth();
+
+    const formik = useFormik({
+      initialValues:{
+        name:"",
+        email:"",
+        password:"",
+        confirmPassword:"",
+      },
+      validationSchema:registerScehema,
+      onSubmit:async (values) =>{
+        await register(values.name, values.email, values.email, values.confirmPassword);
+        navigate("/food-order");
+
+      }
+      });
+
     if (show)
   return(
     
@@ -28,12 +61,49 @@ export default function RegisterPage() {
             <Link to="/masuk"></Link>
           Masuk
         </Typography>
-        {/*tulisan masuk*/}
-        <TextField fullWidth margin="normal" label="Username"/>
-        <TextField fullWidth margin="normal" label="Full Name"/>
-        <TextField fullWidth margin='normal' label="Password" type='password'/>
-        <TextField fullWidth margin='normal' label="Confrim Password" type='password'/>
-        {/*kotak pengisian user name dan password*/}
+        <Typography>
+          <from onSubmit={formik.handleSubmit}>
+            <AppTextField
+            label="Nama Lengkap"
+            name="name"
+            value={formik.values.name}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.name && Boolean(formik.errors.name)}
+            helperText={formik.touched.name && formik.errors.name}/>
+            
+            <AppTextField
+            label="Email"
+            type='email'
+            name="email"
+            value={formik.values.email}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.email && Boolean(formik.errors.email)}
+            helperText={formik.touched.email && formik.errors.email}/>
+
+            <AppTextField
+            label="Password"
+            type='password'
+            name="password"
+            value={formik.values.password}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.password && Boolean(formik.errors.password)}
+            helperText={formik.touched.password && formik.errors.password}/>
+
+            <AppTextField
+            label="ConfirmPassword"
+            type='confirmPassword'
+            name="confirmPassword"
+            value={formik.values.confirmPassword}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.confirmPassword && Boolean(formik.errors.confirmPassword)}
+            helperText={formik.touched.confirmPassword && formik.errors.confirmPassword}/>
+
+          </from>
+        </Typography>
         <Button
         onClick={tologin}
         style={count < 5 ? StyleSheet.Button : StyleSheet.buttonB}
