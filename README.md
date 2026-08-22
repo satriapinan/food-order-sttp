@@ -24,8 +24,6 @@ Food Order adalah aplikasi pemesanan makanan berbasis web yang dibangun mengguna
 * Axios
 * React Router
 
-> Sesuaikan daftar teknologi dengan library yang benar-benar digunakan dalam project.
-
 ## 📋 Persyaratan
 
 Pastikan sudah menginstall:
