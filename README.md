@@ -47,7 +47,7 @@ git --version
 ### 1. Clone repository
 
 ```bash id="y4s8vz"
-git clone https://github.com/username/food-order.git
+git clone https://github.com/indratjgnoc/food-order.git
 ```
 
 Masuk ke folder project:
