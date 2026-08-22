@@ -2,21 +2,21 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../hooks/useTheme";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { useAuth } from "../hooks/useAuth";
 
 const registerSchema = Yup.object({
-  name: Yup.string()
-    .min(3, "Nama minimal 3 karakter")
-    .required("Nama harus diisi"),
+  username: Yup.string()
+    .required("Username harus diisi"),
 
-  email: Yup.string()
-    .email("Format email tidak valid")
-    .required("Email harus diisi"),
+  fullname: Yup.string()
+    .min(3, "Nama minimal 3 karakter")
+    .required("Nama lengkap harus diisi"),
 
   password: Yup.string()
     .min(6, "Password minimal 6 karakter")
     .required("Password harus diisi"),
 
-  confirmPassword: Yup.string()
+  retypePassword: Yup.string()
     .oneOf(
       [Yup.ref("password")],
       "Konfirmasi password tidak sama"
@@ -27,24 +27,36 @@ const registerSchema = Yup.object({
 function Register() {
   const navigate = useNavigate();
 
+  const { register } = useAuth();
   const { mode } = useTheme();
+
   const isDark = mode === "dark";
 
   const formik = useFormik({
     initialValues: {
-      name: "",
-      email: "",
+      username: "",
+      fullname: "",
       password: "",
-      confirmPassword: "",
+      retypePassword: "",
     },
 
     validationSchema: registerSchema,
 
-    onSubmit: (values) => {
-      console.log("Data Register:", values);
+    onSubmit: async (values) => {
+      try {
+        await register({
+          username: values.username,
+          fullname: values.fullname,
+          password: values.password,
+          retypePassword: values.retypePassword,
+        });
 
-      // Untuk sementara belum menggunakan database
-      navigate("/login");
+        alert("Registrasi berhasil!");
+
+        navigate("/login");
+      } catch (error) {
+        alert(error.message);
+      }
     },
   });
 
@@ -296,7 +308,11 @@ function Register() {
         }
       `}</style>
 
-      <div className={`register-container ${isDark ? "dark" : "light"}`}>
+      <div
+        className={`register-container ${
+          isDark ? "dark" : "light"
+        }`}
+      >
         <div className="register-card">
 
           <h1>Food Order</h1>
@@ -305,52 +321,52 @@ function Register() {
 
           <form onSubmit={formik.handleSubmit}>
 
-            {/* name */}
+            {/* USERNAME */}
 
             <div className="input-group">
-              <label htmlFor="name">
-                Nama Lengkap
+              <label htmlFor="username">
+                Username
               </label>
 
               <input
-                id="name"
-                name="name"
+                id="username"
+                name="username"
                 type="text"
-                placeholder="Masukkan Nama Lengkap"
-                value={formik.values.name}
+                placeholder="Masukkan username"
+                value={formik.values.username}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
               />
 
-              {formik.touched.name &&
-                formik.errors.name && (
+              {formik.touched.username &&
+                formik.errors.username && (
                   <div className="input-error">
-                    {formik.errors.name}
+                    {formik.errors.username}
                   </div>
                 )}
             </div>
 
-            {/* EMAIL */}
+            {/* FULLNAME */}
 
             <div className="input-group">
-              <label htmlFor="email">
-                Email
+              <label htmlFor="fullname">
+                Nama Lengkap
               </label>
 
               <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Masukkan email"
-                value={formik.values.email}
+                id="fullname"
+                name="fullname"
+                type="text"
+                placeholder="Masukkan Nama Lengkap"
+                value={formik.values.fullname}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
               />
 
-              {formik.touched.email &&
-                formik.errors.email && (
+              {formik.touched.fullname &&
+                formik.errors.fullname && (
                   <div className="input-error">
-                    {formik.errors.email}
+                    {formik.errors.fullname}
                   </div>
                 )}
             </div>
@@ -380,27 +396,27 @@ function Register() {
                 )}
             </div>
 
-            {/* CONFIRM PASSWORD */}
+            {/* RETYPE PASSWORD */}
 
             <div className="input-group">
-              <label htmlFor="confirmPassword">
+              <label htmlFor="retypePassword">
                 Konfirmasi Password
               </label>
 
               <input
-                id="confirmPassword"
-                name="confirmPassword"
+                id="retypePassword"
+                name="retypePassword"
                 type="password"
                 placeholder="Masukkan kembali password"
-                value={formik.values.confirmPassword}
+                value={formik.values.retypePassword}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
               />
 
-              {formik.touched.confirmPassword &&
-                formik.errors.confirmPassword && (
+              {formik.touched.retypePassword &&
+                formik.errors.retypePassword && (
                   <div className="input-error">
-                    {formik.errors.confirmPassword}
+                    {formik.errors.retypePassword}
                   </div>
                 )}
             </div>

@@ -504,3 +504,77 @@ button:hover {
     width: 100%;
   }
 }
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  /* kanan dibuat lebih lebar karena ada tombol Light/Dark */
+  padding: 16px 150px 16px 40px;
+
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+
+  transition: all 0.3s ease;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.user-greeting {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.brand {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.nav-menu a {
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.nav-menu a:hover {
+  opacity: 0.7;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 15px 110px 15px 20px;
+  }
+
+  .navbar-right {
+    gap: 15px;
+  }
+
+  .brand {
+    font-size: 18px;
+  }
+
+  .nav-menu {
+    gap: 12px;
+  }
+
+  .user-greeting {
+    font-size: 13px;
+  }
+}

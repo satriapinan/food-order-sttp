@@ -1,6 +1,36 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Box } from "@mui/material";
+import { useTheme } from "../hooks/useTheme";
 
 function FoodMenu() {
+  // =========================
+  // USER LOGIN
+  // =========================
+  const [user] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+
+    try {
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return savedUser;
+    }
+  });
+
+  const username =
+    typeof user === "object"
+      ? user?.name || user?.username
+      : user;
+
+  // =========================
+  // THEME
+  // =========================
+  const { mode } = useTheme();
+  const isDark = mode === "dark";
+
+  // =========================
+  // FOOD DATA
+  // =========================
   const foods = [
     {
       id: 1,
@@ -53,102 +83,358 @@ function FoodMenu() {
   ];
 
   return (
-    <div className="menu-page">
-      {/* Navbar */}
-      <nav className="navbar">
-        <div className="brand">
-          Food-Order
+    <Box
+      className={`menu-page ${isDark ? "dark" : "light"}`}
+      sx={{
+        minHeight: "100vh",
+
+        // SAMA DENGAN LOGIN
+        backgroundColor: isDark
+          ? "#06140c"
+          : "#f5f5f5",
+
+        color: isDark
+          ? "#ffffff"
+          : "#111111",
+
+        transition:
+          "background-color 0.3s ease, color 0.3s ease",
+
+        boxSizing: "border-box",
+      }}
+    >
+      {/* =========================
+          NAVBAR
+      ========================= */}
+      <nav
+        className="navbar"
+        style={{
+          backgroundColor: isDark
+            ? "#151515"
+            : "#ffffff",
+
+          borderBottom: isDark
+            ? "1px solid #22c55e"
+            : "1px solid #dddddd",
+        }}
+      >
+        {/* KIRI */}
+        <div className="navbar-left">
+          <span
+            className="user-greeting"
+            style={{
+              color: isDark
+                ? "#ffffff"
+                : "#111111",
+            }}
+          >
+            Hii, {username || "User"} 👋
+          </span>
         </div>
 
-        <div className="nav-menu">
-          <Link to="/menu" className="active">
-            Menu
-          </Link>
+        {/* KANAN */}
+        <div className="navbar-right">
 
-          <Link to="/login">
-            Logout
-          </Link>
+          {/* BRAND */}
+          <div
+            className="brand"
+            style={{
+              color: "#22c55e",
+            }}
+          >
+            Food-Order
+          </div>
+
+          {/* MENU */}
+          <div className="nav-menu">
+
+            <Link
+              to="/menu"
+              className="active"
+              style={{
+                color: "#22c55e",
+              }}
+            >
+              Menu
+            </Link>
+
+            <Link
+              to="/login"
+              style={{
+                color: isDark
+                  ? "#ffffff"
+                  : "#111111",
+              }}
+            >
+              Logout
+            </Link>
+
+          </div>
         </div>
       </nav>
 
-      {/* Header */}
+      {/* =========================
+          HEADER
+      ========================= */}
       <section className="menu-header">
-        <div>
-          <span>SELAMAT DATANG</span>
 
-          <h1>
+        <div>
+
+          <span
+            style={{
+              color: "#22c55e",
+              fontWeight: "bold",
+            }}
+          >
+            SELAMAT DATANG
+          </span>
+
+          <h1
+            style={{
+              color: isDark
+                ? "#ffffff"
+                : "#111111",
+            }}
+          >
             Mau makan apa hari ini?
           </h1>
 
-          <p>
+          <p
+            style={{
+              color: isDark
+                ? "#aaaaaa"
+                : "#666666",
+            }}
+          >
             Pilih makanan dan minuman favoritmu.
           </p>
+
         </div>
 
+        {/* SEARCH */}
         <div className="search-box">
+
           <input
             type="text"
             placeholder="Cari makanan..."
+            style={{
+              backgroundColor: isDark
+                ? "#222222"
+                : "#ffffff",
+
+              color: isDark
+                ? "#ffffff"
+                : "#111111",
+
+              border: isDark
+                ? "1px solid #444444"
+                : "1px solid #cccccc",
+
+              outline: "none",
+            }}
           />
+
         </div>
+
       </section>
 
-      {/* Category */}
+      {/* =========================
+          CATEGORY
+      ========================= */}
       <div className="categories">
-        <button className="category-active">
+
+        {/* SEMUA */}
+        <button
+          className="category-active"
+          style={{
+            backgroundColor: "#22c55e",
+            color: "#ffffff",
+            border: "1px solid #22c55e",
+          }}
+        >
           Semua
         </button>
 
-        <button>
+        {/* MAKANAN */}
+        <button
+          style={{
+            backgroundColor: isDark
+              ? "#151515"
+              : "#ffffff",
+
+            color: isDark
+              ? "#ffffff"
+              : "#111111",
+
+            border: isDark
+              ? "1px solid #444444"
+              : "1px solid #cccccc",
+          }}
+        >
           Makanan
         </button>
 
-        <button>
+        {/* SNACK */}
+        <button
+          style={{
+            backgroundColor: isDark
+              ? "#151515"
+              : "#ffffff",
+
+            color: isDark
+              ? "#ffffff"
+              : "#111111",
+
+            border: isDark
+              ? "1px solid #444444"
+              : "1px solid #cccccc",
+          }}
+        >
           Snack
         </button>
 
-        <button>
+        {/* MINUMAN */}
+        <button
+          style={{
+            backgroundColor: isDark
+              ? "#151515"
+              : "#ffffff",
+
+            color: isDark
+              ? "#ffffff"
+              : "#111111",
+
+            border: isDark
+              ? "1px solid #444444"
+              : "1px solid #cccccc",
+          }}
+        >
           Minuman
         </button>
+
       </div>
 
-      {/* Food List */}
+      {/* =========================
+          FOOD SECTION
+      ========================= */}
       <section className="food-section">
+
         <div className="section-title">
-          <h2>Food Menu</h2>
-          <p>Menu pilihan terbaik untuk kamu</p>
+
+          <h2
+            style={{
+              color: isDark
+                ? "#ffffff"
+                : "#111111",
+            }}
+          >
+            Food Menu
+          </h2>
+
+          <p
+            style={{
+              color: isDark
+                ? "#aaaaaa"
+                : "#666666",
+            }}
+          >
+            Menu pilihan terbaik untuk kamu
+          </p>
+
         </div>
 
+        {/* =========================
+            FOOD GRID
+        ========================= */}
         <div className="food-grid">
+
           {foods.map((food) => (
-            <div className="food-card" key={food.id}>
+
+            <div
+              className="food-card"
+              key={food.id}
+              style={{
+                backgroundColor: isDark
+                  ? "#151515"
+                  : "#ffffff",
+
+                border: isDark
+                  ? "1px solid #22c55e"
+                  : "1px solid #dddddd",
+
+                color: isDark
+                  ? "#ffffff"
+                  : "#111111",
+
+                transition:
+                  "background-color 0.3s ease, border-color 0.3s ease",
+              }}
+            >
+
+              {/* IMAGE */}
               <div className="food-image">
+
                 <img
                   src={food.image}
                   alt={food.name}
                 />
 
-                <span>
+                <span
+                  style={{
+                    backgroundColor: "#22c55e",
+                    color: "#ffffff",
+                  }}
+                >
                   {food.category}
                 </span>
+
               </div>
 
+              {/* CONTENT */}
               <div className="food-content">
-                <h3>{food.name}</h3>
+
+                <h3
+                  style={{
+                    color: isDark
+                      ? "#ffffff"
+                      : "#111111",
+                  }}
+                >
+                  {food.name}
+                </h3>
 
                 <div className="food-bottom">
-                  <strong>{food.price}</strong>
 
-                  <button>
+                  <strong
+                    style={{
+                      color: "#22c55e",
+                    }}
+                  >
+                    {food.price}
+                  </strong>
+
+                  <button
+                    style={{
+                      backgroundColor: "#22c55e",
+                      color: "#ffffff",
+                      border: "none",
+                    }}
+                  >
                     +
                   </button>
+
                 </div>
+
               </div>
+
             </div>
+
           ))}
+
         </div>
+
       </section>
-    </div>
+    </Box>
   );
 }
 

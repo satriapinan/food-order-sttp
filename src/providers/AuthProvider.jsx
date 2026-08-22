@@ -1,4 +1,4 @@
-import { useMemo,useState } from "react";
+import { useMemo, useState } from "react";
 import { AuthContext } from "./AuthContext";
 
 export function AuthProvider({ children }) {
@@ -10,6 +10,10 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => {
     return localStorage.getItem("token") || null;
   });
+
+  // =========================
+  // LOGIN
+  // =========================
 
   const login = async ({ username, password }) => {
     const response = await fetch(
@@ -41,6 +45,45 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+  // =========================
+  // REGISTER
+  // =========================
+
+  const register = async ({
+    username,
+    fullname,
+    password,
+    retypePassword,
+  }) => {
+    const response = await fetch(
+      "http://localhost:8080/user-management/users/sign-up",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          fullname,
+          password,
+          retypePassword,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Register gagal");
+    }
+
+    return data;
+  };
+
+  // =========================
+  // LOGOUT
+  // =========================
+
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -49,17 +92,24 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  const contextValue = useMemo(() => ({ user,login,logout }), [user]); 
+  // =========================
+  // CONTEXT
+  // =========================
+
+  const contextValue = useMemo(
+    () => ({
+      user,
+      token,
+      login,
+      register,
+      logout,
+      isAuthenticated: !!token,
+    }),
+    [user, token]
+  );
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        login,
-        logout,
-        isAuthenticated: !!token,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
