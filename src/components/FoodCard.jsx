@@ -1,7 +1,7 @@
 import { Card, CardMedia, CardContent, Box, Chip, Typography } from "@mui/material";
 import AppButton from "./AppButton";
 
-function FoodCard({ title, price, category, image, rating = "⭐" }) {
+function FoodCard({ id, title, price, category, image, rating = "⭐", onAddToCart }) {
   return (
     <Card 
       elevation={0}
@@ -27,15 +27,16 @@ function FoodCard({ title, price, category, image, rating = "⭐" }) {
             label={category} 
             size="small" 
             sx={{ 
-              backgroundColor: '#fff7ed', // Very light orange
-              color: '#c2410c', // Darker orange
+              backgroundColor: 'primary.light',
+              color: 'primary.contrastText',
               fontWeight: 'bold', 
               fontSize: '0.7rem',
-              height: '24px'
+              height: '24px',
+              opacity: 0.9
             }} 
           />
         </Box>
-        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 0.5, color: '#1e293b' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 0.5, color: 'text.primary' }}>
           {title}
         </Typography>
         <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 'bold', mb: 2 }}>
@@ -51,7 +52,7 @@ function FoodCard({ title, price, category, image, rating = "⭐" }) {
           </Typography>
         </Box>
         
-        <AppButton variant="contained" fullWidth>
+        <AppButton variant="contained" fullWidth onClick={() => onAddToCart && onAddToCart(id)}>
           Add to Cart
         </AppButton>
       </CardContent>

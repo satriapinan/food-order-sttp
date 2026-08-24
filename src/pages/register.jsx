@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import AppButton from "../components/AppButton";
-import AppLayout from "../components/AppLayout";
+import api from "../services/api";
 import {
   Box,
   Container,
@@ -16,17 +16,13 @@ import {
 } from "@mui/material";
 
 const registerSchema = Yup.object({
-  name: Yup.string()
-    .min(3, "Nama minimal 3 karakter")
-    .required("Nama harus diisi"),
-  email: Yup.string()
-    .email("Format email tidak valid")
-    .required("Email harus diisi"),
+  username: Yup.string().required("Username harus diisi"),
+  fullname: Yup.string().required("Nama lengkap harus diisi"),
   password: Yup.string()
     .min(6, "Password minimal 6 karakter")
     .required("Password harus diisi"),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref("password"), null], "Password tidak cocok")
+  retypePassword: Yup.string()
+    .oneOf([Yup.ref("password")], "Password tidak sama")
     .required("Konfirmasi password harus diisi"),
 });
 
@@ -36,16 +32,20 @@ function Register() {
 
   const formik = useFormik({
     initialValues: {
-      name: "",
-      email: "",
+      username: "",
+      fullname: "",
       password: "",
-      confirmPassword: "",
+      retypePassword: "",
     },
     validationSchema: registerSchema,
-    onSubmit: (values) => {
-      // Di sini biasanya ada logika untuk menyimpan user baru ke database atau localStorage
-      alert(`Akun berhasil dibuat untuk ${values.name}`);
-      navigate("/login");
+    onSubmit: async (values) => {
+      try {
+        await api.post("/user-management/users/sign-up", values);
+        alert("Register berhasil! Silakan login.");
+        setTimeout(() => navigate("/login"), 1500);
+      } catch (err) {
+        alert(err.response?.data?.message || "Register gagal");
+      }
     },
   });
 
@@ -54,138 +54,136 @@ function Register() {
   };
 
   return (
-    <AppLayout center={true}>
-      <Container maxWidth="xs">
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 4, sm: 5 },
-            bgcolor: "background.paper",
-          }}
-        >
-          <Box sx={{ textAlign: "center", mb: 4 }}>
-            <Typography
-              variant="h4"
-              fontWeight="bold"
-              color="primary.main"
-              gutterBottom
-            >
-              Create Account
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Daftar akun baru Food Order
-            </Typography>
-          </Box>
-
-          <form onSubmit={formik.handleSubmit}>
-            <Stack spacing={2.5}>
-              <TextField
-                label="Username"
-                name="name"
-                value={formik.values.name}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.name && Boolean(formik.errors.name)}
-                helperText={formik.touched.name && formik.errors.name}
-                variant="outlined"
-                fullWidth
-              />
-              <TextField
-                label="Email"
-                type="email"
-                name="email"
-                value={formik.values.email}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.email && Boolean(formik.errors.email)}
-                helperText={formik.touched.email && formik.errors.email}
-                variant="outlined"
-                fullWidth
-              />
-              <TextField
-                label="Password"
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formik.values.password}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.password && Boolean(formik.errors.password)}
-                helperText={formik.touched.password && formik.errors.password}
-                variant="outlined"
-                fullWidth
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={handleTogglePassword}
-                        edge="end"
-                        size="small"
-                      >
-                        {showPassword ? "🙈" : "👁"}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <TextField
-                label="Confirm Password"
-                type={showPassword ? "text" : "password"}
-                name="confirmPassword"
-                value={formik.values.confirmPassword}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={
-                  formik.touched.confirmPassword &&
-                  Boolean(formik.errors.confirmPassword)
-                }
-                helperText={
-                  formik.touched.confirmPassword && formik.errors.confirmPassword
-                }
-                variant="outlined"
-                fullWidth
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={handleTogglePassword}
-                        edge="end"
-                        size="small"
-                      >
-                        {showPassword ? "🙈" : "👁"}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <AppButton
-                type="submit"
-                variant="contained"
-                fullWidth
-                size="large"
-                sx={{ mt: 1 }}
-              >
-                Register
-              </AppButton>
-            </Stack>
-          </form>
-
+    <Container maxWidth="xs" sx={{ mt: 8 }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: { xs: 4, sm: 5 },
+          bgcolor: "background.paper",
+        }}
+      >
+        <Box sx={{ textAlign: "center", mb: 4 }}>
           <Typography
-            variant="body2"
-            color="text.secondary"
-            align="center"
-            sx={{ mt: 4 }}
+            variant="h4"
+            fontWeight="bold"
+            color="primary.main"
+            gutterBottom
           >
-            Already have an account?{" "}
-            <Link
-              to="/login"
-              style={{ color: "#f97316", textDecoration: "none", fontWeight: 600 }}
-            >
-              Sign in here
-            </Link>
+            Create Account
           </Typography>
-        </Paper>
-      </Container>
-    </AppLayout>
+          <Typography variant="body2" color="text.secondary">
+            Daftar akun baru Food Order
+          </Typography>
+        </Box>
+
+        <form onSubmit={formik.handleSubmit}>
+          <Stack spacing={2.5}>
+            <TextField
+              label="Username"
+              name="username"
+              value={formik.values.username}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.username && Boolean(formik.errors.username)}
+              helperText={formik.touched.username && formik.errors.username}
+              variant="outlined"
+              fullWidth
+            />
+            <TextField
+              label="Nama Lengkap"
+              type="text"
+              name="fullname"
+              value={formik.values.fullname}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.fullname && Boolean(formik.errors.fullname)}
+              helperText={formik.touched.fullname && formik.errors.fullname}
+              variant="outlined"
+              fullWidth
+            />
+            <TextField
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              name="password"
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.password && Boolean(formik.errors.password)}
+              helperText={formik.touched.password && formik.errors.password}
+              variant="outlined"
+              fullWidth
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={handleTogglePassword}
+                      edge="end"
+                      size="small"
+                    >
+                      {showPassword ? "🙈" : "👁"}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField
+              label="Confirm Password"
+              type={showPassword ? "text" : "password"}
+              name="retypePassword"
+              value={formik.values.retypePassword}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={
+                formik.touched.retypePassword &&
+                Boolean(formik.errors.retypePassword)
+              }
+              helperText={
+                formik.touched.retypePassword && formik.errors.retypePassword
+              }
+              variant="outlined"
+              fullWidth
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={handleTogglePassword}
+                      edge="end"
+                      size="small"
+                    >
+                      {showPassword ? "🙈" : "👁"}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <AppButton
+              type="submit"
+              variant="contained"
+              fullWidth
+              size="large"
+              sx={{ mt: 1 }}
+            >
+              Register
+            </AppButton>
+          </Stack>
+        </form>
+
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          align="center"
+          sx={{ mt: 4 }}
+        >
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            style={{ color: "#f97316", textDecoration: "none", fontWeight: 600 }}
+          >
+            Sign in here
+          </Link>
+        </Typography>
+      </Paper>
+    </Container>
   );
 }
 
