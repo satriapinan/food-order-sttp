@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { AuthContext } from "./AuthContext";
-import api from "../services/api";
+import { loginUser, registerUser } from "../services/authService";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
@@ -24,21 +24,14 @@ export function AuthProvider({ children }) {
 
   const login = async ({ username, password }) => {
     try {
-      const response = await api.post(
-        "/user-management/users/sign-in",
-        {
-          username,
-          password,
-        }
-      );
-
-      const data = response.data;
+      const data = await loginUser({
+        username,
+        password,
+      });
 
       localStorage.setItem("token", data.token);
-      localStorage.setItem(
-        "user",
-        JSON.stringify(data.user)
-      );
+
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       setToken(data.token);
       setUser(data.user);
@@ -46,8 +39,7 @@ export function AuthProvider({ children }) {
       return data;
     } catch (error) {
       const message =
-        error.response?.data?.message ||
-        "Login gagal";
+        error.response?.data?.message || error.message || "Login gagal";
 
       throw new Error(message, { cause: error });
     }
@@ -57,28 +49,19 @@ export function AuthProvider({ children }) {
   // REGISTER
   // =========================
 
-  const register = async ({
-    username,
-    fullname,
-    password,
-    retypePassword,
-  }) => {
+  const register = async ({ username, fullname, password, retypePassword }) => {
     try {
-      const response = await api.post(
-        "/user-management/users/sign-up",
-        {
-          username,
-          fullname,
-          password,
-          retypePassword,
-        }
-      );
+      const data = await registerUser({
+        username,
+        fullname,
+        password,
+        retypePassword,
+      });
 
-      return response.data;
+      return data;
     } catch (error) {
       const message =
-        error.response?.data?.message ||
-        "Register gagal";
+        error.response?.data?.message || error.message || "Register gagal";
 
       throw new Error(message, { cause: error });
     }
@@ -97,7 +80,7 @@ export function AuthProvider({ children }) {
   };
 
   // =========================
-  // CONTEXT VALUE
+  // CONTEXT
   // =========================
 
   const contextValue = useMemo(
@@ -109,12 +92,10 @@ export function AuthProvider({ children }) {
       logout,
       isAuthenticated: Boolean(token),
     }),
-    [user, token]
+    [user, token],
   );
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 }

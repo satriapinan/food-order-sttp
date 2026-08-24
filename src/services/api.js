@@ -7,6 +7,7 @@ const api = axios.create({
   },
 });
 
+// Token otomatis dikirim ke API yang membutuhkan autentikasi
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");

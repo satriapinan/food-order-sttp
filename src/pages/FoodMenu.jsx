@@ -1,440 +1,426 @@
-import { Link } from "react-router-dom";
-import { useState } from "react";
-import { Box } from "@mui/material";
-import { useTheme } from "../hooks/useTheme";
+import { useEffect, useMemo, useState } from "react";
+
+import {
+  Alert,
+  Box,
+  CircularProgress,
+  Container,
+  Grid,
+  InputAdornment,
+  TextField,
+  Typography,
+} from "@mui/material";
+
+import SearchIcon from "@mui/icons-material/Search";
+
+import FoodCard from "../components/FoodCard";
+import AppSelect from "../components/AppSelect";
+import AppSnackbar from "../components/AppSnackbar";
+
+import {
+  getFoods,
+  getCategories,
+  addToCart,
+} from "../services/foodService";
 
 function FoodMenu() {
-  // =========================
-  // USER LOGIN
-  // =========================
-  const [user] = useState(() => {
-    const savedUser = localStorage.getItem("user");
+  const [foods, setFoods] = useState([]);
+  const [categories, setCategories] = useState([]);
 
-    try {
-      return savedUser ? JSON.parse(savedUser) : null;
-    } catch {
-      return savedUser;
-    }
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
+  const [sort, setSort] = useState("default");
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [addingFoodId, setAddingFoodId] = useState(null);
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
   });
 
-  const username =
-    typeof user === "object"
-      ? user?.name || user?.username
-      : user;
+  // =========================
+  // FETCH FOODS & CATEGORIES
+  // =========================
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const [foodResponse, categoryResponse] =
+          await Promise.all([
+            getFoods(),
+            getCategories(),
+          ]);
+
+        setFoods(foodResponse?.data || []);
+
+        setCategories(
+          categoryResponse?.data ||
+            categoryResponse ||
+            []
+        );
+      } catch (err) {
+        setError(
+          err.response?.data?.message ||
+            err.message ||
+            "Gagal mengambil data makanan."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // =========================
-  // THEME
+  // FILTER + SEARCH + SORT
   // =========================
-  const { mode } = useTheme();
-  const isDark = mode === "dark";
+
+  const filteredFoods = useMemo(() => {
+    let result = [...foods];
+
+    // SEARCH
+    if (search.trim()) {
+      const keyword = search
+        .toLowerCase()
+        .trim();
+
+      result = result.filter((food) =>
+        food.name
+          ?.toLowerCase()
+          .includes(keyword)
+      );
+    }
+
+    // CATEGORY
+    if (category !== "all") {
+      result = result.filter(
+        (food) =>
+          String(food.categoryId) ===
+          String(category)
+      );
+    }
+
+    // SORT
+    switch (sort) {
+      case "price-low":
+        result.sort(
+          (a, b) =>
+            Number(a.price) -
+            Number(b.price)
+        );
+        break;
+
+      case "price-high":
+        result.sort(
+          (a, b) =>
+            Number(b.price) -
+            Number(a.price)
+        );
+        break;
+
+      case "name-az":
+        result.sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
+        break;
+
+      case "name-za":
+        result.sort((a, b) =>
+          b.name.localeCompare(a.name)
+        );
+        break;
+
+      default:
+        break;
+    }
+
+    return result;
+  }, [foods, search, category, sort]);
 
   // =========================
-  // FOOD DATA
+  // ADD TO CART
   // =========================
-  const foods = [
+
+  const handleAddToCart = async (food) => {
+    setAddingFoodId(food.id);
+
+    try {
+      await addToCart(food.id, 1);
+
+      setFoods((currentFoods) =>
+        currentFoods.map((item) =>
+          item.id === food.id
+            ? {
+                ...item,
+                isCart: true,
+              }
+            : item
+        )
+      );
+
+      setSnackbar({
+        open: true,
+        message: `${food.name} berhasil ditambahkan ke keranjang.`,
+        severity: "success",
+      });
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message:
+          err.response?.data?.message ||
+          err.message ||
+          "Gagal menambahkan makanan ke keranjang.",
+        severity: "error",
+      });
+    } finally {
+      setAddingFoodId(null);
+    }
+  };
+
+  // =========================
+  // CATEGORY OPTIONS
+  // =========================
+
+  const categoryOptions = [
     {
-      id: 1,
-      name: "Nasi Goreng Special",
-      price: "Rp25.000",
-      category: "Makanan",
-      image:
-        "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80",
+      value: "all",
+      label: "Semua Kategori",
+    },
+
+    ...categories.map((item) => ({
+      value: item.id,
+      label:
+        item.categoryName ||
+        item.name ||
+        "Kategori",
+    })),
+  ];
+
+  // =========================
+  // SORT OPTIONS
+  // =========================
+
+  const sortOptions = [
+    {
+      value: "default",
+      label: "Urutan Default",
     },
     {
-      id: 2,
-      name: "Mie Goreng",
-      price: "Rp20.000",
-      category: "Makanan",
-      image:
-        "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=500&q=80",
+      value: "price-low",
+      label: "Harga Terendah",
     },
     {
-      id: 3,
-      name: "Ayam Geprek",
-      price: "Rp22.000",
-      category: "Makanan",
-      image:
-        "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=500&q=80",
+      value: "price-high",
+      label: "Harga Tertinggi",
     },
     {
-      id: 4,
-      name: "Burger Beef",
-      price: "Rp28.000",
-      category: "Makanan",
-      image:
-        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80",
+      value: "name-az",
+      label: "Nama A-Z",
     },
     {
-      id: 5,
-      name: "Kentang Goreng",
-      price: "Rp15.000",
-      category: "Snack",
-      image:
-        "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=500&q=80",
-    },
-    {
-      id: 6,
-      name: "Es Teh Manis",
-      price: "Rp8.000",
-      category: "Minuman",
-      image:
-        "https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80",
+      value: "name-za",
+      label: "Nama Z-A",
     },
   ];
 
-  return (
-    <Box
-      className={`menu-page ${isDark ? "dark" : "light"}`}
-      sx={{
-        minHeight: "100vh",
+  // =========================
+  // LOADING
+  // =========================
 
-        // SAMA DENGAN LOGIN
-        backgroundColor: isDark
-          ? "#06140c"
-          : "#f5f5f5",
-
-        color: isDark
-          ? "#ffffff"
-          : "#111111",
-
-        transition:
-          "background-color 0.3s ease, color 0.3s ease",
-
-        boxSizing: "border-box",
-      }}
-    >
-      {/* =========================
-          NAVBAR
-      ========================= */}
-      <nav
-        className="navbar"
-        style={{
-          backgroundColor: isDark
-            ? "#151515"
-            : "#ffffff",
-
-          borderBottom: isDark
-            ? "1px solid #22c55e"
-            : "1px solid #dddddd",
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          minHeight: "70vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
-        {/* KIRI */}
-        <div className="navbar-left">
-          <span
-            className="user-greeting"
-            style={{
-              color: isDark
-                ? "#ffffff"
-                : "#111111",
-            }}
-          >
-            Hii, {username || "User"} 👋
-          </span>
-        </div>
+        <CircularProgress color="success" />
+      </Box>
+    );
+  }
 
-        {/* KANAN */}
-        <div className="navbar-right">
+  // =========================
+  // RENDER
+  // =========================
 
-          {/* BRAND */}
-          <div
-            className="brand"
-            style={{
-              color: "#22c55e",
-            }}
-          >
-            Food-Order
-          </div>
+  return (
+    <Container
+      maxWidth="xl"
+      sx={{ py: 4 }}
+    >
+      {/* HEADER */}
 
-          {/* MENU */}
-          <div className="nav-menu">
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          gutterBottom
+        >
+          Food Menu
+        </Typography>
 
-            <Link
-              to="/menu"
-              className="active"
-              style={{
-                color: "#22c55e",
-              }}
-            >
-              Menu
-            </Link>
+        <Typography
+          color="text.secondary"
+        >
+          Pilih makanan favoritmu
+        </Typography>
+      </Box>
 
-            <Link
-              to="/login"
-              style={{
-                color: isDark
-                  ? "#ffffff"
-                  : "#111111",
-              }}
-            >
-              Logout
-            </Link>
+      {/* ERROR */}
 
-          </div>
-        </div>
-      </nav>
+      {error && (
+        <Alert
+          severity="error"
+          sx={{ mb: 3 }}
+        >
+          {error}
+        </Alert>
+      )}
 
-      {/* =========================
-          HEADER
-      ========================= */}
-      <section className="menu-header">
+      {/* FILTER */}
 
-        <div>
-
-          <span
-            style={{
-              color: "#22c55e",
-              fontWeight: "bold",
-            }}
-          >
-            SELAMAT DATANG
-          </span>
-
-          <h1
-            style={{
-              color: isDark
-                ? "#ffffff"
-                : "#111111",
-            }}
-          >
-            Mau makan apa hari ini?
-          </h1>
-
-          <p
-            style={{
-              color: isDark
-                ? "#aaaaaa"
-                : "#666666",
-            }}
-          >
-            Pilih makanan dan minuman favoritmu.
-          </p>
-
-        </div>
-
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "2fr 1fr 1fr",
+          },
+          gap: 2,
+          mb: 4,
+        }}
+      >
         {/* SEARCH */}
-        <div className="search-box">
 
-          <input
-            type="text"
-            placeholder="Cari makanan..."
-            style={{
-              backgroundColor: isDark
-                ? "#222222"
-                : "#ffffff",
+        <TextField
+          fullWidth
+          size="small"
+          label="Cari makanan"
+          value={search}
+          onChange={(event) =>
+            setSearch(event.target.value)
+          }
+          placeholder="Cari berdasarkan nama..."
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+        />
 
-              color: isDark
-                ? "#ffffff"
-                : "#111111",
+        {/* CATEGORY */}
 
-              border: isDark
-                ? "1px solid #444444"
-                : "1px solid #cccccc",
+        <AppSelect
+          label="Kategori"
+          value={category}
+          onChange={(event) =>
+            setCategory(event.target.value)
+          }
+          options={categoryOptions}
+        />
 
-              outline: "none",
-            }}
-          />
+        {/* SORT */}
 
-        </div>
+        <AppSelect
+          label="Urutkan"
+          value={sort}
+          onChange={(event) =>
+            setSort(event.target.value)
+          }
+          options={sortOptions}
+        />
+      </Box>
 
-      </section>
+      {/* RESULT INFO */}
 
-      {/* =========================
-          CATEGORY
-      ========================= */}
-      <div className="categories">
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        sx={{ mb: 2 }}
+      >
+        Menampilkan{" "}
+        <strong>
+          {filteredFoods.length}
+        </strong>{" "}
+        makanan
+      </Typography>
 
-        {/* SEMUA */}
-        <button
-          className="category-active"
-          style={{
-            backgroundColor: "#22c55e",
-            color: "#ffffff",
-            border: "1px solid #22c55e",
+      {/* FOOD LIST */}
+
+      {filteredFoods.length === 0 ? (
+        <Box
+          sx={{
+            py: 8,
+            textAlign: "center",
           }}
         >
-          Semua
-        </button>
-
-        {/* MAKANAN */}
-        <button
-          style={{
-            backgroundColor: isDark
-              ? "#151515"
-              : "#ffffff",
-
-            color: isDark
-              ? "#ffffff"
-              : "#111111",
-
-            border: isDark
-              ? "1px solid #444444"
-              : "1px solid #cccccc",
-          }}
-        >
-          Makanan
-        </button>
-
-        {/* SNACK */}
-        <button
-          style={{
-            backgroundColor: isDark
-              ? "#151515"
-              : "#ffffff",
-
-            color: isDark
-              ? "#ffffff"
-              : "#111111",
-
-            border: isDark
-              ? "1px solid #444444"
-              : "1px solid #cccccc",
-          }}
-        >
-          Snack
-        </button>
-
-        {/* MINUMAN */}
-        <button
-          style={{
-            backgroundColor: isDark
-              ? "#151515"
-              : "#ffffff",
-
-            color: isDark
-              ? "#ffffff"
-              : "#111111",
-
-            border: isDark
-              ? "1px solid #444444"
-              : "1px solid #cccccc",
-          }}
-        >
-          Minuman
-        </button>
-
-      </div>
-
-      {/* =========================
-          FOOD SECTION
-      ========================= */}
-      <section className="food-section">
-
-        <div className="section-title">
-
-          <h2
-            style={{
-              color: isDark
-                ? "#ffffff"
-                : "#111111",
-            }}
+          <Typography
+            variant="h6"
+            gutterBottom
           >
-            Food Menu
-          </h2>
+            Makanan tidak ditemukan
+          </Typography>
 
-          <p
-            style={{
-              color: isDark
-                ? "#aaaaaa"
-                : "#666666",
-            }}
-          >
-            Menu pilihan terbaik untuk kamu
-          </p>
-
-        </div>
-
-        {/* =========================
-            FOOD GRID
-        ========================= */}
-        <div className="food-grid">
-
-          {foods.map((food) => (
-
-            <div
-              className="food-card"
+          <Typography color="text.secondary">
+            Coba gunakan kata kunci atau
+            kategori lain.
+          </Typography>
+        </Box>
+      ) : (
+        <Grid
+          container
+          spacing={3}
+        >
+          {filteredFoods.map((food) => (
+            <Grid
+              item
               key={food.id}
-              style={{
-                backgroundColor: isDark
-                  ? "#151515"
-                  : "#ffffff",
-
-                border: isDark
-                  ? "1px solid #22c55e"
-                  : "1px solid #dddddd",
-
-                color: isDark
-                  ? "#ffffff"
-                  : "#111111",
-
-                transition:
-                  "background-color 0.3s ease, border-color 0.3s ease",
-              }}
+              xs={12}
+              sm={6}
+              md={4}
+              lg={3}
             >
-
-              {/* IMAGE */}
-              <div className="food-image">
-
-                <img
-                  src={food.image}
-                  alt={food.name}
-                />
-
-                <span
-                  style={{
-                    backgroundColor: "#22c55e",
-                    color: "#ffffff",
-                  }}
-                >
-                  {food.category}
-                </span>
-
-              </div>
-
-              {/* CONTENT */}
-              <div className="food-content">
-
-                <h3
-                  style={{
-                    color: isDark
-                      ? "#ffffff"
-                      : "#111111",
-                  }}
-                >
-                  {food.name}
-                </h3>
-
-                <div className="food-bottom">
-
-                  <strong
-                    style={{
-                      color: "#22c55e",
-                    }}
-                  >
-                    {food.price}
-                  </strong>
-
-                  <button
-                    style={{
-                      backgroundColor: "#22c55e",
-                      color: "#ffffff",
-                      border: "none",
-                    }}
-                  >
-                    +
-                  </button>
-
-                </div>
-
-              </div>
-
-            </div>
-
+              <FoodCard
+                food={food}
+                onAddToCart={
+                  handleAddToCart
+                }
+                loading={
+                  addingFoodId === food.id
+                }
+              />
+            </Grid>
           ))}
+        </Grid>
+      )}
 
-        </div>
+      {/* SNACKBAR */}
 
-      </section>
-    </Box>
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() =>
+          setSnackbar({
+            ...snackbar,
+            open: false,
+          })
+        }
+      />
+    </Container>
   );
 }
 

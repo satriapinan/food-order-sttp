@@ -3,14 +3,16 @@ import { useTheme } from "../hooks/useTheme";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useAuth } from "../hooks/useAuth";
+import { useState } from "react";
 
 const loginSchema = Yup.object({
   username: Yup.string()
-    .required("Username harus diisi"),
+    .required("Username harus diisi")
+    .min(3, "Username minimal 3 karakter"),
 
   password: Yup.string()
-    .min(6, "Password minimal 6 karakter")
-    .required("Password harus diisi"),
+    .required("Password harus diisi")
+    .min(6, "Password minimal 6 karakter"),
 });
 
 function Login() {
@@ -18,28 +20,34 @@ function Login() {
   const { login } = useAuth();
   const { mode } = useTheme();
 
+  const [apiError, setApiError] = useState("");
+
   const isDark = mode === "dark";
 
   const formik = useFormik({
     initialValues: {
-  username: "",
-  password: "",
-},
+      username: "",
+      password: "",
+    },
 
     validationSchema: loginSchema,
 
-    onSubmit: async (values) => {
-  try {
-    await login({
-      username: values.username,
-      password: values.password,
-    });
+    onSubmit: async (values, { setSubmitting }) => {
+      setApiError("");
 
-    navigate("/menu");
-  } catch (error) {
-    alert(error.message);
-  }
-},
+      try {
+        await login({
+          username: values.username,
+          password: values.password,
+        });
+
+        navigate("/menu");
+      } catch (error) {
+        setApiError(error.message || "Username atau password salah");
+      } finally {
+        setSubmitting(false);
+      }
+    },
   });
 
   return (
@@ -53,6 +61,7 @@ function Login() {
           justify-content: center;
           align-items: center;
 
+          padding: 20px;
           box-sizing: border-box;
 
           transition:
@@ -83,7 +92,9 @@ function Login() {
         ========================= */
 
         .login-card {
-          width: 400px;
+          width: 100%;
+          max-width: 400px;
+
           padding: 40px;
 
           border-radius: 18px;
@@ -94,6 +105,9 @@ function Login() {
             background-color 0.3s ease,
             color 0.3s ease,
             border-color 0.3s ease;
+
+          box-shadow:
+            0 15px 40px rgba(0, 0, 0, 0.15);
         }
 
         /* DARK CARD */
@@ -101,6 +115,9 @@ function Login() {
         .login-container.dark .login-card {
           background-color: #151515;
           border: 1px solid #22c55e;
+
+          box-shadow:
+            0 15px 40px rgba(0, 0, 0, 0.45);
         }
 
         /* LIGHT CARD */
@@ -127,17 +144,17 @@ function Login() {
            DESCRIPTION
         ========================= */
 
+        .login-card p {
+          margin-top: 0;
+          margin-bottom: 28px;
+        }
+
         .login-container.dark .login-card p {
           color: #aaaaaa;
         }
 
         .login-container.light .login-card p {
           color: #666666;
-        }
-
-        .login-card p {
-          margin-top: 0;
-          margin-bottom: 28px;
         }
 
         /* =========================
@@ -225,6 +242,22 @@ function Login() {
           color: #ef4444;
         }
 
+        .api-error {
+          margin-bottom: 18px;
+
+          padding: 12px;
+
+          border-radius: 8px;
+
+          font-size: 14px;
+
+          color: #ef4444;
+
+          background-color: rgba(239, 68, 68, 0.1);
+
+          border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
         /* =========================
            LOGIN BUTTON
         ========================= */
@@ -248,8 +281,6 @@ function Login() {
 
           text-align: center;
 
-          text-decoration: none;
-
           font-size: 16px;
 
           font-weight: bold;
@@ -261,10 +292,18 @@ function Login() {
           cursor: pointer;
         }
 
-        .login-button:hover {
+        .login-button:hover:not(:disabled) {
           background: #16a34a;
 
           transform: translateY(-2px);
+        }
+
+        .login-button:disabled {
+          background: #6b7280;
+
+          cursor: not-allowed;
+
+          transform: none;
         }
 
         /* =========================
@@ -296,47 +335,60 @@ function Login() {
         .register-link a:hover {
           text-decoration: underline;
         }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 480px) {
+          .login-container {
+            padding: 16px;
+          }
+
+          .login-card {
+            padding: 28px 22px;
+          }
+
+          .login-card h1 {
+            font-size: 28px;
+          }
+        }
       `}</style>
 
       <div className={`login-container ${isDark ? "dark" : "light"}`}>
         <div className="login-card">
-
           <h1>Food Order</h1>
 
           <p>Login ke Dalam Sistem</p>
 
-          <form onSubmit={formik.handleSubmit}>
+          {apiError && <div className="api-error">{apiError}</div>}
 
-            {/* EMAIL */}
+          <form onSubmit={formik.handleSubmit}>
+            {/* USERNAME */}
 
             <div className="input-group">
-             <label htmlFor="username">
-  Username
-</label>
+              <label htmlFor="username">Username</label>
 
-<input
-  id="username"
-  name="username"
-  type="text"
-  placeholder="Masukkan username"
-  value={formik.values.username}
-  onChange={formik.handleChange}
-  onBlur={formik.handleBlur}
-/>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                placeholder="Masukkan username"
+                value={formik.values.username}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                disabled={formik.isSubmitting}
+              />
 
-{formik.touched.username && formik.errors.username && (
-  <div className="input-error">
-    {formik.errors.username}
-  </div>
-)}
+              {formik.touched.username && formik.errors.username && (
+                <div className="input-error">{formik.errors.username}</div>
+              )}
             </div>
 
             {/* PASSWORD */}
 
             <div className="input-group">
-              <label htmlFor="password">
-                Password
-              </label>
+              <label htmlFor="password">Password</label>
 
               <input
                 id="password"
@@ -346,35 +398,30 @@ function Login() {
                 value={formik.values.password}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
+                disabled={formik.isSubmitting}
               />
 
               {formik.touched.password && formik.errors.password && (
-                <div className="input-error">
-                  {formik.errors.password}
-                </div>
+                <div className="input-error">{formik.errors.password}</div>
               )}
             </div>
 
-            {/* LOGIN */}
+            {/* LOGIN BUTTON */}
 
             <button
               type="submit"
               className="login-button"
+              disabled={formik.isSubmitting}
             >
-              LOGIN
+              {formik.isSubmitting ? "LOGIN..." : "LOGIN"}
             </button>
-
           </form>
 
           {/* REGISTER */}
 
           <div className="register-link">
-            Belum punya akun?{" "}
-            <Link to="/register">
-              Register
-            </Link>
+            Belum punya akun? <Link to="/register">Register</Link>
           </div>
-
         </div>
       </div>
     </>
