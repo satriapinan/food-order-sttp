@@ -1,43 +1,14 @@
-import React, {
-    createContext,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
-} from 'react';
+import { useContext } from "react";
+import { ThemeContext } from "../providers/ThemeContext";
 
-const ThemeContext = createContext();
+export function useTheme() {
+  const context = useContext(ThemeContext);
 
-export const ThemeProvider = ({ children }) => {
-    const [mode, setMode] = useState(() => {
-        return localStorage.getItem('theme') || 'light';
-    });
-
-    useEffect(() => {
-        localStorage.setItem('theme', mode);
-    }, [mode]);
-
-    const toggleTheme = () => {
-        setMode((currentMode) =>
-            currentMode === 'light' ? 'dark' : 'light'
-        );
-    };
-
-    const themeValue = useMemo(
-        () => ({
-            mode,
-            toggleTheme,
-        }),
-        [mode]
+  if (!context) {
+    throw new Error(
+      "useTheme harus digunakan di dalam ThemeProvider"
     );
+  }
 
-    return React.createElement(
-        ThemeContext.Provider,
-        { value: themeValue },
-        children
-    );
-};
-
-export const useTheme = () => {
-    return useContext(ThemeContext);
-};
+  return context;
+}

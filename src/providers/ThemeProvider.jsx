@@ -1,22 +1,35 @@
-import {useMemo,useState} from 'react';
-import {ThemeContext} from './ThemeContext';
+import { useMemo, useState } from "react";
+import { ThemeContext } from "./ThemeContext";
 
-export const ThemeProvider = ({children}) => {
-    const [mode,setMode] = useState(
-        localStorage.getItem("theme") || "light"
-    );
+export function ThemeProvider({ children }) {
+  const [mode, setMode] = useState(
+    () => localStorage.getItem("theme") || "light"
+  );
 
-    const toggleTheme = () => {
-        const newMode = mode === "light" ? "dark" : "light";
-        localStorage.setItem("theme", newMode);
-        setMode(newMode);
-    };
+  const toggleTheme = () => {
+    setMode((currentMode) => {
+      const newMode =
+        currentMode === "light"
+          ? "dark"
+          : "light";
 
-    const contextValue = useMemo(() => ({mode,toggleTheme}), [mode]);
-    
-    return (
-        <ThemeContext.Provider value={contextValue}>
-            {children}
-        </ThemeContext.Provider>
-    );
-};
+      localStorage.setItem("theme", newMode);
+
+      return newMode;
+    });
+  };
+
+  const contextValue = useMemo(
+    () => ({
+      mode,
+      toggleTheme,
+    }),
+    [mode]
+  );
+
+  return (
+    <ThemeContext.Provider value={contextValue}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}

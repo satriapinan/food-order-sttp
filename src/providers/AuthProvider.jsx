@@ -1,10 +1,17 @@
 import { useMemo, useState } from "react";
 import { AuthContext } from "./AuthContext";
+import api from "../services/api";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem("user");
-    return savedUser ? JSON.parse(savedUser) : null;
+
+    try {
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      localStorage.removeItem("user");
+      return null;
+    }
   });
 
   const [token, setToken] = useState(() => {
@@ -16,33 +23,34 @@ export function AuthProvider({ children }) {
   // =========================
 
   const login = async ({ username, password }) => {
-    const response = await fetch(
-      "http://localhost:8080/user-management/users/sign-in",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+    try {
+      const response = await api.post(
+        "/user-management/users/sign-in",
+        {
           username,
           password,
-        }),
-      }
-    );
+        }
+      );
 
-    const data = await response.json();
+      const data = response.data;
 
-    if (!response.ok) {
-      throw new Error(data.message || "Login gagal");
+      localStorage.setItem("token", data.token);
+      localStorage.setItem(
+        "user",
+        JSON.stringify(data.user)
+      );
+
+      setToken(data.token);
+      setUser(data.user);
+
+      return data;
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        "Login gagal";
+
+      throw new Error(message, { cause: error });
     }
-
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-
-    setToken(data.token);
-    setUser(data.user);
-
-    return data;
   };
 
   // =========================
@@ -55,29 +63,25 @@ export function AuthProvider({ children }) {
     password,
     retypePassword,
   }) => {
-    const response = await fetch(
-      "http://localhost:8080/user-management/users/sign-up",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+    try {
+      const response = await api.post(
+        "/user-management/users/sign-up",
+        {
           username,
           fullname,
           password,
           retypePassword,
-        }),
-      }
-    );
+        }
+      );
 
-    const data = await response.json();
+      return response.data;
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        "Register gagal";
 
-    if (!response.ok) {
-      throw new Error(data.message || "Register gagal");
+      throw new Error(message, { cause: error });
     }
-
-    return data;
   };
 
   // =========================
@@ -93,7 +97,7 @@ export function AuthProvider({ children }) {
   };
 
   // =========================
-  // CONTEXT
+  // CONTEXT VALUE
   // =========================
 
   const contextValue = useMemo(
@@ -103,7 +107,7 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
-      isAuthenticated: !!token,
+      isAuthenticated: Boolean(token),
     }),
     [user, token]
   );
