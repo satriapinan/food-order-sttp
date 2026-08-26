@@ -52,13 +52,23 @@ function FoodMenu() {
       setError("");
 
       try {
-        const [foodResponse, categoryResponse] =
-          await Promise.all([
-            getFoods(),
-            getCategories(),
-          ]);
+        const [
+          foodResponse,
+          categoryResponse,
+        ] = await Promise.all([
+          getFoods(),
+          getCategories(),
+        ]);
+
+        // =========================
+        // FOOD RESPONSE
+        // =========================
 
         setFoods(foodResponse?.data || []);
+
+        // =========================
+        // CATEGORY RESPONSE
+        // =========================
 
         setCategories(
           categoryResponse?.data ||
@@ -66,6 +76,11 @@ function FoodMenu() {
             []
         );
       } catch (err) {
+        console.error(
+          "Fetch food/category error:",
+          err
+        );
+
         setError(
           err.response?.data?.message ||
             err.message ||
@@ -86,7 +101,10 @@ function FoodMenu() {
   const filteredFoods = useMemo(() => {
     let result = [...foods];
 
+    // =========================
     // SEARCH
+    // =========================
+
     if (search.trim()) {
       const keyword = search
         .toLowerCase()
@@ -99,7 +117,10 @@ function FoodMenu() {
       );
     }
 
+    // =========================
     // CATEGORY
+    // =========================
+
     if (category !== "all") {
       result = result.filter(
         (food) =>
@@ -108,7 +129,10 @@ function FoodMenu() {
       );
     }
 
+    // =========================
     // SORT
+    // =========================
+
     switch (sort) {
       case "price-low":
         result.sort(
@@ -128,13 +152,17 @@ function FoodMenu() {
 
       case "name-az":
         result.sort((a, b) =>
-          a.name.localeCompare(b.name)
+          String(a.name || "").localeCompare(
+            String(b.name || "")
+          )
         );
         break;
 
       case "name-za":
         result.sort((a, b) =>
-          b.name.localeCompare(a.name)
+          String(b.name || "").localeCompare(
+            String(a.name || "")
+          )
         );
         break;
 
@@ -143,17 +171,41 @@ function FoodMenu() {
     }
 
     return result;
-  }, [foods, search, category, sort]);
+  }, [
+    foods,
+    search,
+    category,
+    sort,
+  ]);
 
   // =========================
   // ADD TO CART
   // =========================
 
   const handleAddToCart = async (food) => {
+    if (!food?.id) {
+      setSnackbar({
+        open: true,
+        message:
+          "Data makanan tidak memiliki ID.",
+        severity: "error",
+      });
+
+      return;
+    }
+
     setAddingFoodId(food.id);
 
     try {
+      // =========================
+      // REQUEST KE BACKEND
+      // =========================
+
       await addToCart(food.id, 1);
+
+      // =========================
+      // UPDATE STATUS FOOD
+      // =========================
 
       setFoods((currentFoods) =>
         currentFoods.map((item) =>
@@ -166,12 +218,21 @@ function FoodMenu() {
         )
       );
 
+      // =========================
+      // SNACKBAR SUCCESS
+      // =========================
+
       setSnackbar({
         open: true,
         message: `${food.name} berhasil ditambahkan ke keranjang.`,
         severity: "success",
       });
     } catch (err) {
+      console.error(
+        "Add to cart error:",
+        err
+      );
+
       setSnackbar({
         open: true,
         message:
@@ -257,9 +318,17 @@ function FoodMenu() {
   return (
     <Container
       maxWidth="xl"
-      sx={{ py: 4 }}
+      sx={{
+        py: {
+          xs: 2,
+          sm: 3,
+          md: 4,
+        },
+      }}
     >
-      {/* HEADER */}
+      {/* =========================
+          HEADER
+      ========================= */}
 
       <Box sx={{ mb: 4 }}>
         <Typography
@@ -270,14 +339,14 @@ function FoodMenu() {
           Food Menu
         </Typography>
 
-        <Typography
-          color="text.secondary"
-        >
+        <Typography color="text.secondary">
           Pilih makanan favoritmu
         </Typography>
       </Box>
 
-      {/* ERROR */}
+      {/* =========================
+          ERROR
+      ========================= */}
 
       {error && (
         <Alert
@@ -288,7 +357,9 @@ function FoodMenu() {
         </Alert>
       )}
 
-      {/* FILTER */}
+      {/* =========================
+          FILTER
+      ========================= */}
 
       <Box
         sx={{
@@ -344,7 +415,9 @@ function FoodMenu() {
         />
       </Box>
 
-      {/* RESULT INFO */}
+      {/* =========================
+          RESULT INFO
+      ========================= */}
 
       <Typography
         variant="body2"
@@ -358,7 +431,9 @@ function FoodMenu() {
         makanan
       </Typography>
 
-      {/* FOOD LIST */}
+      {/* =========================
+          FOOD LIST
+      ========================= */}
 
       {filteredFoods.length === 0 ? (
         <Box
@@ -407,7 +482,9 @@ function FoodMenu() {
         </Grid>
       )}
 
-      {/* SNACKBAR */}
+      {/* =========================
+          SNACKBAR
+      ========================= */}
 
       <AppSnackbar
         open={snackbar.open}

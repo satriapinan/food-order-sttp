@@ -1,7 +1,7 @@
 import api from "./api";
 
 // =========================
-// GET FOOD LIST
+// FOODS
 // =========================
 
 export const getFoods = async () => {
@@ -11,7 +11,7 @@ export const getFoods = async () => {
 };
 
 // =========================
-// GET FOOD DETAIL
+// FOOD DETAIL
 // =========================
 
 export const getFoodById = async (id) => {
@@ -23,7 +23,7 @@ export const getFoodById = async (id) => {
 };
 
 // =========================
-// GET CATEGORIES
+// CATEGORIES
 // =========================
 
 export const getCategories = async () => {
@@ -38,42 +38,15 @@ export const getCategories = async () => {
 // ADD TO CART
 // =========================
 
-export const addToCart = async (foodId, qty = 1) => {
+export const addToCart = async (
+  foodId,
+  quantity = 1
+) => {
   const response = await api.post(
     "/food-order/cart",
     {
       foodId,
-      qty,
-    }
-  );
-
-  return response.data;
-};
-
-// =========================
-// GET CART
-// =========================
-
-export const getCart = async () => {
-  const response = await api.get(
-    "/food-order/foods/cart"
-  );
-
-  return response.data;
-};
-
-// =========================
-// UPDATE CART QTY
-// =========================
-
-export const updateCartQty = async (
-  cartId,
-  qty
-) => {
-  const response = await api.put(
-    `/food-order/cart/qty/${cartId}`,
-    {
-      qty,
+      quantity,
     }
   );
 
@@ -84,7 +57,7 @@ export const updateCartQty = async (
 // DELETE CART BY FOOD ID
 // =========================
 
-export const removeCartByFoodId = async (foodId) => {
+export const removeFromCart = async (foodId) => {
   const response = await api.delete(
     `/food-order/cart/${foodId}`
   );
@@ -93,60 +66,19 @@ export const removeCartByFoodId = async (foodId) => {
 };
 
 // =========================
-// DELETE CART BY CART ID
+// UPDATE CART QUANTITY
 // =========================
 
-export const removeCartByCartId = async (cartId) => {
-  const response = await api.delete(
-    `/food-order/cart/${cartId}`
-  );
-
-  return response.data;
-};
-
-// =========================
-// CHECKOUT
-// =========================
-
-export const checkout = async () => {
-  const response = await api.post(
-    "/food-order/cart/checkout"
-  );
-
-  return response.data;
-};
-
-// =========================
-// FAVORITE
-// =========================
-
-export const toggleFavorite = async (foodId) => {
+// Dipakai jika nanti kita mendapatkan cartId
+export const updateCartQuantity = async (
+  cartId,
+  quantity
+) => {
   const response = await api.put(
-    `/food-order/foods/${foodId}/favorites`
-  );
-
-  return response.data;
-};
-
-// =========================
-// MY FAVORITES
-// =========================
-
-export const getFavoriteFoods = async () => {
-  const response = await api.get(
-    "/food-order/foods/my-favorite-foods"
-  );
-
-  return response.data;
-};
-
-// =========================
-// ORDER HISTORY
-// =========================
-
-export const getOrderHistory = async () => {
-  const response = await api.get(
-    "/food-order/foods/history"
+    `/food-order/cart/qty/${cartId}`,
+    {
+      quantity,
+    }
   );
 
   return response.data;
