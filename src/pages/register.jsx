@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   Typography,
-  TextField,
   Link,
   InputAdornment,
   IconButton,
@@ -12,37 +11,48 @@ import {
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import AppButton from "../components/AppButton";
+import AppTextField from "../components/AppTextField";
+import AppSnackbar from "../components/AppSnackbar";
 import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import api from "../services/api";
 
-// Buat Skema Validasi dengan Yup (Disesuaikan dengan gambar)
-const registerSchema = Yup.object({
+const skemaDaftar = Yup.object({
   username: Yup.string().required("Username harus diisi"),
   fullname: Yup.string().required("Nama lengkap harus diisi"),
   password: Yup.string()
-    .min(6, "Password minimal 6 karakter")
-    .required("Password harus diisi"),
+    .min(6, "Kata sandi minimal 6 karakter")
+    .required("Kata sandi harus diisi"),
   retypePassword: Yup.string()
-    .oneOf([Yup.ref("password")], "Password tidak sama")
-    .required("Konfirmasi password harus diisi"),
+    .oneOf([Yup.ref("password")], "Kata sandi tidak sama")
+    .required("Konfirmasi kata sandi harus diisi"),
 });
 
 function RegisterPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [tampilkanKataSandi, setTampilkanKataSandi] = useState(false);
+  const [tampilkanKonfirmasiKataSandi, setTampilkanKonfirmasiKataSandi] =
+    useState(false);
+  const [sedangMemuat, setSedangMemuat] = useState(false);
+  const [notifikasi, setNotifikasi] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const navigate = useNavigate();
 
   const handleClickShowPassword = () => {
-    setShowPassword(!showPassword);
+    setTampilkanKataSandi(!tampilkanKataSandi);
   };
 
   const handleClickShowConfirmPassword = () => {
-    setShowConfirmPassword(!showConfirmPassword);
+    setTampilkanKonfirmasiKataSandi(!tampilkanKonfirmasiKataSandi);
   };
 
-  // Konfigurasi Formik
+  const handleCloseSnackbar = () => {
+    setNotifikasi({ ...notifikasi, open: false });
+  };
+
   const formik = useFormik({
     initialValues: {
       username: "",
@@ -50,16 +60,27 @@ function RegisterPage() {
       password: "",
       retypePassword: "",
     },
-    validationSchema: registerSchema,
+    validationSchema: skemaDaftar,
     onSubmit: async (values) => {
+      setSedangMemuat(true);
       try {
         await api.post("/user-management/users/sign-up", values);
 
-        alert("Register berhasil! Silakan login.");
+        setNotifikasi({
+          open: true,
+          message: "Daftar berhasil! Silakan masuk.",
+          severity: "success",
+        });
 
         setTimeout(() => navigate("/login"), 1500);
       } catch (err) {
-        alert(err.response?.data?.message || "Register gagal");
+        setNotifikasi({
+          open: true,
+          message: err.response?.data?.message || "Daftar gagal",
+          severity: "error",
+        });
+      } finally {
+        setSedangMemuat(false);
       }
     },
   });
@@ -90,7 +111,6 @@ function RegisterPage() {
             padding: 4,
           }}
         >
-          {/* Bagian Judul */}
           <Box sx={{ textAlign: "center", marginBottom: 1 }}>
             <Typography
               variant="h5"
@@ -106,18 +126,13 @@ function RegisterPage() {
             </Typography>
           </Box>
 
-          {/* Bungkus input dengan tag <form> */}
           <form
             onSubmit={formik.handleSubmit}
             style={{ display: "flex", flexDirection: "column", gap: "20px" }}
           >
-            {/* Input Username */}
-            <TextField
+            <AppTextField
               label="Username"
               name="username"
-              variant="outlined"
-              fullWidth
-              size="small"
               value={formik.values.username}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -125,13 +140,9 @@ function RegisterPage() {
               helperText={formik.touched.username && formik.errors.username}
             />
 
-            {/* Input Full Name */}
-            <TextField
-              label="Full Name"
-              name="fullname" // Diubah menjadi fullname
-              variant="outlined"
-              fullWidth
-              size="small"
+            <AppTextField
+              label="Nama Lengkap"
+              name="fullname"
               value={formik.values.fullname}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -139,14 +150,10 @@ function RegisterPage() {
               helperText={formik.touched.fullname && formik.errors.fullname}
             />
 
-            {/* Input Password */}
-            <TextField
-              label="Password"
+            <AppTextField
+              label="Kata Sandi"
               name="password"
-              type={showPassword ? "text" : "password"}
-              variant="outlined"
-              fullWidth
-              size="small"
+              type={tampilkanKataSandi ? "text" : "password"}
               value={formik.values.password}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -157,7 +164,11 @@ function RegisterPage() {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton onClick={handleClickShowPassword} edge="end">
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                        {tampilkanKataSandi ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -165,14 +176,10 @@ function RegisterPage() {
               }}
             />
 
-            {/* Input Confirm Password */}
-            <TextField
-              label="Confirm Password"
+            <AppTextField
+              label="Konfirmasi Kata Sandi"
               name="retypePassword"
-              type={showConfirmPassword ? "text" : "password"}
-              variant="outlined"
-              fullWidth
-              size="small"
+              type={tampilkanKonfirmasiKataSandi ? "text" : "password"}
               value={formik.values.retypePassword}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -191,7 +198,7 @@ function RegisterPage() {
                         onClick={handleClickShowConfirmPassword}
                         edge="end"
                       >
-                        {showConfirmPassword ? (
+                        {tampilkanKonfirmasiKataSandi ? (
                           <VisibilityOff />
                         ) : (
                           <Visibility />
@@ -203,12 +210,11 @@ function RegisterPage() {
               }}
             />
 
-            <AppButton type="submit" fullWidth>
+            <AppButton type="submit" fullWidth isLoading={sedangMemuat}>
               Buat Akun
             </AppButton>
           </form>
 
-          {/* Link kembali ke Login */}
           <Typography
             variant="body2"
             sx={{ textAlign: "center", marginTop: 1, color: "text.secondary" }}
@@ -224,6 +230,13 @@ function RegisterPage() {
           </Typography>
         </CardContent>
       </Card>
+
+      <AppSnackbar
+        open={notifikasi.open}
+        message={notifikasi.message}
+        severity={notifikasi.severity}
+        onClose={handleCloseSnackbar}
+      />
     </Box>
   );
 }

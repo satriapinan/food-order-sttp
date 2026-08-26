@@ -1,109 +1,140 @@
 import { useState, useEffect, useMemo } from "react";
-import {
-  Box,
-  Card,
-  Typography,
-  TextField,
-  MenuItem,
-  Grid,
-} from "@mui/material";
+import { Box, Card, Typography, Grid, CircularProgress } from "@mui/material";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import FoodCard from "../components/FoodCard";
-import api from "../services/api"; // Pastikan import api
+import AppTextField from "../components/AppTextField";
+import AppSelect from "../components/AppSelect";
+import AppSnackbar from "../components/AppSnackbar";
+import api from "../services/api";
 
 const filterSchema = Yup.object({
   search: Yup.string().max(30, "Maksimal 30 karakter pencarian"),
 });
 
 function FoodMenu() {
-  const [foods, setFoods] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [daftarMakanan, setDaftarMakanan] = useState([]);
+  const [daftarKategori, setDaftarKategori] = useState([]);
+  const [sedangMemuat, setSedangMemuat] = useState(false);
+  const [notifikasi, setNotifikasi] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
   const formik = useFormik({
     initialValues: { search: "", category: "", sortBy: "" },
     validationSchema: filterSchema,
   });
-  const { search, category, sortBy } = formik.values;
+  const {
+    search: cari,
+    category: kategori,
+    sortBy: urutkanBerdasarkan,
+  } = formik.values;
+
+  const handleCloseSnackbar = () => {
+    setNotifikasi({ ...notifikasi, open: false });
+  };
 
   useEffect(() => {
     api
       .get("/food-order/categories")
       .then((res) => {
-        setCategories(res.data.data || []);
+        setDaftarKategori(res.data.data || res.data || []);
       })
       .catch((err) => {
-        console.error("Gagal mengambil kategori:", err);
+        console.error("Gagal mengambil data kategori:", err);
       });
   }, []);
 
   useEffect(() => {
-    const params = { pageSize: 100 };
+    const fetchFoods = async () => {
+      setSedangMemuat(true);
+      try {
+        const params = { pageSize: 100 };
+        if (cari) params.foodName = cari;
+        if (kategori) params.categoryId = kategori;
+        if (urutkanBerdasarkan) params.sortBy = urutkanBerdasarkan;
 
-    if (search) params.foodName = search;
-    if (category) params.categoryId = category;
-    if (sortBy) params.sortBy = sortBy;
+        const res = await api.get("/food-order/foods", { params });
+        setDaftarMakanan(res.data.data || []);
+      } catch (err) {
+        setNotifikasi({
+          open: true,
+          message: "Gagal mengambil data makanan",
+          severity: "error",
+        });
+      } finally {
+        setSedangMemuat(false);
+      }
+    };
 
-    api
-      .get("/food-order/foods", { params })
-      .then((res) => {
-        setFoods(res.data.data || []);
-      })
-      .catch((err) => {
-        console.error("Gagal mengambil makanan:", err);
-      });
-  }, [search, category, sortBy]);
+    // Menambahkan sedikit penundaan (debounce) saat mengetik pencarian
+    const timeoutId = setTimeout(() => {
+      fetchFoods();
+    }, 500);
 
-  const categoryOptions = useMemo(() => {
+    return () => clearTimeout(timeoutId);
+  }, [cari, kategori, urutkanBerdasarkan]);
+
+  const pilihanKategori = useMemo(() => {
+    const opsi = Array.isArray(daftarKategori) ? daftarKategori : [];
     return [
       { value: "", label: "Semua Kategori" },
-      ...categories.map((c) => ({
-        value: String(c.id),
-        label: c.categoryName,
+      ...opsi.map((k) => ({
+        value: String(k.id),
+        label: k.categoryName,
       })),
     ];
-  }, [categories]);
+  }, [daftarKategori]);
 
-  const handleAddToCart = async (food) => {
+  const pilihanUrutan = [
+    { value: "", label: "Normal" },
+    { value: "price,asc", label: "Termurah" },
+    { value: "price,desc", label: "Termahal" },
+  ];
+
+  const handleAddToCart = async (makanan) => {
     try {
-      await api.post("/food-order/cart", { foodId: food.id });
-      alert(`${food.name || "Makanan"} berhasil ditambahkan ke keranjang!`);
+      await api.post("/food-order/cart", { foodId: makanan.id });
+      setNotifikasi({
+        open: true,
+        message: `${makanan.name || "Makanan"} berhasil ditambahkan ke keranjang!`,
+        severity: "success",
+      });
     } catch (err) {
-      alert(err.response?.data?.message || "Gagal menambahkan ke keranjang");
+      setNotifikasi({
+        open: true,
+        message:
+          err.response?.data?.message || "Gagal menambahkan ke keranjang",
+        severity: "error",
+      });
     }
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        background: "linear-gradient(to bottom right, #8b0000, #3e0000)",
-        padding: 4,
-      }}
-    >
-      {/* HEADER & FILTER */}
+    <Box sx={{ padding: 4 }}>
+      {/* BAGIAN HEADER & FILTER */}
       <Card
         sx={{
           borderRadius: 4,
           padding: 3,
           marginBottom: 4,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
         }}
       >
         <Box sx={{ textAlign: "center", marginBottom: 3 }}>
           <Typography
             variant="h4"
-            sx={{ fontWeight: "bold", color: "#8b0000" }}
+            sx={{ fontWeight: "bold", color: "primary.main" }}
           >
             Menu Makanan
           </Typography>
         </Box>
 
-        <TextField
-          fullWidth
+        <AppTextField
           name="search"
           placeholder="Cari nama makanan..."
-          variant="outlined"
-          size="small"
           sx={{ marginBottom: 2 }}
           value={formik.values.search}
           onChange={formik.handleChange}
@@ -111,56 +142,59 @@ function FoodMenu() {
           helperText={formik.touched.search && formik.errors.search}
         />
 
-        <Box sx={{ display: "flex", gap: 2 }}>
-          {/* Dropdown Kategori Mengambil Data dari API */}
-          <TextField
-            select
+        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+          <AppSelect
             name="category"
             label="Kategori"
-            size="small"
-            sx={{ minWidth: 150 }}
+            sx={{ minWidth: 200 }}
             value={formik.values.category}
             onChange={formik.handleChange}
-          >
-            {categoryOptions.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </TextField>
+            options={pilihanKategori}
+          />
 
-          <TextField
-            select
+          <AppSelect
             name="sortBy"
             label="Urutkan Harga"
-            size="small"
-            sx={{ minWidth: 150 }}
+            sx={{ minWidth: 200 }}
             value={formik.values.sortBy}
             onChange={formik.handleChange}
-          >
-            <MenuItem value="">Normal</MenuItem>
-            <MenuItem value="murah">Termurah</MenuItem>
-            <MenuItem value="mahal">Termahal</MenuItem>
-          </TextField>
+            options={pilihanUrutan}
+          />
         </Box>
       </Card>
 
       {/* GRID KARTU MAKANAN DARI API */}
-      <Grid container spacing={3}>
-        {foods.length === 0 ? (
-          <Grid item xs={12}>
-            <Typography variant="h6" color="white" textAlign="center">
-              Makanan tidak ditemukan.
-            </Typography>
-          </Grid>
-        ) : (
-          foods.map((menu) => (
-            <Grid item xs={12} sm={6} md={3} key={menu.id}>
-              <FoodCard menu={menu} onAddToCart={() => handleAddToCart(menu)} />
+      {sedangMemuat ? (
+        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+          <CircularProgress color="primary" />
+        </Box>
+      ) : (
+        <Grid container spacing={3}>
+          {daftarMakanan.length === 0 ? (
+            <Grid size={{ xs: 12 }} sx={{ width: "100%" }}>
+              <Typography variant="h6" color="text.secondary" align="center">
+                Makanan tidak ditemukan.
+              </Typography>
             </Grid>
-          ))
-        )}
-      </Grid>
+          ) : (
+            daftarMakanan.map((makanan) => (
+              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={makanan.id}>
+                <FoodCard
+                  menu={makanan}
+                  onAddToCart={() => handleAddToCart(makanan)}
+                />
+              </Grid>
+            ))
+          )}
+        </Grid>
+      )}
+
+      <AppSnackbar
+        open={notifikasi.open}
+        message={notifikasi.message}
+        severity={notifikasi.severity}
+        onClose={handleCloseSnackbar}
+      />
     </Box>
   );
 }

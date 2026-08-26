@@ -6,10 +6,10 @@ import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
 const AppLayout = ({ children }) => {
-  const { mode, toggleTheme } = useTheme();
-  const isDark = mode === "dark";
+  const { mode: modeTema, toggleTheme } = useTheme();
+  const apakahGelap = modeTema === "dark";
 
-  const { user, logout } = useAuth();
+  const { user: pengguna, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -18,14 +18,7 @@ const AppLayout = ({ children }) => {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        backgroundColor: isDark ? "#121212" : "#f5f5f5",
-        transition: "background-color 0.3s ease",
-        color: isDark ? "#fff" : "#000",
-      }}
-    >
+    <Box sx={{ minHeight: "100vh" }}>
       <Box
         sx={{
           display: "flex",
@@ -35,10 +28,10 @@ const AppLayout = ({ children }) => {
           padding: "12px 16px",
         }}
       >
-        {user && (
+        {pengguna && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-              Halo, {user.username} 👋
+              Halo, {pengguna.username} 👋
             </Typography>
 
             <Button
@@ -54,7 +47,7 @@ const AppLayout = ({ children }) => {
                 "&:hover": { borderWidth: "2px" },
               }}
             >
-              Logout
+              Keluar
             </Button>
           </Box>
         )}
@@ -66,22 +59,22 @@ const AppLayout = ({ children }) => {
             padding: "8px 24px",
             fontWeight: "bold",
             letterSpacing: "1px",
-            backgroundColor: isDark
+            backgroundColor: apakahGelap
               ? "rgba(255, 255, 255, 0.05)"
               : "rgba(0, 0, 0, 0.03)",
-            color: isDark ? "#ffffff" : "#121212",
-            border: isDark
+            color: apakahGelap ? "#ffffff" : "#121212",
+            border: apakahGelap
               ? "1px solid rgba(255, 255, 255, 0.1)"
               : "1px solid rgba(0, 0, 0, 0.1)",
             backdropFilter: "blur(10px)",
             boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
             transition: "all 0.3s ease",
             "&:hover": {
-              backgroundColor: isDark
+              backgroundColor: apakahGelap
                 ? "rgba(255, 255, 255, 0.15)"
                 : "rgba(0, 0, 0, 0.08)",
               transform: "translateY(-3px)",
-              boxShadow: isDark
+              boxShadow: apakahGelap
                 ? "0 6px 20px rgba(255,255,255,0.15)"
                 : "0 6px 20px rgba(0,0,0,0.15)",
             },
@@ -90,7 +83,7 @@ const AppLayout = ({ children }) => {
             },
           }}
         >
-          {isDark ? "🌞 Light" : "🌙 Dark"}
+          {apakahGelap ? "🌞 Light" : "🌙 Dark"}
         </Button>
       </Box>
 

@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   Typography,
-  TextField,
   Link,
   InputAdornment,
   IconButton,
@@ -12,26 +11,39 @@ import {
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import AppButton from "../components/AppButton";
+import AppTextField from "../components/AppTextField";
+import AppSnackbar from "../components/AppSnackbar";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import api from "../services/api";
 
-const loginSchema = Yup.object({
+const skemaMasuk = Yup.object({
   username: Yup.string().required("Username harus diisi"),
   password: Yup.string()
-    .min(6, "Password minimal 6 karakter")
-    .required("Password harus diisi"),
+    .min(6, "Kata sandi minimal 6 karakter")
+    .required("Kata sandi harus diisi"),
 });
 
 function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false);
+  const [tampilkanKataSandi, setTampilkanKataSandi] = useState(false);
+  const [sedangMemuat, setSedangMemuat] = useState(false);
+  const [notifikasi, setNotifikasi] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleClickShowPassword = () => {
-    setShowPassword(!showPassword);
+    setTampilkanKataSandi(!tampilkanKataSandi);
+  };
+
+  const handleCloseSnackbar = () => {
+    setNotifikasi({ ...notifikasi, open: false });
   };
 
   const formik = useFormik({
@@ -39,15 +51,21 @@ function LoginPage() {
       username: "",
       password: "",
     },
-    validationSchema: loginSchema,
+    validationSchema: skemaMasuk,
     onSubmit: async (values) => {
+      setSedangMemuat(true);
       try {
         const res = await api.post("/user-management/users/sign-in", values);
         login(res.data);
         navigate("/foodmenu");
       } catch (err) {
-        // Menggunakan alert biasa jika login gagal
-        alert(err.response?.data?.message || "Login gagal");
+        setNotifikasi({
+          open: true,
+          message: err.response?.data?.message || "Masuk gagal",
+          severity: "error",
+        });
+      } finally {
+        setSedangMemuat(false);
       }
     },
   });
@@ -92,12 +110,9 @@ function LoginPage() {
             onSubmit={formik.handleSubmit}
             style={{ display: "flex", flexDirection: "column", gap: "16px" }}
           >
-            <TextField
+            <AppTextField
               label="Username"
-              type="text"
               name="username"
-              variant="outlined"
-              fullWidth
               value={formik.values.username}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -105,12 +120,10 @@ function LoginPage() {
               helperText={formik.touched.username && formik.errors.username}
             />
 
-            <TextField
-              label="Password"
+            <AppTextField
+              label="Kata Sandi"
               name="password"
-              type={showPassword ? "text" : "password"}
-              variant="outlined"
-              fullWidth
+              type={tampilkanKataSandi ? "text" : "password"}
               value={formik.values.password}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -121,7 +134,11 @@ function LoginPage() {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton onClick={handleClickShowPassword} edge="end">
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                        {tampilkanKataSandi ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -129,7 +146,7 @@ function LoginPage() {
               }}
             />
 
-            <AppButton type="submit" fullWidth>
+            <AppButton type="submit" fullWidth isLoading={sedangMemuat}>
               Masuk
             </AppButton>
           </form>
@@ -149,6 +166,13 @@ function LoginPage() {
           </Typography>
         </CardContent>
       </Card>
+
+      <AppSnackbar
+        open={notifikasi.open}
+        message={notifikasi.message}
+        severity={notifikasi.severity}
+        onClose={handleCloseSnackbar}
+      />
     </Box>
   );
 }

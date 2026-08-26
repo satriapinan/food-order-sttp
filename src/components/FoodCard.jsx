@@ -11,12 +11,12 @@ import StarBorderIcon from "@mui/icons-material/StarBorder";
 import AppButton from "./AppButton";
 
 function FoodCard({ menu, onAddToCart }) {
-  const PLACEHOLDER_IMAGE = "/images/nasigoreng.jpg"; // Kamu bisa ganti dengan link online jika mau
-  const foodName = menu.name || "Menu Tanpa Nama";
-  const foodPrice = menu.price
+  const GAMBAR_PENGGANTI = "/images/nasigoreng.jpg";
+  const namaMakanan = menu.name || "Menu Tanpa Nama";
+  const hargaMakanan = menu.price
     ? `Rp. ${Number(menu.price).toLocaleString("id-ID")}`
     : "Rp. 0";
-  const foodCategory = menu.categories?.categoryName || "Umum";
+  const kategoriMakanan = menu.categories?.categoryName || "Umum";
 
   return (
     <Card
@@ -35,12 +35,12 @@ function FoodCard({ menu, onAddToCart }) {
       <CardMedia
         component="img"
         height="160"
-        image={menu.image || PLACEHOLDER_IMAGE}
-        alt={foodName}
+        image={menu.image || GAMBAR_PENGGANTI}
+        alt={namaMakanan}
         sx={{ objectFit: "cover" }}
         onError={(e) => {
           e.target.onerror = null;
-          e.target.src = PLACEHOLDER_IMAGE;
+          e.target.src = GAMBAR_PENGGANTI;
         }}
       />
 
@@ -49,7 +49,7 @@ function FoodCard({ menu, onAddToCart }) {
       >
         <Box sx={{ mb: 1 }}>
           <Chip
-            label={foodCategory}
+            label={kategoriMakanan}
             size="small"
             sx={{
               backgroundColor: "#ffebee",
@@ -61,13 +61,13 @@ function FoodCard({ menu, onAddToCart }) {
         </Box>
 
         <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-          {foodName}
+          {namaMakanan}
         </Typography>
         <Typography
           variant="h6"
           sx={{ fontWeight: "bold", color: "#b22222", mb: 2 }}
         >
-          {foodPrice}
+          {hargaMakanan}
         </Typography>
 
         <Box

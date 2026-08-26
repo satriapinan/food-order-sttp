@@ -2,27 +2,30 @@ import { useMemo, useState } from "react";
 import { AuthContext } from "./AuthContext";
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(
+  const [pengguna, setPengguna] = useState(
     JSON.parse(localStorage.getItem("user")) || null,
   );
 
-  const login = (userData) => {
+  const login = (dataPengguna) => {
     const data = {
-      id: userData.user.id,
-      username: userData.user.username,
-      fullname: userData.user.fullname,
-      token: userData.token,
+      id: dataPengguna.user.id,
+      username: dataPengguna.user.username,
+      fullname: dataPengguna.user.fullname,
+      token: dataPengguna.token,
     };
     localStorage.setItem("user", JSON.stringify(data));
-    setUser(data);
+    setPengguna(data);
   };
 
   const logout = () => {
     localStorage.removeItem("user");
-    setUser(null);
+    setPengguna(null);
   };
 
-  const contextValue = useMemo(() => ({ user, login, logout }), [user]);
+  const contextValue = useMemo(
+    () => ({ user: pengguna, login, logout }),
+    [pengguna],
+  );
 
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
