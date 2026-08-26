@@ -1,10 +1,21 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
 import { useTheme } from "../hooks/useTheme";
+import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const AppLayout = ({ children }) => {
   const { mode, toggleTheme } = useTheme();
   const isDark = mode === "dark";
+
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <Box
@@ -19,9 +30,35 @@ const AppLayout = ({ children }) => {
         sx={{
           display: "flex",
           justifyContent: "flex-end",
+          alignItems: "center",
+          gap: 2,
           padding: "12px 16px",
         }}
       >
+        {user && (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+              Halo, {user.username} 👋
+            </Typography>
+
+            <Button
+              onClick={handleLogout}
+              variant="outlined"
+              color="error"
+              size="small"
+              sx={{
+                borderRadius: "25px",
+                textTransform: "none",
+                fontWeight: "bold",
+                borderWidth: "2px",
+                "&:hover": { borderWidth: "2px" },
+              }}
+            >
+              Logout
+            </Button>
+          </Box>
+        )}
+
         <Button
           onClick={toggleTheme}
           sx={{
@@ -56,6 +93,7 @@ const AppLayout = ({ children }) => {
           {isDark ? "🌞 Light" : "🌙 Dark"}
         </Button>
       </Box>
+
       <Box sx={{ padding: "0 16px 16px" }}>{children}</Box>
     </Box>
   );

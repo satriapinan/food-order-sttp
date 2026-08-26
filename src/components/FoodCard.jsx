@@ -10,7 +10,14 @@ import {
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import AppButton from "./AppButton";
 
-function FoodCard({ menu }) {
+function FoodCard({ menu, onAddToCart }) {
+  const PLACEHOLDER_IMAGE = "/images/nasigoreng.jpg"; // Kamu bisa ganti dengan link online jika mau
+  const foodName = menu.name || "Menu Tanpa Nama";
+  const foodPrice = menu.price
+    ? `Rp. ${Number(menu.price).toLocaleString("id-ID")}`
+    : "Rp. 0";
+  const foodCategory = menu.categories?.categoryName || "Umum";
+
   return (
     <Card
       sx={{
@@ -28,9 +35,13 @@ function FoodCard({ menu }) {
       <CardMedia
         component="img"
         height="160"
-        image={menu.image}
-        alt={menu.title}
+        image={menu.image || PLACEHOLDER_IMAGE}
+        alt={foodName}
         sx={{ objectFit: "cover" }}
+        onError={(e) => {
+          e.target.onerror = null;
+          e.target.src = PLACEHOLDER_IMAGE;
+        }}
       />
 
       <CardContent
@@ -38,7 +49,7 @@ function FoodCard({ menu }) {
       >
         <Box sx={{ mb: 1 }}>
           <Chip
-            label={menu.category}
+            label={foodCategory}
             size="small"
             sx={{
               backgroundColor: "#ffebee",
@@ -50,13 +61,13 @@ function FoodCard({ menu }) {
         </Box>
 
         <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-          {menu.title}
+          {foodName}
         </Typography>
         <Typography
           variant="h6"
           sx={{ fontWeight: "bold", color: "#b22222", mb: 2 }}
         >
-          {menu.price}
+          {foodPrice}
         </Typography>
 
         <Box
@@ -69,7 +80,9 @@ function FoodCard({ menu }) {
           }}
         >
           <IconButton size="small">
-            <StarBorderIcon sx={{ color: "#b0bec5" }} />
+            <StarBorderIcon
+              sx={{ color: menu.isFavorite ? "#b22222" : "#b0bec5" }}
+            />
           </IconButton>
           <Typography
             variant="caption"
@@ -79,7 +92,9 @@ function FoodCard({ menu }) {
           </Typography>
         </Box>
 
-        <AppButton fullWidth>Tambahkan ke Keranjang</AppButton>
+        <AppButton fullWidth onClick={onAddToCart}>
+          Tambahkan ke Keranjang
+        </AppButton>
       </CardContent>
     </Card>
   );

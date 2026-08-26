@@ -15,18 +15,17 @@ import AppButton from "../components/AppButton";
 import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import api from "../services/api";
 
-// Buat Skema Validasi dengan Yup
+// Buat Skema Validasi dengan Yup (Disesuaikan dengan gambar)
 const registerSchema = Yup.object({
-  username: Yup.string()
-    .min(3, "Username minimal 3 karakter")
-    .required("Username harus diisi"),
-  fullName: Yup.string().required("Nama lengkap harus diisi"),
+  username: Yup.string().required("Username harus diisi"),
+  fullname: Yup.string().required("Nama lengkap harus diisi"),
   password: Yup.string()
     .min(6, "Password minimal 6 karakter")
     .required("Password harus diisi"),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref("password"), null], "Password tidak cocok")
+  retypePassword: Yup.string()
+    .oneOf([Yup.ref("password")], "Password tidak sama")
     .required("Konfirmasi password harus diisi"),
 });
 
@@ -47,15 +46,21 @@ function RegisterPage() {
   const formik = useFormik({
     initialValues: {
       username: "",
-      fullName: "",
+      fullname: "",
       password: "",
-      confirmPassword: "",
+      retypePassword: "",
     },
     validationSchema: registerSchema,
-    onSubmit: (values) => {
-      console.log("Data Registrasi:", values);
-      alert("Akun berhasil dibuat! Silakan login.");
-      navigate("/login");
+    onSubmit: async (values) => {
+      try {
+        await api.post("/user-management/users/sign-up", values);
+
+        alert("Register berhasil! Silakan login.");
+
+        setTimeout(() => navigate("/login"), 1500);
+      } catch (err) {
+        alert(err.response?.data?.message || "Register gagal");
+      }
     },
   });
 
@@ -65,7 +70,6 @@ function RegisterPage() {
         minHeight: "100vh",
         display: "flex",
         alignItems: "center",
-        // background: "linear-gradient(to bottom right, #8b0000, #3e0000)",
         justifyContent: "center",
         padding: 2,
       }}
@@ -124,15 +128,15 @@ function RegisterPage() {
             {/* Input Full Name */}
             <TextField
               label="Full Name"
-              name="fullName"
+              name="fullname" // Diubah menjadi fullname
               variant="outlined"
               fullWidth
               size="small"
-              value={formik.values.fullName}
+              value={formik.values.fullname}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={formik.touched.fullName && Boolean(formik.errors.fullName)}
-              helperText={formik.touched.fullName && formik.errors.fullName}
+              error={formik.touched.fullname && Boolean(formik.errors.fullname)}
+              helperText={formik.touched.fullname && formik.errors.fullname}
             />
 
             {/* Input Password */}
@@ -164,20 +168,20 @@ function RegisterPage() {
             {/* Input Confirm Password */}
             <TextField
               label="Confirm Password"
-              name="confirmPassword"
+              name="retypePassword"
               type={showConfirmPassword ? "text" : "password"}
               variant="outlined"
               fullWidth
               size="small"
-              value={formik.values.confirmPassword}
+              value={formik.values.retypePassword}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               error={
-                formik.touched.confirmPassword &&
-                Boolean(formik.errors.confirmPassword)
+                formik.touched.retypePassword &&
+                Boolean(formik.errors.retypePassword)
               }
               helperText={
-                formik.touched.confirmPassword && formik.errors.confirmPassword
+                formik.touched.retypePassword && formik.errors.retypePassword
               }
               slotProps={{
                 input: {
@@ -199,7 +203,6 @@ function RegisterPage() {
               }}
             />
 
-            {/* Tombol Register: Tambahkan type="submit" */}
             <AppButton type="submit" fullWidth>
               Buat Akun
             </AppButton>

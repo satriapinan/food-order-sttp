@@ -1,4 +1,4 @@
-// src/pages/FoodMenu.jsx
+import { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Card,
@@ -10,77 +10,67 @@ import {
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import FoodCard from "../components/FoodCard";
-
-// DATA DUMMY
-const menuData = [
-  {
-    id: 1,
-    title: "Nasi Goreng",
-    category: "Indonesian Food",
-    price: "Rp. 25.000",
-    image: "/images/nasigoreng.jpg",
-  },
-  {
-    id: 2,
-    title: "Mie Ayam",
-    category: "Indonesian Food",
-    price: "Rp. 20.000",
-    image: "/images/MieAyam.jpg",
-  },
-  {
-    id: 3,
-    title: "Ayam Bakar",
-    category: "Western Food",
-    price: "Rp. 35.000",
-    image: "/images/AyamBakar.jpg",
-  },
-  {
-    id: 4,
-    title: "Gado-Gado",
-    category: "Asian Food",
-    price: "Rp. 18.000",
-    image: "/images/GadoGado.jpg",
-  },
-  {
-    id: 5,
-    title: "Rendang",
-    category: "Asian Food",
-    price: "Rp. 27.000",
-    image: "/images/rendang.jpg",
-  },
-];
-
-const getPriceNumber = (priceString) => {
-  return parseInt(priceString.replace(/[^0-9]/g, ""), 10);
-};
+import api from "../services/api"; // Pastikan import api
 
 const filterSchema = Yup.object({
   search: Yup.string().max(30, "Maksimal 30 karakter pencarian"),
 });
 
 function FoodMenu() {
+  const [foods, setFoods] = useState([]);
+  const [categories, setCategories] = useState([]);
   const formik = useFormik({
-    initialValues: { search: "", kategori: "all", sortBy: "" },
+    initialValues: { search: "", category: "", sortBy: "" },
     validationSchema: filterSchema,
   });
+  const { search, category, sortBy } = formik.values;
 
-  const displayedMenu = menuData
-    .filter((menu) => {
-      const matchSearch = menu.title
-        .toLowerCase()
-        .includes(formik.values.search.toLowerCase());
-      const matchCategory =
-        formik.values.kategori === "all" ||
-        menu.category === formik.values.kategori;
-      return matchSearch && matchCategory;
-    })
-    .sort((a, b) => {
-      if (formik.values.sortBy === "murah")
-        return getPriceNumber(a.price) - getPriceNumber(b.price);
-      if (formik.values.sortBy === "mahal")
-        return getPriceNumber(b.price) - getPriceNumber(a.price);
-      return 0;
-    });
+  useEffect(() => {
+    api
+      .get("/food-order/categories")
+      .then((res) => {
+        setCategories(res.data.data || []);
+      })
+      .catch((err) => {
+        console.error("Gagal mengambil kategori:", err);
+      });
+  }, []);
+
+  useEffect(() => {
+    const params = { pageSize: 100 };
+
+    if (search) params.foodName = search;
+    if (category) params.categoryId = category;
+    if (sortBy) params.sortBy = sortBy;
+
+    api
+      .get("/food-order/foods", { params })
+      .then((res) => {
+        setFoods(res.data.data || []);
+      })
+      .catch((err) => {
+        console.error("Gagal mengambil makanan:", err);
+      });
+  }, [search, category, sortBy]);
+
+  const categoryOptions = useMemo(() => {
+    return [
+      { value: "", label: "Semua Kategori" },
+      ...categories.map((c) => ({
+        value: String(c.id),
+        label: c.categoryName,
+      })),
+    ];
+  }, [categories]);
+
+  const handleAddToCart = async (food) => {
+    try {
+      await api.post("/food-order/cart", { foodId: food.id });
+      alert(`${food.name || "Makanan"} berhasil ditambahkan ke keranjang!`);
+    } catch (err) {
+      alert(err.response?.data?.message || "Gagal menambahkan ke keranjang");
+    }
+  };
 
   return (
     <Box
@@ -122,19 +112,21 @@ function FoodMenu() {
         />
 
         <Box sx={{ display: "flex", gap: 2 }}>
+          {/* Dropdown Kategori Mengambil Data dari API */}
           <TextField
             select
-            name="kategori"
+            name="category"
             label="Kategori"
             size="small"
             sx={{ minWidth: 150 }}
-            value={formik.values.kategori}
+            value={formik.values.category}
             onChange={formik.handleChange}
           >
-            <MenuItem value="all">Semua Kategori</MenuItem>
-            <MenuItem value="Indonesian Food">Indonesian Food</MenuItem>
-            <MenuItem value="Western Food">Western Food</MenuItem>
-            <MenuItem value="Asian Food">Asian Food</MenuItem>
+            {categoryOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
           </TextField>
 
           <TextField
@@ -153,19 +145,18 @@ function FoodMenu() {
         </Box>
       </Card>
 
-      {/* GRID KARTU MAKANAN YANG SUDAH BERSIH */}
+      {/* GRID KARTU MAKANAN DARI API */}
       <Grid container spacing={3}>
-        {displayedMenu.length === 0 ? (
+        {foods.length === 0 ? (
           <Grid item xs={12}>
             <Typography variant="h6" color="white" textAlign="center">
               Makanan tidak ditemukan.
             </Typography>
           </Grid>
         ) : (
-          displayedMenu.map((menu) => (
+          foods.map((menu) => (
             <Grid item xs={12} sm={6} md={3} key={menu.id}>
-              {/* Memanggil komponen FoodCard */}
-              <FoodCard menu={menu} />
+              <FoodCard menu={menu} onAddToCart={() => handleAddToCart(menu)} />
             </Grid>
           ))
         )}

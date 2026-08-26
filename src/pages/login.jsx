@@ -16,11 +16,10 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import api from "../services/api";
 
 const loginSchema = Yup.object({
-  email: Yup.string()
-    .email("Format email tidak valid")
-    .required("Email harus diisi"),
+  username: Yup.string().required("Username harus diisi"),
   password: Yup.string()
     .min(6, "Password minimal 6 karakter")
     .required("Password harus diisi"),
@@ -37,13 +36,19 @@ function LoginPage() {
 
   const formik = useFormik({
     initialValues: {
-      email: "",
+      username: "",
       password: "",
     },
     validationSchema: loginSchema,
-    onSubmit: (values) => {
-      login({ email: values.email });
-      navigate("/foodmenu");
+    onSubmit: async (values) => {
+      try {
+        const res = await api.post("/user-management/users/sign-in", values);
+        login(res.data);
+        navigate("/foodmenu");
+      } catch (err) {
+        // Menggunakan alert biasa jika login gagal
+        alert(err.response?.data?.message || "Login gagal");
+      }
     },
   });
 
@@ -54,7 +59,6 @@ function LoginPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        // background: "linear-gradient(to bottom right, #8b0000, #3e0000)",
         padding: 2,
       }}
     >
@@ -89,16 +93,16 @@ function LoginPage() {
             style={{ display: "flex", flexDirection: "column", gap: "16px" }}
           >
             <TextField
-              label="Email"
-              type="email"
-              name="email"
+              label="Username"
+              type="text"
+              name="username"
               variant="outlined"
               fullWidth
-              value={formik.values.email}
+              value={formik.values.username}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={formik.touched.email && Boolean(formik.errors.email)}
-              helperText={formik.touched.email && formik.errors.email}
+              error={formik.touched.username && Boolean(formik.errors.username)}
+              helperText={formik.touched.username && formik.errors.username}
             />
 
             <TextField
