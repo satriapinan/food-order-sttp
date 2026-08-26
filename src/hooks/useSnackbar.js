@@ -1,17 +1,30 @@
 import { useState } from "react";
 
-export const useSnackbar = () => {
-  const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState("success");
+export function useSnackbar() {
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info", // "success" (hijau) atau "error" (merah)
+  });
 
-  const showSnackbar = (msg, type = "success") => {
-    setMessage(msg);
-    setSeverity(type);
-    setOpen(true);
+  const showSnackbar = (message, severity = "info") => {
+    setSnackbar({
+      open: true,
+      message: message,
+      severity: severity,
+    });
   };
 
-  const handleClose = () => setOpen(false);
+  const closeSnackbar = () => {
+    setSnackbar((prev) => ({
+      ...prev,
+      open: false,
+    }));
+  };
 
-  return { open, message, severity, showSnackbar, handleClose };
-};
+  return {
+    snackbar,
+    showSnackbar,
+    closeSnackbar,
+  };
+}

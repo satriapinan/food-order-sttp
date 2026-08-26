@@ -1,231 +1,227 @@
-import { useNavigate } from "react-router-dom";
-import { useFormik } from "formik";
-import * as Yup from "yup";
-import Paper from "@mui/material/Paper";
+import React from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import CssBaseline from "@mui/material/CssBaseline";
-import TextField from "@mui/material/TextField";
-import Link from "@mui/material/Link";
-import InputAdornment from "@mui/material/InputAdornment";
-import PersonIcon from "@mui/icons-material/Person";
-import LockIcon from "@mui/icons-material/Lock";
-import Button from "@mui/material/Button";
-import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
-
+import Paper from "@mui/material/Paper";
+import { Link, useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import AppButton from "../components/AppButton";
+import AppTextField from "../components/AppTextField";
+import AppSnackbar from "../components/AppSnackbar";
 import { useSnackbar } from "../hooks/useSnackbar";
 import api from "../services/api";
+
+const HERO_IMAGE_URL = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=800&auto=format&fit=crop";
 
 const registerSchema = Yup.object({
   username: Yup.string().required("Username harus diisi"),
   fullname: Yup.string().required("Nama lengkap harus diisi"),
-  password: Yup.string().min(6, "Password minimal 6 karakter").required("Password harus diisi"),
+  password: Yup.string()
+    .min(6, "Password minimal 6 karakter")
+    .required("Password harus diisi"),
   retypePassword: Yup.string()
     .oneOf([Yup.ref("password")], "Password tidak sama")
     .required("Konfirmasi password harus diisi"),
 });
 
-export default function RegisterPage() {
+function RegisterPage() {
   const navigate = useNavigate();
-  const { open, message, severity, showSnackbar, handleClose } = useSnackbar();
+  const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
 
   const formik = useFormik({
-    initialValues: { username: "", fullname: "", password: "", retypePassword: "" },
+    initialValues: {
+      username: "",
+      fullname: "",
+      password: "",
+      retypePassword: "",
+    },
     validationSchema: registerSchema,
     onSubmit: async (values) => {
       try {
-        await api.post("/user-management/users/sign-up", values);
+        const payload = {
+          username: values.username,
+          fullname: values.fullname,
+          password: values.password,
+          retypePassword: values.retypePassword,
+        };
+
+        await api.post("/user-management/users/sign-up", payload);
+
         showSnackbar("Register berhasil! Silakan login.", "success");
         setTimeout(() => navigate("/login"), 1500);
       } catch (err) {
-        showSnackbar(err.response?.data?.message || "Register gagal", "error");
+        showSnackbar(
+          err.response?.data?.message || "Register gagal! Periksa kembali data kamu.",
+          "error"
+        );
       }
     },
   });
 
   return (
-    <>
-      <CssBaseline />
-      <Box
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: "#F4F7F2",
+        p: { xs: 2, md: 4 },
+      }}
+    >
+      <Paper
+        elevation={8}
         sx={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          backgroundColor: "#3AAFA9",
+          width: "100%",
+          maxWidth: "920px",
+          borderRadius: "20px",
+          overflow: "hidden",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          p: 2,
+          flexDirection: { xs: "column", md: "row" }, // Otomatis Kiri-Kanan di Laptop/Desktop
         }}
       >
-        <Paper
-          elevation={10}
+        {/* Sisi Kiri: Branding & Gambar */}
+        <Box
           sx={{
-            width: "100%",
-            maxWidth: "420px",
-            borderRadius: "24px",
-            p: { xs: 4, sm: 5 },
-            backgroundColor: "#ffffff",
+            flex: 1,
+            backgroundColor: "#2B3A29",
+            color: "#fff",
+            p: { xs: 3, sm: 4 },
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            backgroundImage: `linear-gradient(135deg, #2B3A29 0%, #1A2418 100%)`,
           }}
         >
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 800,
-              color: "#2B7A78",
-              textAlign: "center",
-              letterSpacing: 1.5,
-              mb: 1,
-              textTransform: "uppercase",
-            }}
-          >
-            Create Account
-          </Typography>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: "#8CB369", mb: 2 }}>
+              Kuliner Nusantara 🍡
+            </Typography>
+            <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1.2, mb: 1.5 }}>
+              Gabung Sekarang! 🚀
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#D9E9CF", opacity: 0.9 }}>
+              Daftarkan akunmu dan nikmati berbagai pilihan jajan pasar serta makanan khas Nusantara dengan praktis.
+            </Typography>
+          </Box>
 
-          <Typography variant="body2" sx={{ textAlign: "center", color: "#A0AEC0", mb: 3 }}>
-            Join us today and get started
+          <Box
+            component="img"
+            src={HERO_IMAGE_URL}
+            alt="Kuliner Nusantara"
+            sx={{
+              width: "100%",
+              height: "180px",
+              objectFit: "cover",
+              borderRadius: "12px",
+              my: 3,
+              boxShadow: "0px 6px 16px rgba(0,0,0,0.4)",
+            }}
+          />
+
+          <Typography variant="caption" sx={{ color: "#8CB369", opacity: 0.7 }}>
+            © 2026 Food Order Tradisional. All rights reserved.
           </Typography>
+        </Box>
+
+        {/* Sisi Kanan: Form Register */}
+        <Box
+          sx={{
+            flex: 1,
+            p: { xs: 3, sm: 4 },
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            bgcolor: "#fff",
+          }}
+        >
+          <Box sx={{ mb: 2, textAlign: "center" }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: "#1F2E1C", mb: 0.5 }}>
+              Daftar
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#666" }}>
+              Buat akun Food Order baru
+            </Typography>
+          </Box>
 
           <form onSubmit={formik.handleSubmit}>
-            <TextField
-              fullWidth
-              id="username"
-              name="username"
-              placeholder="Username"
-              size="small"
-              margin="dense"
-              value={formik.values.username}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={formik.touched.username && Boolean(formik.errors.username)}
-              helperText={formik.touched.username && formik.errors.username}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PersonIcon sx={{ color: "#3AAFA9" }} />
-                    </InputAdornment>
-                  ),
-                  sx: { borderRadius: "12px", backgroundColor: "#F7FAFC" },
-                },
-              }}
-            />
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+              <AppTextField
+                label="Username"
+                name="username"
+                placeholder="Masukkan Username"
+                value={formik.values.username}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.username && Boolean(formik.errors.username)}
+                helperText={formik.touched.username && formik.errors.username}
+              />
 
-            <TextField
-              fullWidth
-              id="fullname"
-              name="fullname"
-              placeholder="Full Name"
-              size="small"
-              margin="dense"
-              value={formik.values.fullname}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={formik.touched.fullname && Boolean(formik.errors.fullname)}
-              helperText={formik.touched.fullname && formik.errors.fullname}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PersonIcon sx={{ color: "#3AAFA9" }} />
-                    </InputAdornment>
-                  ),
-                  sx: { borderRadius: "12px", backgroundColor: "#F7FAFC" },
-                },
-              }}
-            />
+              <AppTextField
+                label="Nama Lengkap"
+                name="fullname"
+                placeholder="Masukkan Nama Lengkap"
+                value={formik.values.fullname}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.fullname && Boolean(formik.errors.fullname)}
+                helperText={formik.touched.fullname && formik.errors.fullname}
+              />
 
-            <TextField
-              fullWidth
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Password"
-              size="small"
-              margin="dense"
-              value={formik.values.password}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={formik.touched.password && Boolean(formik.errors.password)}
-              helperText={formik.touched.password && formik.errors.password}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon sx={{ color: "#3AAFA9" }} />
-                    </InputAdornment>
-                  ),
-                  sx: { borderRadius: "12px", backgroundColor: "#F7FAFC" },
-                },
-              }}
-            />
+              <AppTextField
+                label="Password"
+                type="password"
+                name="password"
+                placeholder="Masukkan Password"
+                value={formik.values.password}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.password && Boolean(formik.errors.password)}
+                helperText={formik.touched.password && formik.errors.password}
+              />
 
-            <TextField
-              fullWidth
-              id="retypePassword"
-              name="retypePassword"
-              type="password"
-              placeholder="Retype Password"
-              size="small"
-              margin="dense"
-              value={formik.values.retypePassword}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={formik.touched.retypePassword && Boolean(formik.errors.retypePassword)}
-              helperText={formik.touched.retypePassword && formik.errors.retypePassword}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon sx={{ color: "#3AAFA9" }} />
-                    </InputAdornment>
-                  ),
-                  sx: { borderRadius: "12px", backgroundColor: "#F7FAFC" },
-                },
-              }}
-            />
+              <AppTextField
+                label="Konfirmasi Password"
+                type="password"
+                name="retypePassword"
+                placeholder="Konfirmasi Password"
+                value={formik.values.retypePassword}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={
+                  formik.touched.retypePassword &&
+                  Boolean(formik.errors.retypePassword)
+                }
+                helperText={
+                  formik.touched.retypePassword && formik.errors.retypePassword
+                }
+              />
 
-            <Button
-              fullWidth
-              type="submit"
-              variant="contained"
-              sx={{
-                mt: 3,
-                mb: 2,
-                py: 1.2,
-                borderRadius: "12px",
-                backgroundColor: "#2B7A78",
-                fontWeight: "bold",
-                textTransform: "uppercase",
-                "&:hover": { backgroundColor: "#17252A" },
-              }}
-            >
-              Register
-            </Button>
-
-            <Typography variant="body2" sx={{ textAlign: "center", color: "#718096" }}>
-              Already have an account?{" "}
-              <Link
-                component="button"
-                type="button"
-                onClick={() => navigate("/login")}
-                sx={{ color: "#2B7A78", fontWeight: "bold", textDecoration: "none" }}
-              >
-                Sign in
-              </Link>
-            </Typography>
+              <Box sx={{ mt: 1, display: "flex", justifyContent: "center" }}>
+                <AppButton type="submit" fullWidth>
+                  Daftar
+                </AppButton>
+              </Box>
+            </Box>
           </form>
-        </Paper>
-      </Box>
 
-      <Snackbar open={open} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{ vertical: "top", horizontal: "right" }}>
-        <Alert onClose={handleClose} severity={severity} variant="filled" sx={{ width: "100%" }}>
-          {message}
-        </Alert>
-      </Snackbar>
-    </>
+          <Typography variant="body2" sx={{ textAlign: "center", mt: 2, color: "#555" }}>
+            Sudah punya akun?{" "}
+            <Link to="/login" style={{ color: "#2B3A29", fontWeight: "bold", textDecoration: "none" }}>
+              Login
+            </Link>
+          </Typography>
+        </Box>
+      </Paper>
+
+      <AppSnackbar
+        open={snackbar?.open || false}
+        message={snackbar?.message || ""}
+        severity={snackbar?.severity || "info"}
+        onClose={closeSnackbar}
+      />
+    </Box>
   );
 }
+
+export default RegisterPage;

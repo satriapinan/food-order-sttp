@@ -1,26 +1,30 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/Login";
-import RegisterPage from "./pages/register";
-import FoodMenu from "./pages/foodmenu";
+import RegisterPage from "./pages/Register";
+import FoodMenu from "./pages/foodmenu"
 import { ThemeProvider } from "./providers/ThemeProvider";
+import { AuthProvider } from "./providers/AuthProvider";
+import AppLayout from "./components/AppLayout";
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <Routes>
-        {/* Halaman utama otomatis mengarah ke /menu */}
-        <Route path="/" element={<Navigate to="/menu" replace />} />
-        
-        {/* Route Halaman Food Menu */}
-        <Route path="/menu" element={<FoodMenu />} />
-        
-        {/* Route Halaman Login & Register */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+    <AuthProvider>
+      <ThemeProvider>
+        <AppLayout>
+          <Routes>
+            {/* Halaman utama mengarah ke /menu */}
+            <Route path="/" element={<Navigate to="/menu" replace />} />
+            
+            {/* Route Halaman Utama & Auth */}
+            <Route path="/menu" element={<FoodMenu />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-        {/* Jika akses route sembarangan, balikkan ke /menu */}
-        <Route path="*" element={<Navigate to="/menu" replace />} />
-      </Routes>
-    </ThemeProvider>
+            {/* Redirect route yang tidak valid */}
+            <Route path="*" element={<Navigate to="/menu" replace />} />
+          </Routes>
+        </AppLayout>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
