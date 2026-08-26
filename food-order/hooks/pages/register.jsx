@@ -1,12 +1,68 @@
+import { useState } from "react";
 import AppLayout from "../components/AppLayout";
+import { validateRegisterForm } from "./registerValidation";
 
-const Register = ({ onNavigate }) => {
+export const Register = ({ onNavigate }) => {
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    fullName: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
   const navItems = [
     { label: "Home", page: "home" },
     { label: "Menu", page: "menu" },
     { label: "Login", page: "login" },
     { label: "Register", page: "register" },
   ];
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
+    const validation = validateRegisterForm({
+      ...form,
+      existingUsers,
+    });
+
+    if (!validation.valid) {
+      setError(validation.message);
+      setMessage("");
+      return;
+    }
+
+    const newUser = {
+      username: form.username.trim(),
+      email: form.email.trim(),
+      fullName: form.fullName.trim(),
+      password: form.password,
+    };
+
+    localStorage.setItem("users", JSON.stringify([...existingUsers, newUser]));
+    setError("");
+    setMessage("Akun berhasil dibuat. Silakan login.");
+
+    setForm({
+      username: "",
+      email: "",
+      fullName: "",
+      password: "",
+      confirmPassword: "",
+    });
+
+    setTimeout(() => {
+      onNavigate("login");
+    }, 800);
+  };
 
   return (
     <AppLayout
@@ -31,7 +87,8 @@ const Register = ({ onNavigate }) => {
       ))}
     >
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-        <div
+        <form
+          onSubmit={handleSubmit}
           style={{
             width: "100%",
             maxWidth: "460px",
@@ -48,11 +105,22 @@ const Register = ({ onNavigate }) => {
             Isi data diri Anda di bawah ini
           </p>
 
+          {error && (
+            <p style={{ color: "#dc2626", marginBottom: "12px", textAlign: "center" }}>{error}</p>
+          )}
+
+          {message && (
+            <p style={{ color: "#15803d", marginBottom: "12px", textAlign: "center" }}>{message}</p>
+          )}
+
           <label style={{ display: "block", marginBottom: "6px", fontWeight: "bold" }}>
             Username
           </label>
           <input
+            name="username"
             type="text"
+            value={form.username}
+            onChange={handleChange}
             placeholder="Masukkan username"
             style={{
               width: "100%",
@@ -68,7 +136,10 @@ const Register = ({ onNavigate }) => {
             Email
           </label>
           <input
+            name="email"
             type="email"
+            value={form.email}
+            onChange={handleChange}
             placeholder="nama@gmail.com"
             style={{
               width: "100%",
@@ -84,7 +155,10 @@ const Register = ({ onNavigate }) => {
             Full Name
           </label>
           <input
+            name="fullName"
             type="text"
+            value={form.fullName}
+            onChange={handleChange}
             placeholder="Masukkan full name"
             style={{
               width: "100%",
@@ -100,7 +174,10 @@ const Register = ({ onNavigate }) => {
             Password
           </label>
           <input
+            name="password"
             type="password"
+            value={form.password}
+            onChange={handleChange}
             placeholder="Masukkan password"
             style={{
               width: "100%",
@@ -116,7 +193,10 @@ const Register = ({ onNavigate }) => {
             Confirm Password
           </label>
           <input
+            name="confirmPassword"
             type="password"
+            value={form.confirmPassword}
+            onChange={handleChange}
             placeholder="Konfirmasi password"
             style={{
               width: "100%",
@@ -129,6 +209,7 @@ const Register = ({ onNavigate }) => {
           />
 
           <button
+            type="submit"
             style={{
               width: "100%",
               padding: "12px",
@@ -142,7 +223,7 @@ const Register = ({ onNavigate }) => {
           >
             Register
           </button>
-        </div>
+        </form>
       </div>
     </AppLayout>
   );
