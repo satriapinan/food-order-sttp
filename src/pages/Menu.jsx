@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
-import * as Yup from "yup";
 import {
   Box,
   Container,
@@ -9,292 +9,454 @@ import {
   Select,
   MenuItem,
   Grid,
-  Card,
-  CardMedia,
-  CardContent,
   Button,
-  Chip,
-  Pagination,
+  CircularProgress,
+  Snackbar,
+  Alert,
+  InputAdornment,
 } from "@mui/material";
-import StarBorderIcon from "@mui/icons-material/StarBorder";
+import LogoutIcon from "@mui/icons-material/Logout";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
+import SearchIcon from "@mui/icons-material/Search";
 
-// Data dummy sesuai dengan gambar
-const foodItems = [
-  {
-    id: 1,
-    category: "Indonesian Food",
-    title: "Nasi Goreng",
-    price: "Rp. 25.000",
-    status: "Available",
-    image:
-      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80",
-  },
-  {
-    id: 2,
-    category: "Indonesian Food",
-    title: "Mie Ayam",
-    price: "Rp. 20.000",
-    status: "Available",
-    image:
-      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80",
-  },
-  {
-    id: 3,
-    category: "Western Food",
-    title: "Ayam Bakar",
-    price: "Rp. 35.000",
-    status: "Available",
-    image:
-      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80",
-  },
-  {
-    id: 4,
-    category: "Asian Food",
-    title: "Gado-Gado",
-    price: "Rp. 18.000",
-    status: "Available",
-    image:
-      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80",
-  },
-  {
-    id: 5,
-    category: "Desserts",
-    title: "Es Krim Vanilla",
-    price: "Rp. 15.000",
-    status: "Available",
-    image:
-      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80",
-  },
-];
+import { useAuth } from "../hooks/useAuth";
+import { useTheme } from "../hooks/useTheme";
 
-// 1. Skema Validasi Pencarian dan Filter menggunakan Yup
-const filterSchema = Yup.object({
-  searchQuery: Yup.string().max(50, "Pencarian maksimal 50 karakter"),
-  category: Yup.string(),
-  sortBy: Yup.string(),
-});
+import FoodCard from "../components/FoodCard";
+
+// API
+const api = {
+  get: async (url, { params } = {}) => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    if (url === "/food-order/categories") {
+      return {
+        data: {
+          data: [
+            { id: "indo", categoryName: "Indonesian Food" },
+            { id: "western", categoryName: "Western Food" },
+            { id: "asian", categoryName: "Asian Food" },
+            { id: "dessert", categoryName: "Desserts" },
+          ],
+        },
+      };
+    }
+    if (url === "/food-order/foods") {
+      let allFoods = [
+        {
+          id: 1,
+          categoryId: "indo",
+          categoryName: "Indonesian Food",
+          name: "Nasi Goreng Spesial",
+          price: "Rp. 25.000",
+          status: "Bestseller",
+          rating: 4.8,
+          image:
+            "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=500&q=80",
+        },
+        {
+          id: 2,
+          categoryId: "indo",
+          categoryName: "Indonesian Food",
+          name: "Mie Ayam Pangsit",
+          price: "Rp. 20.000",
+          status: "Tersedia",
+          rating: 4.5,
+          image:
+            "https://images.unsplash.com/photo-1552611052-33e04de081de?w=500&q=80",
+        },
+        {
+          id: 3,
+          categoryId: "western",
+          categoryName: "Western Food",
+          name: "Steak Ayam BBQ",
+          price: "Rp. 35.000",
+          status: "Promo",
+          rating: 4.9,
+          image:
+            "https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?w=500&q=80",
+        },
+        {
+          id: 4,
+          categoryId: "asian",
+          categoryName: "Asian Food",
+          name: "Gado-Gado Segar",
+          price: "Rp. 18.000",
+          status: "Tersedia",
+          rating: 4.6,
+          image:
+            "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500&q=80",
+        },
+        {
+          id: 5,
+          categoryId: "dessert",
+          categoryName: "Desserts",
+          name: "Es Krim Vanilla Oreo",
+          price: "Rp. 15.000",
+          status: "Bestseller",
+          rating: 4.7,
+          image:
+            "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=500&q=80",
+        },
+      ];
+
+      if (params?.foodName) {
+        allFoods = allFoods.filter((f) =>
+          f.name.toLowerCase().includes(params.foodName.toLowerCase()),
+        );
+      }
+      if (params?.categoryId) {
+        allFoods = allFoods.filter((f) => f.categoryId === params.categoryId);
+      }
+      if (params?.sortBy === "price") {
+        allFoods.sort((a, b) => {
+          const priceA = parseInt(a.price.replace(/\D/g, ""));
+          const priceB = parseInt(b.price.replace(/\D/g, ""));
+          return priceA - priceB;
+        });
+      } else if (params?.sortBy === "name") {
+        allFoods.sort((a, b) => a.name.localeCompare(b.name));
+      }
+      return { data: { data: allFoods } };
+    }
+  },
+  post: async (url, body) => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    return { data: "success" };
+  },
+};
 
 const MenuPage = () => {
-  // 2. Setup Formik untuk menangani Search dan Filter
-  const formik = useFormik({
-    initialValues: {
-      searchQuery: "",
-      category: "",
-      sortBy: "",
-    },
-    validationSchema: filterSchema,
-    onSubmit: (values) => {
-      // Saat menekan Enter di kolom pencarian, data ini siap dikirim/difilter
-      console.log("Filter diterapkan:", values);
-    },
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const { mode, toggleTheme } = useTheme();
+
+  const [foods, setFoods] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    type: "success",
   });
+
+  const formik = useFormik({
+    initialValues: { search: "", category: "", sortBy: "" },
+  });
+  const { search, category, sortBy } = formik.values;
+
+  useEffect(() => {
+    api.get("/food-order/categories").then((res) => {
+      setCategories(res.data.data || []);
+    });
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    const params = { pageSize: 100 };
+    if (search) params.foodName = search;
+    if (category) params.categoryId = category;
+    if (sortBy) params.sortBy = sortBy;
+
+    api
+      .get("/food-order/foods", { params })
+      .then((res) => {
+        setFoods(res.data.data || []);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [search, category, sortBy]);
+
+  const categoryOptions = useMemo(() => {
+    return [
+      { value: "", label: "🔥 Semua Kategori" },
+      ...categories.map((c) => ({
+        value: String(c.id),
+        label: c.categoryName,
+      })),
+    ];
+  }, [categories]);
+
+  const handleAddToCart = async (food) => {
+    try {
+      await api.post("/food-order/cart", { foodId: food.id });
+      setSnackbar({
+        open: true,
+        message: `Yummy! ${food.name} masuk ke keranjang 🛒`,
+        type: "success",
+      });
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: "Gagal menambahkan makanan",
+        type: "error",
+      });
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") return;
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  const inputStyle = {
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    borderRadius: "14px",
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "14px",
+      transition: "all 0.3s",
+      "& fieldset": { borderColor: "transparent" },
+      "&:hover fieldset": { borderColor: "rgba(255, 126, 95, 0.5)" },
+      "&.Mui-focused fieldset": { borderColor: "#ff7e5f", borderWidth: "2px" },
+      "&.Mui-focused": { boxShadow: "0 0 15px rgba(255, 126, 95, 0.2)" },
+    },
+  };
 
   return (
     <Box
       sx={{
-        background: "linear-gradient(135deg, #4da1a9 0%, #7db9b6 100%)",
+        background: "linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%)",
         minHeight: "100vh",
         py: 4,
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        fontFamily: "'Inter', 'Segoe UI', sans-serif",
       }}
     >
       <Container maxWidth="lg">
-        {/* HEADER SECTION - Dibungkus dengan form untuk Formik */}
         <Box
-          component="form"
-          onSubmit={formik.handleSubmit}
-          sx={{
-            backgroundColor: "#fff",
-            borderRadius: "16px",
-            p: 4,
-            mb: 4,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          }}
+          sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5, mb: 3 }}
         >
-          <Typography
-            variant="h4"
-            align="center"
-            fontWeight="bold"
-            sx={{ color: "#5297a1", mb: 1 }}
-          >
-            Food Menu
-          </Typography>
-          <Typography
-            variant="body2"
-            align="center"
-            color="textSecondary"
-            sx={{ mb: 3 }}
-          >
-            Discover delicious meals just for you
-          </Typography>
-
-          <TextField
-            fullWidth
-            id="searchQuery"
-            name="searchQuery"
-            placeholder="Search for food... (Tekan Enter untuk mencari)"
+          <Button
             size="small"
-            variant="outlined"
-            value={formik.values.searchQuery}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={
-              formik.touched.searchQuery && Boolean(formik.errors.searchQuery)
-            }
-            helperText={formik.touched.searchQuery && formik.errors.searchQuery}
-            sx={{ mb: 2, backgroundColor: "#f9f9f9", borderRadius: 1 }}
-          />
-
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <Select
-              size="small"
-              displayEmpty
-              id="category"
-              name="category"
-              value={formik.values.category}
-              onChange={formik.handleChange}
-              sx={{ minWidth: 150, backgroundColor: "#f9f9f9" }}
-            >
-              <MenuItem value="" disabled>
-                Kategori
-              </MenuItem>
-              <MenuItem value="indo">Indonesian Food</MenuItem>
-              <MenuItem value="western">Western Food</MenuItem>
-            </Select>
-
-            <Select
-              size="small"
-              displayEmpty
-              id="sortBy"
-              name="sortBy"
-              value={formik.values.sortBy}
-              onChange={formik.handleChange}
-              sx={{ minWidth: 150, backgroundColor: "#f9f9f9" }}
-            >
-              <MenuItem value="" disabled>
-                Sort By
-              </MenuItem>
-              <MenuItem value="price">Lowest Price</MenuItem>
-              <MenuItem value="name">Name A-Z</MenuItem>
-            </Select>
-          </Box>
+            onClick={toggleTheme}
+            startIcon={mode === "light" ? <DarkModeIcon /> : <LightModeIcon />}
+            sx={{
+              backgroundColor: "rgba(255,255,255,0.9)",
+              color: "#ff7e5f",
+              textTransform: "none",
+              px: 2,
+              py: 1,
+              borderRadius: "12px",
+              fontWeight: "900",
+              boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+              "&:hover": {
+                backgroundColor: "#fff",
+                transform: "translateY(-2px)",
+              },
+              transition: "all 0.2s",
+            }}
+          >
+            {mode === "light" ? "Dark" : "Light"}
+          </Button>
+          <Button
+            size="small"
+            onClick={handleLogout}
+            startIcon={<LogoutIcon />}
+            sx={{
+              backgroundColor: "rgba(255,255,255,0.9)",
+              color: "#d63031",
+              textTransform: "none",
+              px: 2,
+              py: 1,
+              borderRadius: "12px",
+              fontWeight: "900",
+              boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+              "&:hover": {
+                backgroundColor: "#ffebee",
+                transform: "translateY(-2px)",
+              },
+              transition: "all 0.2s",
+            }}
+          >
+            Keluar
+          </Button>
         </Box>
 
-        {/* MENU GRID SECTION */}
-        <Grid container spacing={3}>
-          {foodItems.map((item) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
-              <Card
-                sx={{
-                  borderRadius: "16px",
-                  p: 1.5,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
+        <Box
+          component="form"
+          sx={{
+            backgroundColor: "rgba(255, 255, 255, 0.85)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(255,255,255,0.5)",
+            borderRadius: "24px",
+            p: { xs: 3, md: 5 },
+            mb: 5,
+            boxShadow: "0 15px 35px rgba(255, 126, 95, 0.2)",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 1.5,
+              mb: 1,
+            }}
+          >
+            <RestaurantMenuIcon sx={{ color: "#ff7e5f", fontSize: 40 }} />
+            <Typography
+              variant="h3"
+              align="center"
+              fontWeight="900"
+              sx={{ color: "#ff7e5f", letterSpacing: "-1px" }}
+            >
+              Food Margi
+            </Typography>
+          </Box>
+          <Typography
+            variant="subtitle1"
+            align="center"
+            fontWeight="600"
+            sx={{ color: "#636e72", mb: 4 }}
+          >
+            Eksplorasi rasa, temukan makanan favoritmu hari ini! ✨
+          </Typography>
+
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                name="search"
+                placeholder="Cari makanan... (Cth: Ayam, Nasi)"
+                variant="outlined"
+                value={formik.values.search}
+                onChange={formik.handleChange}
+                sx={inputStyle}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ color: "#ff7e5f" }} />
+                      </InputAdornment>
+                    ),
+                  },
                 }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Select
+                fullWidth
+                displayEmpty
+                name="category"
+                value={formik.values.category}
+                onChange={formik.handleChange}
+                sx={inputStyle}
               >
-                <CardMedia
-                  component="img"
-                  height="160"
-                  image={item.image}
-                  alt={item.title}
-                  sx={{ borderRadius: "12px", objectFit: "cover", mb: 1.5 }}
-                />
-                <CardContent sx={{ p: 0, flexGrow: 1 }}>
-                  <Chip
-                    label={item.category}
-                    size="small"
-                    sx={{
-                      backgroundColor: "#e0f2f1",
-                      color: "#4da1a9",
-                      fontSize: "10px",
-                      fontWeight: "bold",
-                      mb: 1,
-                      height: "20px",
-                    }}
-                  />
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    sx={{ mb: 0.5 }}
+                {categoryOptions.map((opt, index) => (
+                  <MenuItem
+                    key={index}
+                    value={opt.value}
+                    sx={{ fontWeight: "600" }}
                   >
-                    {item.title}
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Select
+                fullWidth
+                displayEmpty
+                name="sortBy"
+                value={formik.values.sortBy}
+                onChange={formik.handleChange}
+                sx={inputStyle}
+              >
+                <MenuItem value="" disabled sx={{ fontWeight: "600" }}>
+                  Urutkan Berdasarkan
+                </MenuItem>
+                <MenuItem value="price" sx={{ fontWeight: "600" }}>
+                  💰 Harga Termurah
+                </MenuItem>
+                <MenuItem value="name" sx={{ fontWeight: "600" }}>
+                  🔤 Nama A - Z
+                </MenuItem>
+              </Select>
+            </Grid>
+          </Grid>
+        </Box>
+
+        {loading ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              py: 10,
+            }}
+          >
+            <CircularProgress sx={{ color: "#fff" }} size={60} thickness={4} />
+          </Box>
+        ) : (
+          <Grid container rowSpacing={5} columnSpacing={3}>
+            {foods.length > 0 ? (
+              foods.map((item) => (
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={item.id}>
+                  <FoodCard item={item} onAddToCart={handleAddToCart} />
+                </Grid>
+              ))
+            ) : (
+              <Grid size={{ xs: 12 }}>
+                <Box
+                  sx={{
+                    textAlign: "center",
+                    py: 8,
+                    backgroundColor: "rgba(255,255,255,0.2)",
+                    borderRadius: "24px",
+                    backdropFilter: "blur(10px)",
+                  }}
+                >
+                  <Typography
+                    variant="h5"
+                    fontWeight="900"
+                    sx={{
+                      color: "#fff",
+                      textShadow: "0 2px 10px rgba(0,0,0,0.2)",
+                    }}
+                  >
+                    Yah, makanan yang kamu cari tidak ditemukan 🥲
                   </Typography>
                   <Typography
                     variant="body1"
-                    fontWeight="bold"
-                    sx={{ color: "#5297a1", mb: 1 }}
+                    sx={{ color: "#fff", mt: 1, opacity: 0.9 }}
                   >
-                    {item.price}
+                    Coba gunakan kata kunci pencarian yang lain.
                   </Typography>
+                </Box>
+              </Grid>
+            )}
+          </Grid>
+        )}
+      </Container>
 
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      mb: 2,
-                    }}
-                  >
-                    <StarBorderIcon sx={{ color: "#d1d1d1", fontSize: 20 }} />
-                    <Typography variant="caption" color="textSecondary">
-                      {item.status}
-                    </Typography>
-                  </Box>
-                </CardContent>
-
-                <Button
-                  variant="contained"
-                  fullWidth
-                  sx={{
-                    backgroundColor: "#5297a1",
-                    color: "#fff",
-                    textTransform: "none",
-                    borderRadius: "8px",
-                    fontWeight: "bold",
-                    "&:hover": { backgroundColor: "#3e7982" },
-                  }}
-                >
-                  Add to Cart
-                </Button>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-
-        {/* FOOTER PAGINATION SECTION */}
-        <Box
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.type}
+          variant="filled"
           sx={{
-            backgroundColor: "#fff",
+            width: "100%",
+            fontWeight: "900",
             borderRadius: "16px",
-            p: 2,
-            mt: 4,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 2,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+            fontSize: "15px",
+            py: 1.5,
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography variant="caption" color="textSecondary">
-              Page Size:
-            </Typography>
-            <Select size="small" defaultValue={8} sx={{ height: 30 }}>
-              <MenuItem value={8}>8</MenuItem>
-              <MenuItem value={16}>16</MenuItem>
-            </Select>
-          </Box>
-
-          <Pagination count={1} color="primary" />
-
-          <Typography variant="caption" color="textSecondary">
-            Showing 1-5 of 5 items
-          </Typography>
-        </Box>
-      </Container>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
