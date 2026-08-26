@@ -5,17 +5,19 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(
         JSON.parse(localStorage.getItem("user")) || null,
     );
+
     const login = (userData) => {
         localStorage.setItem("user", JSON.stringify(userData));
         setUser(userData);
     };
 
+    // logout
     const logout = () => {
-        localStorage.setItem("user");
+        localStorage.removeItem("user");
         setUser(null);
     };
 
-    const contextValue = useMemo(() => ({user, login, logout}),[user]);
+    const contextValue = useMemo(() => ({user, login, logout}), [user]);
 
     return(
         <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>

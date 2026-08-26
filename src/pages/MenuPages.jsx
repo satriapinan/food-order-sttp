@@ -1,89 +1,140 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Box, Card, Typography, TextField, MenuItem, Select, FormControl, InputLabel, Button } from "@mui/material";
+import { Box, Card, Typography, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 import Grid from "@mui/material/Grid";
 
-// Import komponen FoodCard
 import FoodCard from "../components/FoodCard"; 
-
-const foodData = [
-  { id: 1, category: "Indonesian Food", name: "Nasi Goreng", price: "Rp. 25.000" },
-  { id: 2, category: "Indonesian Food", name: "Mie Ayam", price: "Rp. 20.000" },
-  { id: 3, category: "Western Food", name: "Ayam Bakar", price: "Rp. 35.000" },
-  { id: 4, category: "Asian Food", name: "Gado-Gado", price: "Rp. 18.000" },
-  { id: 5, category: "Desserts", name: "Es Krim Vanilla", price: "Rp. 15.000" },
-];
+import AppTextField from "../components/AppTextField"; 
+import { useAuth } from "../hooks/useAuth"; 
+import api from "../services/api"; 
 
 function MenuPages() {
-  const navigate = useNavigate();
-  const [kategori, setKategori] = useState("");
-  const [sortBy, setSortBy] = useState("");
+  const { user } = useAuth();
+  
+  const [daftarMenu, setDaftarMenu] = useState([]);
+  const [kategoriTersedia, setKategoriTersedia] = useState([]);
+  const [sedangMemuat, setSedangMemuat] = useState(false);
+  
+  const [kataKunci, setKataKunci] = useState("");
+  const [pilihanKategori, setPilihanKategori] = useState("");
+  const [aturanUrut, setAturanUrut] = useState("");
 
-  // Pengecekan Local Storage
+  //  1. AMBIL KATEGORI
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (!isLoggedIn) {
-      alert("Boss harus login dulu ya!");
-      navigate("/login");
-    }
-  }, [navigate]);
+    const muatKategori = async () => {
+      try {
+        const res = await api.get("/food-order/categories");
+        setKategoriTersedia(res.data.data);
+      } catch (error) {
+        console.error("Gagal memuat kategori:", error); 
+      }
+    };
+    
+    if (user?.token) muatKategori();
+  }, [user?.token]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("userEmail");
-    navigate("/login");
-  };
+  //  2. AMBIL MENU & LIVE SEARCH 
+  useEffect(() => {
+    if (!user?.token) return;
+
+    const muatDaftarMenu = async () => {
+      setSedangMemuat(true);
+      try {
+        let endpoint = `/food-order/foods?pageSize=100`;
+        if (kataKunci) endpoint += `&foodName=${kataKunci}`;
+        if (pilihanKategori) endpoint += `&categoryId=${pilihanKategori}`;
+        if (aturanUrut) endpoint += `&sortBy=${aturanUrut}`;
+
+        const response = await api.get(endpoint);
+        setDaftarMenu(response.data.data);
+      } catch (error) {
+        console.error("Gagal memuat daftar menu:", error);
+      } finally {
+        setSedangMemuat(false);
+      }
+    };
+
+    // Delay 300ms
+    const delaySesaat = setTimeout(() => { 
+      muatDaftarMenu(); 
+    }, 300); 
+    
+    return () => clearTimeout(delaySesaat);
+  }, [kataKunci, pilihanKategori, aturanUrut, user?.token]);
 
   return (
-    // Backg
-    <Box sx={{ padding: { xs: 2, md: 5 } }}>
+    <Box sx={{ padding: { xs: 2, md: 5 }, mt: 2 }}>
       
-      {/* Tombol Logout */}
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <Button variant="contained" color="error" onClick={handleLogout}>
-          Logout
-        </Button>
-      </Box>
-
-      {/* HEADER */}
-      <Card sx={{ maxWidth: 800, margin: "0 auto", padding: 3, borderRadius: 3, mb: 4, boxShadow: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: "bold", textAlign: "center", color: "#548394", mb: 0.5 }}>
-          Food Menu
+      {/* PANEL PENCARIAN & FILTER */}
+      <Card sx={{ 
+        maxWidth: 900, 
+        margin: "0 auto", 
+        padding: 4, 
+        borderRadius: 4, 
+        mb: 5, 
+        boxShadow: "0 10px 30px rgba(224, 93, 54, 0.15)",
+        bgcolor: "background.paper", 
+        animation: "slideUpFade 0.8s ease-out forwards",
+        "@keyframes slideUpFade": {
+          "0%": { opacity: 0, transform: "translateY(40px)" },
+          "100%": { opacity: 1, transform: "translateY(0)" }
+        }
+      }}>
+        <Typography variant="h4" sx={{ fontWeight: "900", textAlign: "center", color: "#E05D36", mb: 1 }}>
+          Eksplorasi Menu Kami 🍽️
         </Typography>
-        <Typography variant="body2" sx={{ textAlign: "center", color: "text.secondary", mb: 3 }}>
-          Discover delicious meals just for you
+        <Typography variant="body1" sx={{ textAlign: "center", color: "text.secondary", mb: 4 }}>
+          Pesan sekarang, hidangan panas siap diantar!
         </Typography>
 
-        <TextField fullWidth size="small" placeholder="Search for food..." variant="outlined" sx={{ mb: 2 }} />
+        <AppTextField 
+          name="searchMenu" label="Mau makan apa hari ini? 🔍"
+          value={kataKunci} onChange={(e) => setKataKunci(e.target.value)}
+          sx={{ mb: 3 }}
+        />
 
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Kategori</InputLabel>
-            <Select value={kategori} label="Kategori" onChange={(e) => setKategori(e.target.value)}>
-              <MenuItem value="indo">Indonesian</MenuItem>
-              <MenuItem value="western">Western</MenuItem>
+        <Box sx={{ display: "flex", gap: 3, flexWrap: { xs: "wrap", md: "nowrap" } }}>
+          <FormControl size="small" fullWidth sx={{ "& .MuiOutlinedInput-root.Mui-focused fieldset": { borderColor: "#E05D36" }, "& .MuiInputLabel-root.Mui-focused": { color: "#E05D36" } }}>
+            <InputLabel>Saring Kategori</InputLabel>
+            <Select value={pilihanKategori} label="Saring Kategori" onChange={(e) => setPilihanKategori(e.target.value)}>
+              <MenuItem value=""><em>Semua Hidangan</em></MenuItem>
+              {kategoriTersedia.map((kat) => (<MenuItem key={kat.id} value={kat.id}>{kat.categoryName}</MenuItem>))}
             </Select>
           </FormControl>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Sort By</InputLabel>
-            <Select value={sortBy} label="Sort By" onChange={(e) => setSortBy(e.target.value)}>
-              <MenuItem value="price">Price</MenuItem>
-              <MenuItem value="name">Name</MenuItem>
+          
+          <FormControl size="small" fullWidth sx={{ "& .MuiOutlinedInput-root.Mui-focused fieldset": { borderColor: "#E05D36" }, "& .MuiInputLabel-root.Mui-focused": { color: "#E05D36" } }}>
+            <InputLabel>Urutkan Berdasarkan</InputLabel>
+            <Select value={aturanUrut} label="Urutkan Berdasarkan" onChange={(e) => setAturanUrut(e.target.value)}>
+              <MenuItem value=""><em>Rekomendasi Default</em></MenuItem>
+              <MenuItem value="price,asc">Harga: Rendah ke Tinggi</MenuItem>
+              <MenuItem value="price,desc">Harga: Tinggi ke Rendah</MenuItem>
+              <MenuItem value="name,asc">Nama: A ke Z</MenuItem>
+              <MenuItem value="name,desc">Nama: Z ke A</MenuItem>
             </Select>
           </FormControl>
         </Box>
       </Card>
 
       {/* GRID DAFTAR MAKANAN */}
-      <Box sx={{ maxWidth: 1000, margin: "0 auto" }}>
-        <Grid container spacing={3} justifyContent="center">
-          {foodData.map((item) => (
-            <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={item.id}>
-              <FoodCard item={item} />
-            </Grid>
-          ))}
-        </Grid>
+      <Box sx={{ maxWidth: 1100, margin: "0 auto" }}>
+        {sedangMemuat ? (
+          <Typography variant="h6" sx={{ textAlign: "center", mt: 8, color: "#E05D36", fontWeight: "bold" }}>
+            Meracik hidangan... 🍳
+          </Typography>
+        ) : daftarMenu.length === 0 ? (
+          <Typography variant="h6" sx={{ textAlign: "center", mt: 8, color: "text.secondary" }}>
+            Maaf, hidangan tidak tersedia. 🥲
+          </Typography>
+        ) : (
+          <Grid container spacing={4} justifyContent="center">
+            {daftarMenu.map((itemMenu) => (
+              <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={itemMenu.id}>
+                <FoodCard item={itemMenu} />
+              </Grid>
+            ))}
+          </Grid>
+        )}
       </Box>
+
     </Box>
   );
 }
