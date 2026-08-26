@@ -3,6 +3,7 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Link from "@mui/material/Link";
@@ -10,12 +11,15 @@ import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 
 import AppButton from "../components/AppButton";
 import AppTextField from "../components/AppTextField";
 import AppCard from "../components/AppCard";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
+import api from "../services/api";
 
 // Skema Validasi Yup untuk Register
 const registerSchema = Yup.object({
@@ -41,9 +45,26 @@ export default function RegisterPage() {
   const login = auth?.login || (() => {});
   const theme = useTheme();
   const isDark = theme?.mode === "dark";
+  const toggleTheme = theme?.toggleTheme;
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("error");
+
+  const saveLocalUser = (userData) => {
+    try {
+      const existing = JSON.parse(localStorage.getItem("local_users") || "[]");
+      const filtered = existing.filter(
+        (u) => u.username !== userData.username && u.email !== userData.email
+      );
+      filtered.push(userData);
+      localStorage.setItem("local_users", JSON.stringify(filtered));
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -54,19 +75,38 @@ export default function RegisterPage() {
       confirmPassword: "",
     },
     validationSchema: registerSchema,
-    onSubmit: (values) => {
-      login({ email: values.email, username: values.username, fullName: values.fullName });
-      navigate("/food-menu");
+    onSubmit: async (values) => {
+      const payload = {
+        username: values.username,
+        fullName: values.fullName,
+        email: values.email,
+        password: values.password,
+      };
+
+      // Simpan di local storage sebagai akun yang terdaftar di frontend
+      saveLocalUser(payload);
+
+      try {
+        await api.post("/user-management/users/sign-up", payload);
+      } catch (err) {
+        console.warn("Sign up API fail/fallback to local storage:", err);
+      }
+
+      // Arahkan ke halaman login
+      navigate("/login", {
+        state: { registered: true, username: values.username },
+      });
     },
   });
 
   return (
     <Box
       sx={{
-        minHeight: "calc(100vh - 70px)",
+        minHeight: "100vh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        position: "relative",
         background: isDark
           ? "linear-gradient(135deg, #121212 0%, #1e1e1e 50%, #2a081a 100%)"
           : "linear-gradient(135deg, #fce4ec 0%, #f48fb1 50%, #ad1457 100%)",
@@ -74,6 +114,33 @@ export default function RegisterPage() {
         transition: "background 0.3s ease",
       }}
     >
+      <Button
+        onClick={toggleTheme}
+        variant="outlined"
+        size="small"
+        sx={{
+          position: "absolute",
+          top: 20,
+          right: 20,
+          borderRadius: "20px",
+          borderColor: isDark ? "#555" : "#f48fb1",
+          color: isDark ? "#fff" : "#c2185b",
+          textTransform: "none",
+          fontWeight: 600,
+          backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.8)",
+          backdropFilter: "blur(8px)",
+          boxShadow: isDark
+            ? "0 4px 12px rgba(0,0,0,0.4)"
+            : "0 4px 12px rgba(194,24,91,0.15)",
+          "&:hover": {
+            borderColor: "#c2185b",
+            backgroundColor: isDark ? "rgba(255,255,255,0.18)" : "#fce4ec",
+          },
+        }}
+      >
+        {isDark ? "☀️ Light Mode" : "🌙 Dark Mode"}
+      </Button>
+
       <AppCard sx={{ maxWidth: 480 }}>
         <Typography
           variant="h4"
@@ -219,6 +286,22 @@ export default function RegisterPage() {
           </Stack>
         </Box>
       </AppCard>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

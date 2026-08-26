@@ -3,12 +3,21 @@ import { AuthContext } from "./AuthContext";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem("user")) || null
+    JSON.parse(localStorage.getItem("user")) || null,
   );
 
   const login = (userData) => {
-    localStorage.setItem("user", JSON.stringify(userData));
-    setUser(userData);
+    if (!userData) return;
+    const userObj = userData.user || userData.data || userData;
+    const data = {
+      id: userObj.id || userObj._id || userObj.username || "1",
+      username: userObj.username || userObj.email || "",
+      fullname: userObj.fullname || userObj.fullName || userObj.name || userObj.username || "",
+      email: userObj.email || userObj.username || "",
+      token: userData.token || userObj.token || "dummy-token",
+    };
+    localStorage.setItem("user", JSON.stringify(data));
+    setUser(data);
   };
 
   const logout = () => {

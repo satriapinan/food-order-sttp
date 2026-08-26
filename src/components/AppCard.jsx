@@ -16,8 +16,9 @@ const AppCard = ({ children, sx, ...props }) => {
         borderRadius: "24px",
         backgroundColor: isDark ? "#1e1e1e" : "#ffffff",
         color: isDark ? "#ffffff" : "inherit",
+        border: isDark ? "1px solid rgba(255, 255, 255, 0.08)" : "none",
         boxShadow: isDark
-          ? "0 12px 40px rgba(0, 0, 0, 0.6)"
+          ? "0 12px 40px rgba(0, 0, 0, 0.7)"
           : "0 12px 40px rgba(173, 20, 87, 0.25)",
         transition: "all 0.3s ease",
         ...sx,

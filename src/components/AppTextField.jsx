@@ -23,19 +23,23 @@ const AppTextField = ({ label, type = "text", name, value, onChange, onBlur, err
         "& .MuiOutlinedInput-root": {
           borderRadius: "12px",
           backgroundColor: isDark ? "#2d2d2d" : "#ffffff",
-          color: isDark ? "#ffffff" : "inherit",
-          "& fieldset": { borderColor: isDark ? "#444" : "#f48fb1" },
-          "&:hover fieldset": { borderColor: "#c2185b" },
-          "&.Mui-focused fieldset": { borderColor: "#c2185b", borderWidth: "1.5px" },
+          color: isDark ? "#ffffff" : "#1f2937",
+          "& fieldset": { borderColor: isDark ? "#555" : "#f48fb1" },
+          "&:hover fieldset": { borderColor: isDark ? "#f48fb1" : "#c2185b" },
+          "&.Mui-focused fieldset": { borderColor: isDark ? "#f48fb1" : "#c2185b", borderWidth: "1.5px" },
+        },
+        "& .MuiInputBase-input": {
+          color: isDark ? "#ffffff" : "#1f2937",
         },
         "& .MuiInputLabel-root": {
-          color: isDark ? "#aaa" : "#757575",
+          color: isDark ? "#bbb" : "#757575",
         },
-        "& .MuiInputLabel-root.Mui-focused": { color: "#c2185b" },
+        "& .MuiInputLabel-root.Mui-focused": { color: isDark ? "#f48fb1" : "#c2185b" },
         "& .MuiFormHelperText-root": {
           fontSize: "12px",
           marginTop: "4px",
           marginLeft: "4px",
+          color: isDark ? "#f48fb1" : undefined,
         },
         ...props.sx,
       }}
