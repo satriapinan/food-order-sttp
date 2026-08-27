@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
@@ -33,6 +33,9 @@ function ExamplePage() {
    // window.location.href = "/login";
     navigate ("/login");
   };
+useEffect(() =>{
+  console.log("Count berubah:", count);
+}, [count]);
 
   if (show) {
     return (
