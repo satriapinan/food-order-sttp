@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+
 import {
+  Alert,
   Box,
   Button,
   CircularProgress,
@@ -25,6 +27,9 @@ function Cart() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [processingId, setProcessingId] = useState(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
   // =========================
   // FORMAT RUPIAH
   // =========================
@@ -34,171 +39,221 @@ function Cart() {
       style: "currency",
       currency: "IDR",
       maximumFractionDigits: 0,
-    }).format(value);
+    }).format(value || 0);
   };
 
   // =========================
-  // GET FOOD
+  // GET CART DARI API
   // =========================
 
-  const fetchFoods = async () => {
-    try {
-      const response = await api.get("/food-order/foods");
-      const fetchedFoods = response.data?.data || [];
-      const savedCart = JSON.parse(localStorage.getItem("foodCart") || "[]");
-      const mergedCart = fetchedFoods
-        .filter((food) => food.isCart === true)
-        .map((food) => {
-          const saved = savedCart.find((item) => item.foodId === food.id);
-          const quantity = saved?.quantity || 1;
+  const fetchCart = async () => {
+  try {
+    setLoading(true);
+    setError("");
 
-          return {
-            cartId: saved?.cartId || null,
-            foodId: food.id,
-            foodName: food.name,
-            price: food.price,
-            quantity,
-            totalPrice: food.price * quantity,
-          };
-        });
+    const response = await api.get(
+      "/food-order/foods/cart"
+    );
 
-      setCartItems(mergedCart);
-      setError("");
-    } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.message || "Gagal mengambil data makanan");
-    } finally {
-      setLoading(false);
-    }
-  };
+    console.log("CART API:", response.data);
+
+    const apiCart =
+      response.data?.data || [];
+
+    const formattedCart = apiCart.map(
+      (item) => ({
+        cartId: item.id,
+        foodId: item.foodId,
+        foodName: item.foodName,
+        price: Number(item.price),
+        quantity: Number(item.quantity),
+        totalPrice: Number(item.totalPrice),
+      })
+    );
+
+    setCartItems(formattedCart);
+
+  } catch (err) {
+    console.error(
+      "Fetch cart error:",
+      err
+    );
+
+    setError(
+      err.response?.data?.message ||
+        "Gagal mengambil data keranjang"
+    );
+
+  } finally {
+    setLoading(false);
+  }
+};
 
   // =========================
-  // BUILD CART
+  // LOAD CART
   // =========================
 
   useEffect(() => {
-    const loadFoods = () => {
-      fetchFoods();
-    };
+  const timeoutId = setTimeout(() => {
+    fetchCart();
+  }, 0);
 
-    queueMicrotask(loadFoods);
-  }, []);
-
-  // =========================
-  // SAVE LOCAL CART INFO
-  // =========================
-
-  const saveLocalCart = (items) => {
-    localStorage.setItem("foodCart", JSON.stringify(items));
-  };
+  return () => clearTimeout(timeoutId);
+}, []);
 
   // =========================
   // UPDATE QUANTITY
   // =========================
+const updateQuantity = async (item, quantity) => {
+  if (quantity < 1) return;
 
-  const updateQuantity = async (item, quantity) => {
-    if (quantity < 1) return;
+  try {
+    setProcessingId(item.cartId);
 
-    try {
-      if (item.cartId) {
-        await api.put(`/food-order/cart/qty/${item.cartId}`, {
-          quantity,
-        });
+    await api.put(
+      `/food-order/cart/qty/${item.cartId}`,
+      {
+        quantity,
       }
+    );
 
-      const updatedItems = cartItems.map((cartItem) =>
-        cartItem.foodId === item.foodId
+    setCartItems((currentItems) =>
+      currentItems.map((cartItem) =>
+        cartItem.cartId === item.cartId
           ? {
               ...cartItem,
               quantity,
-              totalPrice: cartItem.price * quantity,
+              totalPrice:
+                cartItem.price * quantity,
             }
-          : cartItem,
-      );
+          : cartItem
+      )
+    );
 
-      setCartItems(updatedItems);
-
-      saveLocalCart(updatedItems);
-    } catch (err) {
-      alert(err.response?.data?.message || "Gagal mengubah quantity");
-    }
-  };
+  } catch (err) {
+    alert(
+      err.response?.data?.message ||
+        "Gagal mengubah quantity"
+    );
+  } finally {
+    setProcessingId(null);
+  }
+};
 
   // =========================
   // DELETE
   // =========================
 
-  const deleteCart = async (item) => {
-    try {
-      await api.delete(`/food-order/cart/${item.foodId}`);
+const deleteCart = async (item) => {
+  try {
+    setProcessingId(item.cartId);
 
-      const updatedItems = cartItems.filter(
-        (cartItem) => cartItem.foodId !== item.foodId,
-      );
+    await api.delete(
+      `/food-order/cart/${item.foodId}`
+    );
 
-      setCartItems(updatedItems);
+    setCartItems((currentItems) =>
+      currentItems.filter(
+        (cartItem) =>
+          cartItem.foodId !== item.foodId
+      )
+    );
 
-      saveLocalCart(updatedItems);
-
-      await fetchFoods();
-    } catch (err) {
-      alert(err.response?.data?.message || "Gagal menghapus makanan");
-    }
-  };
+  } catch (err) {
+    alert(
+      err.response?.data?.message ||
+        "Gagal menghapus makanan"
+    );
+  } finally {
+    setProcessingId(null);
+  }
+};
 
   // =========================
   // CHECKOUT
   // =========================
+
   const checkout = async () => {
-    if (cartItems.length === 0) {
-      alert("Keranjang masih kosong.");
-      return;
-    }
+  if (cartItems.length === 0) {
+    alert("Keranjang masih kosong.");
+    return;
+  }
 
-    const cartIds = cartItems
-      .map((item) => item.cartId)
-      .filter((id) => id !== null && id !== undefined);
+  const cartIds = cartItems
+    .map((item) => item.cartId)
+    .filter(
+      (id) =>
+        id !== null &&
+        id !== undefined
+    );
 
-    if (cartIds.length !== cartItems.length) {
-      alert(
-        "ID keranjang belum tersedia dari API. " +
-          "Silakan refresh halaman dan coba lagi.",
-      );
+  console.log("Cart IDs:", cartIds);
 
-      return;
-    }
+  if (cartIds.length !== cartItems.length) {
+    alert(
+      "ID keranjang belum tersedia dari API."
+    );
 
-    try {
-      const response = await api.post("/food-order/cart/checkout", {
+    return;
+  }
+
+  try {
+    setCheckoutLoading(true);
+
+    const response = await api.post(
+      "/food-order/cart/checkout",
+      {
         cartId: cartIds,
-      });
+      }
+    );
 
-      console.log("Checkout response:", response.data);
+    console.log(
+      "Checkout response:",
+      response.data
+    );
 
-      alert("Checkout berhasil!");
+    alert("Checkout berhasil!");
 
-      localStorage.removeItem("foodCart");
+    setCartItems([]);
 
-      setCartItems([]);
+    await fetchCart();
 
-      await fetchFoods();
-    } catch (err) {
-      console.error("Checkout error:", err);
+  } catch (err) {
+    console.error(
+      "Checkout error:",
+      err
+    );
 
-      alert(err.response?.data?.message || "Checkout gagal.");
-    }
-  };
-
+    alert(
+      err.response?.data?.message ||
+        "Checkout gagal."
+    );
+  } finally {
+    setCheckoutLoading(false);
+  }
+};
   // =========================
-  // TOTAL
+  // TOTAL ITEM
   // =========================
 
   const totalItems = useMemo(() => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
+    return cartItems.reduce(
+      (total, item) =>
+        total + item.quantity,
+      0
+    );
   }, [cartItems]);
 
+  // =========================
+  // TOTAL HARGA
+  // =========================
+
   const totalAmount = useMemo(() => {
-    return cartItems.reduce((total, item) => total + item.totalPrice, 0);
+    return cartItems.reduce(
+      (total, item) =>
+        total + item.totalPrice,
+      0
+    );
   }, [cartItems]);
 
   // =========================
@@ -240,7 +295,9 @@ function Cart() {
           md: 4,
         },
 
-        backgroundColor: isDark ? "#151515" : "#f5f5f5",
+        backgroundColor: isDark
+          ? "#151515"
+          : "#f5f5f5",
       }}
     >
       <Box
@@ -250,11 +307,17 @@ function Cart() {
           margin: "0 auto",
         }}
       >
+        {/* =========================
+            HEADER
+        ========================= */}
+
         <Typography
           variant="h4"
           sx={{
             fontWeight: 800,
-            color: isDark ? "#ffffff" : "#111111",
+            color: isDark
+              ? "#ffffff"
+              : "#111111",
             mb: 1,
           }}
         >
@@ -263,45 +326,67 @@ function Cart() {
 
         <Typography
           sx={{
-            color: isDark ? "#aaaaaa" : "#666666",
+            color: isDark
+              ? "#aaaaaa"
+              : "#666666",
             mb: 4,
           }}
         >
-          {totalItems} item dalam keranjang
+          {totalItems} item dalam
+          keranjang
         </Typography>
 
+        {/* =========================
+            ERROR
+        ========================= */}
+
         {error && (
-          <Paper
-            sx={{
-              padding: 3,
-              mb: 3,
-              color: "#ef4444",
-            }}
+          <Alert
+            severity="error"
+            sx={{ mb: 3 }}
           >
             {error}
-          </Paper>
+          </Alert>
         )}
+
+        {/* =========================
+            EMPTY CART
+        ========================= */}
 
         {cartItems.length === 0 ? (
           <Paper
             sx={{
               padding: 6,
               textAlign: "center",
-              backgroundColor: isDark ? "#1d1d1d" : "#ffffff",
-              color: isDark ? "#ffffff" : "#111111",
+
+              backgroundColor:
+                isDark
+                  ? "#1d1d1d"
+                  : "#ffffff",
+
+              color: isDark
+                ? "#ffffff"
+                : "#111111",
+
               borderRadius: 3,
             }}
           >
-            <Typography variant="h6" sx={{ mb: 1 }}>
+            <Typography
+              variant="h6"
+              sx={{ mb: 1 }}
+            >
               Keranjang masih kosong
             </Typography>
 
             <Typography
               sx={{
-                color: isDark ? "#999999" : "#666666",
+                color: isDark
+                  ? "#999999"
+                  : "#666666",
               }}
             >
-              Silakan pilih makanan dari menu.
+              Silakan pilih makanan
+              dari menu.
             </Typography>
           </Paper>
         ) : (
@@ -313,141 +398,231 @@ function Cart() {
             }}
           >
             {/* =========================
-        CART ITEMS
-    ========================= */}
+                CART ITEMS
+            ========================= */}
 
             <Box>
-              {cartItems.map((item) => (
-                <Paper
-                  key={item.foodId}
-                  sx={{
-                    padding: 3,
-                    mb: 2,
-                    backgroundColor: isDark ? "#1d1d1d" : "#ffffff",
-                    color: isDark ? "#ffffff" : "#111111",
-                    borderRadius: 3,
-                  }}
-                >
-                  <Box
+              {cartItems.map((item) => {
+                const isProcessing =
+                  processingId ===
+                  item.cartId;
+
+                return (
+                  <Paper
+                    key={item.cartId}
                     sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 2,
-                      flexWrap: "wrap",
+                      padding: 3,
+                      mb: 2,
+
+                      backgroundColor:
+                        isDark
+                          ? "#1d1d1d"
+                          : "#ffffff",
+
+                      color: isDark
+                        ? "#ffffff"
+                        : "#111111",
+
+                      borderRadius: 3,
                     }}
                   >
-                    {/* FOOD INFO */}
-
-                    <Box>
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          fontWeight: 700,
-                        }}
-                      >
-                        {item.foodName}
-                      </Typography>
-
-                      <Typography
-                        sx={{
-                          color: "#22c55e",
-                          fontWeight: 700,
-                          mt: 0.5,
-                        }}
-                      >
-                        {formatRupiah(item.price)}
-                      </Typography>
-                    </Box>
-
-                    {/* QUANTITY */}
-
                     <Box
                       sx={{
                         display: "flex",
-                        alignItems: "center",
+                        justifyContent:
+                          "space-between",
+                        alignItems:
+                          "center",
+                        gap: 2,
+                        flexWrap:
+                          "wrap",
                       }}
                     >
-                      <IconButton
-                        onClick={() => updateQuantity(item, item.quantity - 1)}
-                        disabled={item.quantity <= 1}
+                      {/* FOOD INFO */}
+
+                      <Box
+                        sx={{
+                          flex: 1,
+                          minWidth:
+                            "180px",
+                        }}
                       >
-                        <RemoveIcon />
-                      </IconButton>
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontWeight: 700,
+                          }}
+                        >
+                          {
+                            item.foodName
+                          }
+                        </Typography>
+
+                        <Typography
+                          sx={{
+                            color:
+                              "#22c55e",
+                            fontWeight: 700,
+                            mt: 0.5,
+                          }}
+                        >
+                          {formatRupiah(
+                            item.price
+                          )}
+                        </Typography>
+                      </Box>
+
+                      {/* QUANTITY */}
+
+                      <Box
+                        sx={{
+                          display:
+                            "flex",
+                          alignItems:
+                            "center",
+                        }}
+                      >
+                        <IconButton
+                          onClick={() =>
+                            updateQuantity(
+                              item,
+                              item.quantity -
+                                1
+                            )
+                          }
+                          disabled={
+                            item.quantity <=
+                              1 ||
+                            isProcessing
+                          }
+                          sx={{
+                            color:
+                              isDark
+                                ? "#ffffff"
+                                : "#111111",
+                          }}
+                        >
+                          <RemoveIcon />
+                        </IconButton>
+
+                        <Typography
+                          sx={{
+                            minWidth: 35,
+                            textAlign:
+                              "center",
+                            fontWeight: 700,
+                          }}
+                        >
+                          {
+                            item.quantity
+                          }
+                        </Typography>
+
+                        <IconButton
+                          onClick={() =>
+                            updateQuantity(
+                              item,
+                              item.quantity +
+                                1
+                            )
+                          }
+                          disabled={
+                            isProcessing
+                          }
+                          sx={{
+                            color:
+                              isDark
+                                ? "#ffffff"
+                                : "#111111",
+                          }}
+                        >
+                          <AddIcon />
+                        </IconButton>
+
+                        <IconButton
+                          onClick={() =>
+                            deleteCart(
+                              item
+                            )
+                          }
+                          disabled={
+                            isProcessing
+                          }
+                          sx={{
+                            color:
+                              "#ef4444",
+                            ml: 1,
+                          }}
+                        >
+                          <DeleteOutlineIcon />
+                        </IconButton>
+                      </Box>
+                    </Box>
+
+                    <Divider
+                      sx={{ my: 2 }}
+                    />
+
+                    {/* SUBTOTAL */}
+
+                    <Box
+                      sx={{
+                        display:
+                          "flex",
+                        justifyContent:
+                          "space-between",
+                        alignItems:
+                          "center",
+                      }}
+                    >
+                      <Typography>
+                        Subtotal
+                      </Typography>
 
                       <Typography
                         sx={{
-                          minWidth: 35,
-                          textAlign: "center",
                           fontWeight: 700,
                         }}
                       >
-                        {item.quantity}
+                        {formatRupiah(
+                          item.totalPrice
+                        )}
                       </Typography>
-
-                      <IconButton
-                        onClick={() => updateQuantity(item, item.quantity + 1)}
-                      >
-                        <AddIcon />
-                      </IconButton>
-
-                      <IconButton
-                        onClick={() => deleteCart(item)}
-                        sx={{
-                          color: "#ef4444",
-                          ml: 1,
-                        }}
-                      >
-                        <DeleteOutlineIcon />
-                      </IconButton>
                     </Box>
-                  </Box>
-
-                  <Divider sx={{ my: 2 }} />
-
-                  {/* SUBTOTAL */}
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Typography>Subtotal</Typography>
-
-                    <Typography
-                      sx={{
-                        fontWeight: 700,
-                      }}
-                    >
-                      {formatRupiah(item.totalPrice)}
-                    </Typography>
-                  </Box>
-                </Paper>
-              ))}
+                  </Paper>
+                );
+              })}
             </Box>
 
             {/* =========================
-        RINGKASAN PESANAN
-    ========================= */}
+                RINGKASAN PESANAN
+            ========================= */}
 
             <Paper
               sx={{
                 width: "100%",
-                boxSizing: "border-box",
+                boxSizing:
+                  "border-box",
+
                 padding: {
                   xs: 2.5,
                   sm: 3,
                 },
 
-                backgroundColor: isDark ? "#1d1d1d" : "#ffffff",
+                backgroundColor:
+                  isDark
+                    ? "#1d1d1d"
+                    : "#ffffff",
 
-                color: isDark ? "#ffffff" : "#111111",
+                color: isDark
+                  ? "#ffffff"
+                  : "#111111",
 
                 borderRadius: 3,
 
-                border: isDark ? "1px solid #2a2a2a" : "1px solid #e5e5e5",
+                border: isDark
+                  ? "1px solid #2a2a2a"
+                  : "1px solid #e5e5e5",
               }}
             >
               <Typography
@@ -463,11 +638,14 @@ function Cart() {
               <Box
                 sx={{
                   display: "flex",
-                  justifyContent: "space-between",
+                  justifyContent:
+                    "space-between",
                   mb: 2,
                 }}
               >
-                <Typography>Total Item</Typography>
+                <Typography>
+                  Total Item
+                </Typography>
 
                 <Typography
                   sx={{
@@ -478,13 +656,17 @@ function Cart() {
                 </Typography>
               </Box>
 
-              <Divider sx={{ mb: 2 }} />
+              <Divider
+                sx={{ mb: 2 }}
+              />
 
               <Box
                 sx={{
                   display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  justifyContent:
+                    "space-between",
+                  alignItems:
+                    "center",
                   mb: 3,
                 }}
               >
@@ -498,7 +680,8 @@ function Cart() {
 
                 <Typography
                   sx={{
-                    color: "#22c55e",
+                    color:
+                      "#22c55e",
                     fontWeight: 800,
                     fontSize: {
                       xs: 18,
@@ -506,7 +689,9 @@ function Cart() {
                     },
                   }}
                 >
-                  {formatRupiah(totalAmount)}
+                  {formatRupiah(
+                    totalAmount
+                  )}
                 </Typography>
               </Box>
 
@@ -514,20 +699,30 @@ function Cart() {
                 fullWidth
                 variant="contained"
                 onClick={checkout}
+                disabled={
+                  checkoutLoading
+                }
                 sx={{
-                  backgroundColor: "#22c55e",
+                  backgroundColor:
+                    "#22c55e",
+
                   color: "#ffffff",
+
                   fontWeight: 800,
+
                   py: 1.5,
 
                   borderRadius: 2,
 
                   "&:hover": {
-                    backgroundColor: "#16a34a",
+                    backgroundColor:
+                      "#16a34a",
                   },
                 }}
               >
-                CHECKOUT
+                {checkoutLoading
+                  ? "MEMPROSES..."
+                  : "CHECKOUT"}
               </Button>
             </Paper>
           </Box>
