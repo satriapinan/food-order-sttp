@@ -1,12 +1,61 @@
+import { useState } from "react";
 import AppLayout from "../components/AppLayout";
+import { useAuth } from "../components/hooks/useAuth";
 
 const Login = ({ onNavigate }) => {
+  const { login: setAuthUser } = useAuth();
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
   const navItems = [
     { label: "Home", page: "home" },
     { label: "Menu", page: "menu" },
     { label: "Login", page: "login" },
     { label: "Register", page: "register" },
   ];
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    const users = JSON.parse(localStorage.getItem("users") || "[]");
+    const matchedUser = users.find(
+      (user) =>
+        user.email?.toLowerCase() === form.email.trim().toLowerCase() &&
+        user.password === form.password
+    );
+
+    if (!matchedUser) {
+      setError("Email atau password salah.");
+      setMessage("");
+      return;
+    }
+
+    const userData = {
+      username: matchedUser.username,
+      email: matchedUser.email,
+      fullName: matchedUser.fullName,
+    };
+
+    setAuthUser(userData);
+    localStorage.setItem("currentUser", JSON.stringify(userData));
+    setError("");
+    setMessage("Login berhasil.");
+
+    setForm({ email: "", password: "" });
+
+    setTimeout(() => {
+      onNavigate("menu");
+    }, 800);
+  };
 
   return (
     <AppLayout
@@ -31,7 +80,8 @@ const Login = ({ onNavigate }) => {
       ))}
     >
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-        <div
+        <form
+          onSubmit={handleSubmit}
           style={{
             width: "100%",
             maxWidth: "420px",
@@ -48,11 +98,22 @@ const Login = ({ onNavigate }) => {
             Silakan masuk dengan akun Anda
           </p>
 
+          {error && (
+            <p style={{ color: "#dc2626", marginBottom: "12px", textAlign: "center" }}>{error}</p>
+          )}
+
+          {message && (
+            <p style={{ color: "#15803d", marginBottom: "12px", textAlign: "center" }}>{message}</p>
+          )}
+
           <label style={{ display: "block", marginBottom: "6px", fontWeight: "bold" }}>
             Email
           </label>
           <input
+            name="email"
             type="email"
+            value={form.email}
+            onChange={handleChange}
             placeholder="nama@gmail.com"
             style={{
               width: "100%",
@@ -68,7 +129,10 @@ const Login = ({ onNavigate }) => {
             Password
           </label>
           <input
+            name="password"
             type="password"
+            value={form.password}
+            onChange={handleChange}
             placeholder="Masukkan password"
             style={{
               width: "100%",
@@ -81,6 +145,7 @@ const Login = ({ onNavigate }) => {
           />
 
           <button
+            type="submit"
             style={{
               width: "100%",
               padding: "12px",
@@ -94,7 +159,7 @@ const Login = ({ onNavigate }) => {
           >
             Login
           </button>
-        </div>
+        </form>
       </div>
     </AppLayout>
   );
