@@ -13,7 +13,7 @@ export const ThemeProvider = ({ children }) => {
     setMode(newMode);
   };
 
-  const contextValue = useMemo(() => ({ mode, toggleTheme }), [mode, toggleTheme]);
+  const contextValue = useMemo(() => ({ mode, toggleTheme }), [mode]);
 
   return (
     <ThemeContext.Provider value={contextValue}>

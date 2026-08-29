@@ -1,8 +1,9 @@
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import api from "../services/api";
 
-// aturan validasi form login
 const loginSchema = Yup.object({
   username: Yup.string().required("Username harus diisi"),
   password: Yup.string()
@@ -13,18 +14,22 @@ const loginSchema = Yup.object({
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  // formik ngatur semua state form (value, error, touched) sekaligus
   const formik = useFormik({
     initialValues: {
       username: "",
       password: "",
     },
-    validationSchema: loginSchema, // divalidasi pakai schema di atas
-    onSubmit: (values) => {
-      console.log(values); // cek data yang diinput user
-      alert("Login berhasil!");
-      navigate("/"); // pindah ke halaman utama setelah login
+    validationSchema: loginSchema,
+    onSubmit: async (values) => {
+      try {
+        const res = await api.post("/user-management/users/sign-in", values);
+        login(res.data);
+        navigate("/food-order");
+      } catch (err) {
+        alert(err.response?.data?.message || "Login gagal, coba lagi.");
+      }
     },
   });
 
@@ -34,18 +39,16 @@ function LoginPage() {
         <h1 style={styles.title}>Welcome Back</h1>
         <p style={styles.subtitle}>Sign in to your account</p>
 
-        {/* pakai formik.handleSubmit, bukan handleSubmit manual lagi */}
         <form onSubmit={formik.handleSubmit}>
           <input
             type="text"
             placeholder="Username"
-            name="username" // name wajib ada biar formik tau ini field apa
+            name="username"
             value={formik.values.username}
             onChange={formik.handleChange}
-            onBlur={formik.handleBlur} // buat nandain field ini udah pernah diklik/diisi
+            onBlur={formik.handleBlur}
             style={styles.input}
           />
-          {/* munculin pesan error cuma kalau field udah disentuh & ada error */}
           {formik.touched.username && formik.errors.username && (
             <p style={styles.error}>{formik.errors.username}</p>
           )}
@@ -106,11 +109,10 @@ const styles = {
   input: {
     width: "100%",
     padding: "10px",
-    marginBottom: "5px", // dikecilin dari 15px biar ada ruang buat teks error
+    marginBottom: "5px",
     boxSizing: "border-box",
   },
   error: {
-    // buat nampilin pesan error validasi di bawah input
     color: "red",
     fontSize: "12px",
     marginTop: 0,
@@ -122,7 +124,7 @@ const styles = {
     background: "#06d6d6",
     color: "#fff",
     border: "none",
-    marginTop: "5px", // biar ada jarak sama teks error di atasnya
+    marginTop: "5px",
   },
   footer: {
     textAlign: "center",

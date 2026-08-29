@@ -1,25 +1,31 @@
-import { useFormik } from "formik"; // ganti useState jadi formik buat nyimpen search & filter
+import { useState, useEffect, useMemo } from "react";
+import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
   Card,
-  CardContent,
-  CardMedia,
   Typography,
   TextField,
   MenuItem,
   Select,
   FormControl,
   InputLabel,
+  Snackbar,
+  Alert,
 } from "@mui/material";
-import Grid from "@mui/material/Grid";
-import StarBorderIcon from "@mui/icons-material/StarBorder";
+import FoodCard from "./FoodCard";
+import api from "../services/api"; 
+import { useTheme } from "../hooks/useTheme";
 
-// IMPORT KOMPONEN TOMBOL BUATAN BOSS
-import AppButton from "../components/AppButton";
+const SORT_OPTIONS = [
+  { value: "", label: "Default" },
+  { value: "price,asc", label: "Harga Terendah" },
+  { value: "price,desc", label: "Harga Tertinggi" },
+  { value: "name,asc", label: "Nama A-Z" },
+];
 
-// Data dummy makanan agar codingan lebih bersih dan tinggal di-map
-const foods = [
+// Data dummy, dipakai kalau API kosong/belum siap
+const dummyFoods = [
   {
     id: 1,
     category: "Indonesian Food",
@@ -64,132 +70,198 @@ const foods = [
   },
 ];
 
+const dummyCategories = [
+  { id: 1, categoryName: "Indonesian Food" },
+  { id: 2, categoryName: "Western Food" },
+  { id: 3, categoryName: "Asian Food" },
+  { id: 4, categoryName: "Desserts" },
+];
+
 function FoodMenuPage() {
   // eslint-disable-next-line no-unused-vars
-  const navigate = useNavigate(); // Berjaga-jaga kalau Boss butuh navigasi nantinya
+  const navigate = useNavigate();
+  const { mode } = useTheme();
+  const isDark = mode === "dark";
 
-  // formik nyimpen state search & filter (belum ada submit, cuma buat nampung value)
+  const [foods, setFoods] = useState(dummyFoods);
+  // TODO: ganti kalo backend udah nyediain endpoint categorie
+  const [categories, setCategories] = useState(dummyCategories);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+  const closeSnackbar = () => {
+    setSnackbar((s) => ({ ...s, open: false }));
+  };
+
   const formik = useFormik({
     initialValues: {
       search: "",
-      kategori: "",
+      category: "",
       sortBy: "",
     },
   });
+
+  const { search, category, sortBy } = formik.values;
+
+  useEffect(() => {
+    api
+      .get("/food-order/categories")
+      .then((res) => {
+        const data = res.data.data;
+        if (data && data.length > 0) setCategories(data);
+      })
+      .catch(() => {
+        // API belum siap / gagal, tetap pakai dummyCategories
+      });
+  }, []);
+
+  useEffect(() => {
+    const params = { pageSize: 100 };
+    if (search) params.foodName = search;
+    if (category) params.categoryId = category;
+    if (sortBy) params.sortBy = sortBy;
+
+    api
+      .get("/food-order/foods", { params })
+      .then((res) => {
+        const data = res.data.data;
+        if (data && data.length > 0) setFoods(data);
+      })
+      .catch(() => {
+        // API belum siap / gagal, tetap pakai dummyFoods
+      });
+  }, [search, category, sortBy]);
+
+  const categoryOptions = useMemo(() => {
+    return [
+      { value: "", label: "Semua" },
+      ...categories.map((c) => ({
+        value: String(c.id),
+        label: c.categoryName,
+      })),
+    ];
+  }, [categories]);
+
+  // filter & sort data yang lagi ditampilkan (biar tetap jalan walau API belum ada)
+  const filteredFoods = useMemo(() => {
+    let result = [...foods];
+
+    if (search) {
+      result = result.filter((f) =>
+        f.name.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    if (category) {
+      const selected = categories.find((c) => String(c.id) === category);
+      const categoryName = selected?.categoryName;
+      result = result.filter(
+        (f) =>
+          String(f.categoryId) === category ||
+          f.category === categoryName ||
+          f.categories?.categoryName === categoryName
+      );
+    }
+
+    if (sortBy === "price,asc" || sortBy === "price,desc") {
+      const toNumber = (p) => Number(String(p).replace(/[^0-9]/g, ""));
+      result.sort((a, b) =>
+        sortBy === "price,asc" ? toNumber(a.price) - toNumber(b.price) : toNumber(b.price) - toNumber(a.price)
+      );
+    } else if (sortBy === "name,asc") {
+      result.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return result;
+  }, [foods, search, category, categories, sortBy]);
+
+  const handleAddToCart = async (food) => {
+    try {
+      await api.post("/food-order/cart", { foodId: food.id });
+      showSnackbar(`${food.name} ditambahkan ke keranjang!`);
+    } catch {
+      showSnackbar("Gagal menambahkan ke keranjang", "error");
+    }
+  };
 
   return (
     <Box
       sx={{
         minHeight: "100vh",
-        // Warna background biru tosca mirip seperti di gambar
-        backgroundColor: "#6B9CAE",
+        backgroundColor: isDark ? "#121212" : "#6B9CAE",
         padding: { xs: 2, md: 5 },
       }}
     >
-      {/* 1. BAGIAN HEADER (Judul, Search Bar, & Filter) */}
       <Card sx={{ maxWidth: 800, margin: "0 auto", padding: 3, borderRadius: 3, mb: 4, boxShadow: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: "bold", textAlign: "center", color: "#548394", mb: 0.5 }}>
           Food Menu
         </Typography>
-        <Typography variant="body2" sx={{ textAlign: "center", color: "text.secondary", mb: 3 }}>
+        <Typography variant="body2" sx={{ color: "#888", textAlign: "center", marginBottom: "20px" }}>
           Discover delicious meals just for you
         </Typography>
 
-        {/* Search Field */}
         <TextField
           fullWidth
           size="small"
           placeholder="Search for food..."
-          variant="outlined"
-          name="search" // name wajib ada biar formik tau ini field apa
+          name="search"
           value={formik.values.search}
-          onChange={formik.handleChange} // sebelumnya onChange={(e) => setSearch(e.target.value)}
+          onChange={formik.handleChange}
           sx={{ mb: 2 }}
         />
 
-        {/* Dropdown Kategori & Sort By */}
         <Box sx={{ display: "flex", gap: 2 }}>
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Kategori</InputLabel>
-            <Select
-              name="kategori"
-              value={formik.values.kategori}
-              label="Kategori"
-              onChange={formik.handleChange} // sebelumnya onChange={(e) => setKategori(e.target.value)}
-            >
-              <MenuItem value="indo">Indonesian</MenuItem>
-              <MenuItem value="western">Western</MenuItem>
-              <MenuItem value="asian">Asian</MenuItem>
-              <MenuItem value="dessert">Desserts</MenuItem>
+            <Select name="category" value={formik.values.category} label="Kategori" onChange={formik.handleChange}>
+              {categoryOptions.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
 
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Sort By</InputLabel>
-            <Select
-              name="sortBy"
-              value={formik.values.sortBy}
-              label="Sort By"
-              onChange={formik.handleChange} // sebelumnya onChange={(e) => setSortBy(e.target.value)}
-            >
-              <MenuItem value="price">Price</MenuItem>
-              <MenuItem value="name">Name</MenuItem>
+            <Select name="sortBy" value={formik.values.sortBy} label="Sort By" onChange={formik.handleChange}>
+              {SORT_OPTIONS.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
         </Box>
       </Card>
 
-      {/* 2. BAGIAN GRID DAFTAR MAKANAN */}
-      <Box sx={{ maxWidth: 1000, margin: "0 auto" }}>
-        <Grid container spacing={3} justifyContent="center">
-          {/* Mapping data array menjadi barisan Card */}
-          {foods.map((food) => (
-            <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={food.id}>
-              <Card sx={{ borderRadius: 3, boxShadow: 3, height: "100%", display: "flex", flexDirection: "column" }}>
-                {/* Gambar Makanan */}
-                <CardMedia component="img" height="140" image={food.image} alt={food.name} />
-
-                <CardContent sx={{ flexGrow: 1, padding: 2 }}>
-                  {/* Badge Label Kategori */}
-                  <Box
-                    sx={{
-                      backgroundColor: "#E4F0F6",
-                      color: "#548394",
-                      display: "inline-block",
-                      padding: "4px 8px",
-                      borderRadius: "12px",
-                      fontSize: "10px",
-                      fontWeight: "bold",
-                      mb: 1,
-                    }}
-                  >
-                    {food.category}
-                  </Box>
-
-                  {/* Nama dan Harga Makanan */}
-                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                    {food.name}
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: "#548394", fontWeight: "bold", mb: 2 }}>
-                    {food.price}
-                  </Typography>
-
-                  {/* Bintang dan Ketersediaan */}
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                    <StarBorderIcon fontSize="small" sx={{ color: "#BDBDBD" }} />
-                    <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "10px" }}>
-                      Available
-                    </Typography>
-                  </Box>
-
-                  {/* Menggunakan AppButton buatan Boss! */}
-                  <AppButton>Add to Cart</AppButton>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+          gap: "16px",
+          maxWidth: 1000,
+          margin: "0 auto",
+        }}
+      >
+        {filteredFoods.map((food) => (
+          <FoodCard key={food.id} food={food} isDark={isDark} onAddToCart={handleAddToCart} />
+        ))}
       </Box>
+
+      {filteredFoods.length === 0 && (
+        <Typography variant="body2" sx={{ textAlign: "center", color: "#888", marginTop: "40px" }}>
+          Tidak ada makanan ditemukan.
+        </Typography>
+      )}
+
+      <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={closeSnackbar}>
+        <Alert onClose={closeSnackbar} severity={snackbar.severity || "success"}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

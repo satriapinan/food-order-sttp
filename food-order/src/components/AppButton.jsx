@@ -2,7 +2,8 @@ import Button from "@mui/material/Button";
 
 const styles = {
   button: {
-    backgroundColor: "#1976",
+    backgroundColor: "#1976d2",
+    color: "#fff",
     borderRadius: "5px",
     boxShadow: "none",
   },

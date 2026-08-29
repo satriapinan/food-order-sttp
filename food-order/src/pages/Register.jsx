@@ -3,6 +3,7 @@ import * as Yup from "yup";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { Link, useNavigate } from "react-router-dom";
+import api from "../services/api";
 
 const styles = {
   page: {
@@ -22,14 +23,13 @@ const styles = {
   input: {
     width: "100%",
     padding: "10px",
-    marginBottom: "5px", // dikecilin dari 15px biar ada ruang buat teks error
+    marginBottom: "5px",
     boxSizing: "border-box",
     border: "1px solid #d8dee8",
     borderRadius: "8px",
     fontSize: "14px",
   },
   error: {
-    // buat nampilin pesan error validasi di bawah input
     color: "red",
     fontSize: "12px",
     marginTop: 0,
@@ -37,12 +37,12 @@ const styles = {
   },
 };
 
-// aturan validasi form register
 const registerSchema = Yup.object({
   username: Yup.string().required("Username harus diisi"),
   fullName: Yup.string().required("Nama lengkap harus diisi"),
   password: Yup.string()
     .min(6, "Password minimal 6 karakter")
+    .max(8, "Password maksimal 8 karakter")
     .required("Password harus diisi"),
   confirm: Yup.string()
     .oneOf([Yup.ref("password")], "Password tidak cocok")
@@ -52,7 +52,6 @@ const registerSchema = Yup.object({
 function RegisterPage() {
   const navigate = useNavigate();
 
-  // formik ngatur semua state form (value, error, touched) sekaligus
   const formik = useFormik({
     initialValues: {
       username: "",
@@ -60,11 +59,20 @@ function RegisterPage() {
       password: "",
       confirm: "",
     },
-    validationSchema: registerSchema, // divalidasi pakai schema di atas
-    onSubmit: (values) => {
-      console.log(values); // cek data yang diinput user
-      alert("Account created successfully!");
-      navigate("/login");
+    validationSchema: registerSchema,
+    onSubmit: async (values) => {
+      try {
+        await api.post("/user-management/users/sign-up", {
+          username: values.username,
+          fullname: values.fullName,
+          password: values.password,
+          retypePassword: values.confirm,
+        });
+        alert("Account created successfully!");
+        navigate("/login");
+      } catch (err) {
+        alert(err.response?.data?.message || "Register gagal, coba lagi.");
+      }
     },
   });
 
@@ -78,15 +86,14 @@ function RegisterPage() {
           Join us today and get started
         </Typography>
 
-        {/* pakai formik.handleSubmit, bukan handleSubmit manual lagi */}
         <form onSubmit={formik.handleSubmit}>
           <input
             type="text"
             placeholder="Username"
-            name="username" // name wajib ada biar formik tau ini field apa
+            name="username"
             value={formik.values.username}
             onChange={formik.handleChange}
-            onBlur={formik.handleBlur} // buat nandain field ini udah pernah diklik/diisi
+            onBlur={formik.handleBlur}
             style={styles.input}
           />
           {formik.touched.username && formik.errors.username && (
@@ -128,7 +135,6 @@ function RegisterPage() {
             onBlur={formik.handleBlur}
             style={styles.input}
           />
-          {/* validasi cocok/nggaknya password sekarang dicek yup, bukan manual di handleSubmit */}
           {formik.touched.confirm && formik.errors.confirm && (
             <p style={styles.error}>{formik.errors.confirm}</p>
           )}
