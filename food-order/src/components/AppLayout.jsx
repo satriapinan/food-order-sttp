@@ -1,6 +1,10 @@
-import useTheme from "../hooks/useTheme";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "./hooks/useAuth";
+import useTheme from "./hooks/useTheme";
 
 const AppLayout = ({ title, children, actions }) => {
+  const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
   const { theme, toggleTheme, isDark } = useTheme();
 
   const palette = isDark
@@ -55,6 +59,32 @@ const AppLayout = ({ title, children, actions }) => {
 
           <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
             {actions && actions}
+
+            {isAuthenticated && (
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  navigate("/login");
+                }}
+                style={{
+                  border: "none",
+                  background: "#ef4444",
+                  color: "white",
+                  padding: "10px 14px",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  fontWeight: "700",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <span aria-hidden="true">🚪</span>
+                Logout
+              </button>
+            )}
+
             <button
               type="button"
               onClick={toggleTheme}
@@ -66,8 +96,12 @@ const AppLayout = ({ title, children, actions }) => {
                 borderRadius: "10px",
                 cursor: "pointer",
                 fontWeight: "700",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
               }}
             >
+              <span aria-hidden="true">{theme === "light" ? "🌙" : "☀️"}</span>
               {theme === "light" ? "Dark" : "Light"}
             </button>
           </div>
