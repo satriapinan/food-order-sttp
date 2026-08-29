@@ -6,7 +6,6 @@ import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import AppButton2 from '../components/AppButton2';
 import { NavLink, useNavigate } from 'react-router-dom';
-//import { useAuth } from "../hooks/useAuth";
 import { useFormik } from "formik";
 import api from "../services/api";
 
@@ -28,14 +27,13 @@ function RegisterPage() {
   const formik = useFormik({
     initialValues: {
       username: "",
-      fullName: "",
+      fullname: "",
       password: "",
       retypePassword: "",
     },
     validationSchema: registerSchema,
     onSubmit: async (values) => {
       try{
-        console.log(values)
         await api.post("/user-management/users/sign-up",values);
         alert("Register telah berhasil silahkan login.");
         setTimeout(() => navigate("/login"), 1500);
@@ -45,16 +43,15 @@ function RegisterPage() {
     },
   });
 
-  console.log(formik.values)
-
   return (
     <Box
-      sx={{
-        backgroundColor: 'primary.main',
-        display: 'flex',
-        minHeight: '100vh',
-        alignItems: 'center',
-      }}
+        sx={{
+            display: 'flex',
+            minHeight: '100vh',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 2,
+        }}
     >
       <Container maxWidth='xs'>
         <Card sx={{ maxWidth: 400 }}>
@@ -80,12 +77,12 @@ function RegisterPage() {
                 />
                 <TextField
                   label="Nama Lengkap"
-                  name="fullName"
-                  value={formik.values.fullName}
+                  name="fullname"
+                  value={formik.values.fullname}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  error={formik.touched.fullName && Boolean(formik.errors.fullName)}
-                  helperText={formik.touched.fullName && formik.errors.fullName}
+                  error={formik.touched.fullname && Boolean(formik.errors.fullname)}
+                  helperText={formik.touched.fullname && formik.errors.fullname}
                 />
                 <TextField
                   label="Password"
@@ -121,7 +118,7 @@ function RegisterPage() {
           </CardContent>
         </Card>
       </Container>
-    </Box>
+      </Box>
   );
 }
 export default RegisterPage

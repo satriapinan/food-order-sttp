@@ -3,19 +3,18 @@ import { Card, CardContent, TextField } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
-// import Box from '@mui/material/Box';
+import Box from '@mui/material/Box';
 import AppButton from '../components/AppButton';
 import {NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from "../hooks/useAuth";
 import { useFormik } from "formik";
+import api from "../services/api";
 
 const loginScema = Yup.object({
-  email: Yup.string()
-  .email("Format email yang anda masukkan salah")
-  .required("email harus diisi"),
+  username: Yup.string().required("username harus diisi"),
   password: Yup.string()
-  .min(6,"password minimal 6 karakter")
-  .required("password harus diisi"),
+  .min(6, "passwor minimal harus 6 karakter")
+  .required("passwordharus diisi"),
 });
 
 function LoginPage() {
@@ -23,25 +22,31 @@ function LoginPage() {
   const { login } = useAuth();
   const formik = useFormik({
     initialValues: {
-      email: "",
+      username: "",
       password: "",
     },
     validationSchema: loginScema,
-    onSubmit: (values) => {
-      login({ email: values.email, password: values.password });
-      navigate("/menu");
+    onSubmit: async (values) => {
+      try{
+        const res = await api.post("/user-management/users/sign-in",values);
+        login(res.data);
+        navigate("/menu");
+      } catch (err) {
+        alert(err.response?.data?.message || "login gagal");
+        }
     },
   });
 
   return (
-    // <Box 
-    // sx={{
-    //   backgroundColor: 'primary.main',
-    //   display: 'flex',
-    //   minHeight: '100vh',
-    //   alignItems: 'center',
-    // }}
-    // >
+    <Box
+        sx={{
+            display: 'flex',
+            minHeight: '100vh',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 2,
+        }}
+    >
     <Container maxWidth='xs'>
     <Card sx={{ maxWidth: 400 }}>
       <CardContent>
@@ -56,14 +61,13 @@ function LoginPage() {
         <form onSubmit={formik.handleSubmit}>
         <Stack spacing={2}>
          <TextField
-          label="Email"
-          type="email"
-          name="email"
-          value={formik.values.email}
+          label="Username"
+          name="username"
+          value={formik.values.username}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          error={formik.touched.email && Boolean(formik.errors.email)}
-          helperText={formik.touched.email && formik.errors.email}
+          error={formik.touched.username && Boolean(formik.errors.username)}
+          helperText={formik.touched.username && formik.errors.username}
         />
          <TextField
           label="Password"
@@ -89,7 +93,7 @@ function LoginPage() {
       </CardContent>
     </Card>
     </Container>
-  //</Box>
+    </Box>
   );
 }
 export default LoginPage

@@ -1,37 +1,85 @@
-import { useTheme } from "../hooks/useTheme"
-import { Box, Button } from "@mui/material";
-
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import { useNavigate } from "react-router-dom";
+import { useTheme } from "../hooks/useTheme";
+import { useAuth } from "../hooks/useAuth";
 
 const AppLayout = ({ children }) => {
-    const { mode, toggleTheme } = useTheme();
-    const isDark = mode === "dark";
+  const { mode, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const isDark = mode === "dark";
 
-    return(
-        <Box
+  const buttonSx = {
+    backgroundColor: isDark ? "#2a2a2a" : "#fff",
+    color: isDark ? "#fff" : "#000",
+    "&:hover": {
+      backgroundColor: isDark ? "#3a3a3a" : "#e0e0e0",
+    },
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundColor: isDark ? "#121212" : "#f5f5f5",
+        transition: "background-color 0.3s ease",
+        color: isDark ? "#fff" : "#000",
+      }}
+    >
+      <Box
         sx={{
-            minHeight: "100vh",
-            backgroundColor: isDark ? "#fff" : "#161515",
-            transition: "bacground-color 0.9 ease",
-            color: isDark ? "#fff" : "#000"
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "12px 16px",
         }}
-        >
-            <Box>
-            <Button 
-                onClick={toggleTheme}
-                variant="outlined"
-                size="small"
-                sx={{
-                color: isDark ? "#000000" : "#ffffff",
-                backgroundColor: isDark ? "#e2dfdf" : "#292929",
-                }}
+      >
+        {user && (
+          <Typography
+            variant="body2"
+            sx={{ fontWeight: 500, color: isDark ? "#ccc" : "#555" }}
+          >
+            Hi, {user.fullname}!
+          </Typography>
+        )}
+
+        <Box sx={{ display: "flex", gap: "6px" }}>
+          <Button
+            onClick={toggleTheme}
+            variant="text"
+            size="small"
+            sx={buttonSx}
+          >
+            {isDark ? "Light" : "Dark"}
+          </Button>
+
+          {user && (
+            <Button
+              onClick={handleLogout}
+              variant="text"
+              size="small"
+              sx={{
+                ...buttonSx,
+                color: "#e53935",
+                "&:hover": { backgroundColor: "#e5393514" },
+              }}
             >
-                {isDark? "light" : "dark"}
+              Logout
             </Button>
-            </Box>
-            <Box>{children}</Box>
+          )}
         </Box>
-        
-    );
+      </Box>
+
+      <Box sx={{ padding: "0 16px 16px" }}>{children}</Box>
+    </Box>
+  );
 };
 
 export default AppLayout;

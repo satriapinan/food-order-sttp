@@ -5,38 +5,56 @@ import Stack from '@mui/material/Stack';
 import FoodCard from '../components/FoodCard';
 import foodImage from '../assets/food.jpg';
 import { useFormik } from "formik";
+import { useEffect, useMemo, useState } from "react";
+import api from "../services/api";
 
-const kategori = [
-  { label: 'Makanan' },
-  { label: 'Minuman' },
-];
-
-const shortby = [
-  { label: 'Harga' },
-  { label: 'Kategori' },
-];
+const SORT_OPTIONS = [
+    { value: "", label: "Default" },
+    { value: "price,asc", label: "Harga Terendah" },
+    { value: "price,desc", label: "Harga Tertinggi" },
+    { value: "name,asc", label: "Nama A-Z" },
+]
 
 function MenuPage() {
+    const [foods, setFoods] = useState([]);
+    const [categories, setCategories] = useState([]);
 
     const formik = useFormik({
-        initialValues: {
-            search: "",
-            kategori: "",
-            sortby: "",
-        },
-        onSubmit: (values) => {
-            console.log("Filter values:", values);
-        },
+        initialValues: { search: "", category: "", sortBy: "" },
+        onSubmit: () => {},
     });
 
+    const { search, category, sortBy } = formik.values;
+
+    useEffect(() => {
+        api.get("/food-order/categories").then((res) => {
+            setCategories(res.data.data || []);
+        });
+    }, []);
+
+    useEffect(() => {
+        const params = { pageSize: 100 };
+
+        if (search) params.foodName = search;
+        if (category) params.categoryId = category;
+        if (sortBy) params.sortBy = sortBy;
+
+        api.get("/food-order/foods", { params }).then((res) => {
+            setFoods(res.data.data || []);
+        });
+    }, [search, category, sortBy]);
+
+    const categoryOptions = useMemo(() => {
+        return [
+            { value: "", label: "Semua" },
+            ...categories.map((c) => ({
+                value: String(c.id),
+                label: c.categoryName,
+            })),
+        ];
+    }, [categories]);
+
     return(
-        <Box
-        sx={{
-        backgroundColor: 'primary.main',
-        minHeight: '100vh',
-        paddingTop: 2,
-        }}
-        >
         <Container>
             <Card sx={{ maxWidth: 500, margin: 'auto', padding: 1 , }}>
                 <Typography variant="h6" component="div" align='center' color='primary'>
@@ -48,115 +66,67 @@ function MenuPage() {
                 <TextField
                 sx={{ width: 480,}}
                 label="Search Food...."
-                id="outlined-size-small"
-                size="small"
-                margin="normal"
                 name="search"
                 value={formik.values.search}
                 onChange={formik.handleChange}
+                size="small"
+                margin="normal"
                 />
                 <Stack direction="row" spacing={2}>
                 <TextField
-                id="outlined-select-currency-native"
-                id="select-kategori"
                 label="Kategori"
+                name="category"
                 select
                 size="small"
-                name="kategori"
-                value={formik.values.kategori}
+                value={formik.values.category}
                 onChange={formik.handleChange}
                 slotProps={{
-                select: {
-                  native: true,
-                },
+                select: { native: true },
+                inputLabel: { shrink: true },
                 }}
                 >
-                <option value="" disabled></option>
-                {kategori.map((option) => (
-                <option key={option.label} value={option.label}>
-                    {option.label}
-                </option>
+                {categoryOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                    </option>
                 ))}
                 </TextField>
                 <TextField
-                id="outlined-select-currency-native"
-                id="select-sortby" 
-                label="ShortBy"
+                label="Sort By"
+                name="sortBy"
                 select
                 size="small"
-                name="sortby"
-                value={formik.values.sortby}
+                value={formik.values.sortBy}
                 onChange={formik.handleChange}
                 slotProps={{
-                select: {
-                  native: true,
-                },
+                select: { native: true },
+                inputLabel: { shrink: true },
                 }}
                 >
-                <option value="" disabled></option>
-                {shortby.map((option) => (
-                <option key={option.label} value={option.label}>
-                    {option.label}
-                </option>
+                {SORT_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                    </option>
                 ))}
                 </TextField>
-                </Stack>
+        </Stack>
             </Card>
             <Box sx={{ maxWidth: 500, margin: 'auto', padding: 1 , }}>
               <Grid container spacing={{ xs: 2, md: 3 }}>
-              <FoodCard
+                {foods.map((food) => (
+                <FoodCard
                 image={foodImage}
-                category="Indonesian Food"
-                name="Nasi Goreng"
-                price="25.000"
+                key={food.id}
+                foodId={food.id}
+                category={food.categories?.categoryName}
+                name={food.name}
+                price={food.price?.toLocaleString('id-ID')}
                 available={true}
               />
-            <FoodCard
-                image={foodImage}
-                category="Western Food"
-                name="croissant"
-                price="40.000"
-                available={true}
-            />
-            <FoodCard
-                image={foodImage}
-                category="Western Food"
-                name="croissant"
-                price="40.000"
-                available={true}
-            />
-            <FoodCard
-                image={foodImage}
-                category="Western Food"
-                name="croissant"
-                price="40.000"
-                available={true}
-            />
-            <FoodCard
-                image={foodImage}
-                category="Western Food"
-                name="croissant"
-                price="40.000"
-                available={true}
-            />
-            <FoodCard
-                image={foodImage}
-                category="Western Food"
-                name="croissant"
-                price="40.000"
-                available={true}
-            />
-            <FoodCard
-                image={foodImage}
-                category="Western Food"
-                name="croissant"
-                price="40.000"
-                available={true}
-            />
+                ))}
           </Grid>
           </Box>
         </Container>
-        </Box>
     )
 }
 export default MenuPage

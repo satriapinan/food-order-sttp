@@ -1,6 +1,6 @@
 import Button from "@mui/material/Button";
 
-const styles ={
+const styles = {
   button: {
     backgroundColor: "#638fd7",
     borderRadius: "5px",
@@ -9,12 +9,12 @@ const styles ={
   }
 }
 
-const AppButton2 = ({ onClick, children }) => {
+const AppButton2 = ({ onClick, children, type = "button" }) => {
   return (
     <Button
       onClick={onClick}
       sx={styles.button}
-      href="/login"
+      type={type}
     >
       {children}
     </Button>

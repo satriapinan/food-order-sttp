@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
 import CardMedia from '@mui/material/CardMedia';
@@ -8,9 +9,23 @@ import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+import api from '../services/api';
 
 function FoodCard(props) {
-    const { image, category, name, price, available } = props;
+    const { foodId, image, category, name, price, available } = props;
+    const [loading, setLoading] = useState(false);
+
+    const handleAddToCart = async () => {
+        setLoading(true);
+        try {
+            await api.post('/food-order/cart', { foodId });
+            alert(`${name} berhasil ditambahkan ke keranjang`);
+        } catch (err) {
+            alert(err.response?.data?.message || 'Gagal menambahkan ke keranjang');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <Card sx={{ maxWidth: 200, borderRadius: 2 }}>
@@ -55,8 +70,10 @@ function FoodCard(props) {
                     variant="contained"
                     fullWidth
                     size="small"
+                    onClick={handleAddToCart}
+                    disabled={loading}
                 >
-                    Add to Cart
+                    {loading ? 'Menambahkan...' : 'Add to Cart'}
                 </Button>
             </CardContent>
         </Card>
