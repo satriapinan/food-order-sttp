@@ -3,7 +3,7 @@ import AppButton from "../components/AppButton";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
-import { Link, NavLink, useNavigate } from "react-router";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 
 const styles = {
   buttonA: {

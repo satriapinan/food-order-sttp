@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Box, Paper, Typography, TextField, Button, Stack, Link, InputAdornment, IconButton } from "@mui/material";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useTheme } from "../hooks/useTheme";
+import { authApi, getApiErrorMessage } from "../services/api";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 
@@ -21,6 +22,7 @@ export default function Register() {
   const isDark = mode === "dark";
   const navigate = useNavigate();
   const [show, setShow] = useState({ pass: false, confirm: false });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -30,9 +32,23 @@ export default function Register() {
       confirmPassword: "",
     },
     validationSchema: registerSchema,
-    onSubmit: (values) => {
-      // Handle registration logic here if needed
-      navigate("/beranda");
+    onSubmit: async (values) => {
+      setIsSubmitting(true);
+      try {
+        const registrationData = { ...values };
+        delete registrationData.confirmPassword;
+        await authApi.register({
+          ...registrationData,
+          fullname: registrationData.fullName,
+          retypePassword: values.confirmPassword,
+        });
+        alert("Registrasi berhasil. Silakan login.");
+        navigate("/login");
+      } catch (err) {
+        alert(getApiErrorMessage(err, "Registrasi gagal."));
+      } finally {
+        setIsSubmitting(false);
+      }
     },
   });
 
@@ -97,8 +113,8 @@ export default function Register() {
               InputProps={{ endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShow({ ...show, confirm: !show.confirm })} edge="end" size="small" sx={{ color: isDark ? "#cbd5e1" : "#475569" }}>{show.confirm ? "👁️" : "👁️‍🗨️"}</IconButton></InputAdornment> }} 
             />
 
-            <Button type="submit" variant="contained" fullWidth sx={{ backgroundColor: isDark ? "#38bdf8" : "#0369a1", color: isDark ? "#082f49" : "#fff", py: 1.4, borderRadius: 2, fontWeight: "bold", "&:hover": { backgroundColor: isDark ? "#7dd3fc" : "#075985" } }}>
-              Sign Up
+            <Button type="submit" variant="contained" fullWidth disabled={isSubmitting} sx={{ backgroundColor: isDark ? "#38bdf8" : "#0369a1", color: isDark ? "#082f49" : "#fff", py: 1.4, borderRadius: 2, fontWeight: "bold", "&:hover": { backgroundColor: isDark ? "#7dd3fc" : "#075985" } }}>
+              {isSubmitting ? "Mendaftarkan..." : "Sign Up"}
             </Button>
           </Stack>
         </Box>

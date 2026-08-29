@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ThemeContext } from "./ThemeContext";
 
 export const ThemeProvider = ({ children }) => {
@@ -6,13 +6,13 @@ export const ThemeProvider = ({ children }) => {
     localStorage.getItem("theme") || "light"
   );
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     const newMode = mode === "light" ? "dark" : "light";
     localStorage.setItem("theme", newMode);
     setMode(newMode);
-  };
+  }, [mode]);
 
-  const contextValue = useMemo(() => ({ mode, toggleTheme }), [mode]);
+  const contextValue = useMemo(() => ({ mode, toggleTheme }), [mode, toggleTheme]);
 
   return (
     <ThemeContext.Provider value={contextValue}>
