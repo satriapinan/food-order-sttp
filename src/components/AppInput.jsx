@@ -1,6 +1,17 @@
 import TextField from "@mui/material/TextField";
 
-const AppInput = ({ label, type = "text", value, onChange, name, required = true }) => {
+const AppInput = ({
+  label,
+  type = "text",
+  name,
+  value,
+  onChange,
+  onBlur,
+  error,
+  helperText,
+  required = false,
+  ...rest
+}) => {
   return (
     <TextField
       fullWidth
@@ -10,6 +21,9 @@ const AppInput = ({ label, type = "text", value, onChange, name, required = true
       name={name}
       value={value}
       onChange={onChange}
+      onBlur={onBlur}
+      error={Boolean(error)}
+      helperText={helperText}
       required={required}
       variant="outlined"
       sx={{
@@ -17,6 +31,7 @@ const AppInput = ({ label, type = "text", value, onChange, name, required = true
           borderRadius: "8px",
         },
       }}
+      {...rest}
     />
   );
 };

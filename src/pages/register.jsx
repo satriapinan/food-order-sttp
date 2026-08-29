@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import Container from "@mui/material/Container";
@@ -8,37 +9,58 @@ import { Link, useNavigate } from "react-router-dom";
 
 import AppButton from "../components/AppButton";
 import AppInput from "../components/AppInput";
-
+import AppSnackbar from "../components/AppSnackbar";
+import api from "../services/api";
 
 const registerSchema = Yup.object({
-  fullName: Yup.string().required("Nama lengkap harus diisi"),
-  email: Yup.string()
-    .email("Format email tidak valid")
-    .required("Email harus diisi"),
+  username: Yup.string().required("Username harus diisi"),
+  fullname: Yup.string().required("Nama lengkap harus diisi"),
   password: Yup.string()
     .min(6, "Password minimal 6 karakter")
     .required("Password harus diisi"),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref("password"), null], "Konfirmasi password tidak cocok")
+  retypePassword: Yup.string()
+    .oneOf([Yup.ref("password")], "Password tidak sama")
     .required("Konfirmasi password harus diisi"),
 });
 
 function RegisterPage() {
   const navigate = useNavigate();
 
-  
+  // State untuk Notifikasi Snackbar
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const handleCloseSnackbar = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
+
   const formik = useFormik({
     initialValues: {
-      fullName: "",
-      email: "",
+      username: "",
+      fullname: "",
       password: "",
-      confirmPassword: "",
+      retypePassword: "",
     },
     validationSchema: registerSchema,
-    onSubmit: (values) => {
-      console.log("Data Register:", values);
-      alert(`Pendaftaran Berhasil!\nSelamat datang, ${values.fullName}`);
-      navigate("/login");
+    onSubmit: async (values) => {
+      try {
+        await api.post("/user-management/users/sign-up", values);
+        setSnackbar({
+          open: true,
+          message: "Register berhasil! Silakan login.",
+          severity: "success",
+        });
+        setTimeout(() => navigate("/login"), 1500);
+      } catch (err) {
+        setSnackbar({
+          open: true,
+          message: err.response?.data?.message || "Register gagal",
+          severity: "error",
+        });
+      }
     },
   });
 
@@ -84,25 +106,29 @@ function RegisterPage() {
 
           <form onSubmit={formik.handleSubmit}>
             <AppInput
-              label="Nama Lengkap"
+              label="Username"
               type="text"
-              name="fullName"
-              value={formik.values.fullName}
+              name="username"
+              value={formik.values.username}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={formik.touched.fullName && Boolean(formik.errors.fullName)}
-              helperText={formik.touched.fullName && formik.errors.fullName}
+              error={
+                formik.touched.username && Boolean(formik.errors.username)
+              }
+              helperText={formik.touched.username && formik.errors.username}
             />
 
             <AppInput
-              label="Alamat Email"
-              type="email"
-              name="email"
-              value={formik.values.email}
+              label="Nama Lengkap"
+              type="text"
+              name="fullname"
+              value={formik.values.fullname}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={formik.touched.email && Boolean(formik.errors.email)}
-              helperText={formik.touched.email && formik.errors.email}
+              error={
+                formik.touched.fullname && Boolean(formik.errors.fullname)
+              }
+              helperText={formik.touched.fullname && formik.errors.fullname}
             />
 
             <AppInput
@@ -112,28 +138,32 @@ function RegisterPage() {
               value={formik.values.password}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={formik.touched.password && Boolean(formik.errors.password)}
+              error={
+                formik.touched.password && Boolean(formik.errors.password)
+              }
               helperText={formik.touched.password && formik.errors.password}
             />
 
             <AppInput
               label="Konfirmasi Password"
               type="password"
-              name="confirmPassword"
-              value={formik.values.confirmPassword}
+              name="retypePassword"
+              value={formik.values.retypePassword}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               error={
-                formik.touched.confirmPassword &&
-                Boolean(formik.errors.confirmPassword)
+                formik.touched.retypePassword &&
+                Boolean(formik.errors.retypePassword)
               }
               helperText={
-                formik.touched.confirmPassword && formik.errors.confirmPassword
+                formik.touched.retypePassword && formik.errors.retypePassword
               }
             />
 
             <Box sx={{ mt: 3 }}>
-              <AppButton type="submit">DAFTAR</AppButton>
+              <AppButton type="submit" fullWidth>
+                DAFTAR
+              </AppButton>
             </Box>
 
             <Box sx={{ mt: 2, textAlign: "center" }}>
@@ -154,6 +184,14 @@ function RegisterPage() {
           </form>
         </Paper>
       </Box>
+
+      {/* Snackbar Reusable */}
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={handleCloseSnackbar}
+      />
     </Container>
   );
 }

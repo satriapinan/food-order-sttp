@@ -9,12 +9,10 @@ import { Link, useNavigate } from "react-router-dom";
 import AppButton from "../components/AppButton";
 import AppInput from "../components/AppInput";
 import { useAuth } from "../hooks/useAuth";
-
+import api from "../services/api"; // Hapus import useSnackbar
 
 const loginSchema = Yup.object({
-  email: Yup.string()
-    .email("Format email tidak valid")
-    .required("Email harus diisi"),
+  username: Yup.string().required("Username harus diisi"),
   password: Yup.string()
     .min(6, "Password minimal 6 karakter")
     .required("Password harus diisi"),
@@ -26,13 +24,18 @@ function LoginPage() {
 
   const formik = useFormik({
     initialValues: {
-      email: "",
+      username: "",
       password: "",
     },
     validationSchema: loginSchema,
-    onSubmit: (values) => {
-      login({ email: values.email });
-      navigate("/menu");
+    onSubmit: async (values) => {
+      try {
+        const res = await api.post("/user-management/users/sign-in", values);
+        login(res.data);
+        navigate("/menu");
+      } catch (err) {
+        alert(err.response?.data?.message || "Login gagal");
+      }
     },
   });
 
@@ -72,20 +75,21 @@ function LoginPage() {
             color="text.secondary"
             sx={{ mb: 2 }}
           >
-            Silakan masukkan email dan password kamu
+            Silakan masukkan username dan password kamu
           </Typography>
 
-          {/* Form dipicu oleh Formik */}
           <form onSubmit={formik.handleSubmit}>
             <AppInput
-              label="Email"
-              type="email"
-              name="email"
-              value={formik.values.email}
+              label="Username"
+              type="text"
+              name="username"
+              value={formik.values.username}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={formik.touched.email && Boolean(formik.errors.email)}
-              helperText={formik.touched.email && formik.errors.email}
+              error={
+                formik.touched.username && Boolean(formik.errors.username)
+              }
+              helperText={formik.touched.username && formik.errors.username}
             />
 
             <AppInput
@@ -95,7 +99,9 @@ function LoginPage() {
               value={formik.values.password}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={formik.touched.password && Boolean(formik.errors.password)}
+              error={
+                formik.touched.password && Boolean(formik.errors.password)
+              }
               helperText={formik.touched.password && formik.errors.password}
             />
 
