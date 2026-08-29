@@ -84,8 +84,8 @@ function FoodMenuPage() {
   const isDark = mode === "dark";
 
   const [foods, setFoods] = useState(dummyFoods);
-  // TODO: ganti kalo backend udah nyediain endpoint categorie
-  const [categories, setCategories] = useState(dummyCategories);
+  // backend blm ada endpoint categories, jadi pake data dummy aja dulu
+  const categories = dummyCategories;
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   const showSnackbar = (message, severity = "success") => {
@@ -104,18 +104,6 @@ function FoodMenuPage() {
   });
 
   const { search, category, sortBy } = formik.values;
-
-  useEffect(() => {
-    api
-      .get("/food-order/categories")
-      .then((res) => {
-        const data = res.data.data;
-        if (data && data.length > 0) setCategories(data);
-      })
-      .catch(() => {
-        // API belum siap / gagal, tetap pakai dummyCategories
-      });
-  }, []);
 
   useEffect(() => {
     const params = { pageSize: 100 };
