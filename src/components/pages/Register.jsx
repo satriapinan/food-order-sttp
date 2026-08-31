@@ -1,82 +1,148 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import * as Yup from "yup";
+import { useFormik } from "formik";
+
+import { useAuth } from "../../assets/hooks/useAuth";
+
+const registerSchema = Yup.object({
+  username: Yup.string()
+    .min(3, "Username minimal 3 karakter")
+    .required("Username harus diisi"),
+  fullName: Yup.string()
+    .min(3, "Nama lengkap minimal 3 karakter")
+    .required("Nama lengkap harus diisi"),
+  email: Yup.string()
+    .email("Format email tidak valid")
+    .required("Email harus diisi"),
+  password: Yup.string()
+    .min(6, "Password minimal 6 karakter")
+    .required("Password harus diisi"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("password")], "Konfirmasi password tidak cocok")
+    .required("Konfirmasi password harus diisi"),
+});
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const formik = useFormik({
+    initialValues: {
+      username: "",
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+    validationSchema: registerSchema,
+    onSubmit: (values) => {
+      login({
+        username: values.username,
+        fullName: values.fullName,
+        email: values.email,
+      });
+
+      navigate("/food-order");
+    },
+  });
 
   return (
     <div style={styles.page}>
       <div style={styles.card}>
         <h1 style={styles.title}>Create Account</h1>
 
-        <p style={styles.subtitle}>
-          Join us today and get started
-        </p>
+        <p style={styles.subtitle}>Join us today and get started</p>
 
-        <input
-          type="text"
-          placeholder="Username"
-          style={styles.input}
-        />
-
-        <input
-          type="text"
-          placeholder="Full Name"
-          style={styles.input}
-        />
-
-        <input
-          type="email"
-          placeholder="Email"
-          style={styles.input}
-        />
-
-        <div style={styles.passwordBox}>
+        <form onSubmit={formik.handleSubmit} noValidate>
           <input
-            type={showPass ? "text" : "password"}
-            placeholder="Password"
-            style={styles.passwordInput}
+            type="text"
+            name="username"
+            placeholder="Username"
+            value={formik.values.username}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            style={styles.input}
           />
+          {formik.touched.username && formik.errors.username ? (
+            <div style={styles.errorText}>{formik.errors.username}</div>
+          ) : null}
 
-          <span
-            style={styles.eye}
-            onClick={() => setShowPass(!showPass)}
-          >
-            {showPass ? "◉" : "◌"}
-          </span>
-        </div>
-
-        <div style={styles.passwordBox}>
           <input
-            type={showConfirm ? "text" : "password"}
-            placeholder="Confirm Password"
-            style={styles.passwordInput}
+            type="text"
+            name="fullName"
+            placeholder="Full Name"
+            value={formik.values.fullName}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            style={styles.input}
           />
+          {formik.touched.fullName && formik.errors.fullName ? (
+            <div style={styles.errorText}>{formik.errors.fullName}</div>
+          ) : null}
 
-          <span
-            style={styles.eye}
-            onClick={() => setShowConfirm(!showConfirm)}
-          >
-            {showConfirm ? "◉" : "◌"}
-          </span>
-        </div>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formik.values.email}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            style={styles.input}
+          />
+          {formik.touched.email && formik.errors.email ? (
+            <div style={styles.errorText}>{formik.errors.email}</div>
+          ) : null}
 
-        <button
-          style={styles.button}
-          onClick={() => navigate("/login")}
-        >
-          Create Account
-        </button>
+          <div style={styles.passwordBox}>
+            <input
+              type={showPass ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              style={styles.passwordInput}
+            />
+
+            <span style={styles.eye} onClick={() => setShowPass(!showPass)}>
+              {showPass ? "◉" : "◌"}
+            </span>
+          </div>
+          {formik.touched.password && formik.errors.password ? (
+            <div style={styles.errorText}>{formik.errors.password}</div>
+          ) : null}
+
+          <div style={styles.passwordBox}>
+            <input
+              type={showConfirm ? "text" : "password"}
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              value={formik.values.confirmPassword}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              style={styles.passwordInput}
+            />
+
+            <span style={styles.eye} onClick={() => setShowConfirm(!showConfirm)}>
+              {showConfirm ? "◉" : "◌"}
+            </span>
+          </div>
+          {formik.touched.confirmPassword && formik.errors.confirmPassword ? (
+            <div style={styles.errorText}>{formik.errors.confirmPassword}</div>
+          ) : null}
+
+          <button type="submit" style={styles.button}>
+            Create Account
+          </button>
+        </form>
 
         <p style={styles.loginText}>
-          Already have an account?{" "}
-          <span
-            style={styles.link}
-            onClick={() => navigate("/login")}
-          >
+          Already have an account? {" "}
+          <span style={styles.link} onClick={() => navigate("/login")}>
             Sign in here
           </span>
         </p>
@@ -124,12 +190,14 @@ const styles = {
     width: "100%",
     height: "48px",
     padding: "0 12px",
-    marginBottom: "16px",
+    marginBottom: "10px",
     border: "1px solid var(--border-color)",
     borderRadius: "10px",
     outline: "none",
     boxSizing: "border-box",
     fontSize: "14px",
+    background: "transparent",
+    color: "var(--text-primary)",
   },
 
   passwordBox: {
@@ -139,8 +207,9 @@ const styles = {
     alignItems: "center",
     border: "1px solid var(--border-color)",
     borderRadius: "10px",
-    marginBottom: "16px",
+    marginBottom: "10px",
     boxSizing: "border-box",
+    background: "transparent",
   },
 
   passwordInput: {
@@ -151,6 +220,7 @@ const styles = {
     outline: "none",
     fontSize: "14px",
     background: "transparent",
+    color: "var(--text-primary)",
   },
 
   eye: {
@@ -166,8 +236,7 @@ const styles = {
     marginTop: "10px",
     border: "none",
     borderRadius: "9px",
-    background:
-      "linear-gradient(90deg, #369fc1, #76a699)",
+    background: "linear-gradient(90deg, #369fc1, #76a699)",
     color: "white",
     fontWeight: "bold",
     cursor: "pointer",
@@ -184,6 +253,14 @@ const styles = {
     color: "#3596b5",
     fontWeight: "bold",
     cursor: "pointer",
+  },
+
+  errorText: {
+    color: "#d92d20",
+    fontSize: "12px",
+    textAlign: "left",
+    marginBottom: "10px",
+    marginTop: "-4px",
   },
 };
 
