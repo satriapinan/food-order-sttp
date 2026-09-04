@@ -1,116 +1,196 @@
-import React from "react";
-import { useFormik } from "formik";
-import * as Yup from "yup";
-import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
-import TextField from "@mui/material/TextField";
+import { useState, useEffect, useMemo } from "react";
 import Typography from "@mui/material/Typography";
-import MenuItem from "@mui/material/MenuItem";
-import AppButton from "../components/AppButton";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import Alert from "@mui/material/Alert";
+import { useFormik } from "formik";
+import TextField from "@mui/material/TextField";
+import AppSelect from "../components/AppSelect";
+import FoodCard from "../components/FoodCard";
+import AppSnackbar, { useSnackbar } from "../components/AppSnackbar";
+import { useTheme } from "../hooks/useTheme";
+import api from "../services/api";
 
-const foodMenuSchema = Yup.object({
-  foodName: Yup.string().required("Nama makanan harus diisi"),
-  price: Yup.number()
-    .typeError("Harga harus berupa angka")
-    .positive("Harga tidak boleh bernilai negatif")
-    .required("Harga harus diisi"),
-  category: Yup.string().required("Kategori harus dipilih"),
-});
+const SORT_OPTIONS = [
+  { value: "", label: "Default" },
+  { value: "price,asc", label: "Harga Terendah" },
+  { value: "price,desc", label: "Harga Tertinggi" },
+  { value: "name,asc", label: "Nama A-Z" },
+];
 
-function FoodMenuPage() {
+function FoodOrderPage() {
+  const { mode } = useTheme();
+  const isDark = mode === "dark";
+
+  const [foods, setFoods] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
+
   const formik = useFormik({
-    initialValues: {
-      foodName: "",
-      price: "",
-      category: "",
-    },
-    validationSchema: foodMenuSchema,
-    onSubmit: (values, { resetForm }) => {
-      console.log("Data Makanan:", values);
-      alert("Menu berhasil ditambahkan!");
-      resetForm();
-    },
+    initialValues: { search: "", category: "", sortBy: "" },
   });
 
+  const { search, category, sortBy } = formik.values;
+
+  useEffect(() => {
+    api
+      .get("/food-order/categories")
+      .then((res) => {
+        setCategories(res.data.data || res.data || []);
+      })
+      .catch(() => {
+        showSnackbar("Gagal mengambil data kategori", "error");
+      });
+  }, [showSnackbar]);
+
+  useEffect(() => {
+    const fetchFoods = async () => {
+      const params = { pageSize: 100 };
+
+      if (search) params.foodName = search;
+      if (category) params.categoryId = category;
+      if (sortBy) params.sortBy = sortBy;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const res = await api.get("/food-order/foods", { params });
+        setFoods(res.data.data || []);
+      } catch (err) {
+        setError(
+          err.response?.data?.message ||
+            err.message ||
+            "Gagal mengambil data makanan",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFoods();
+  }, [search, category, sortBy]);
+
+  const categoryOptions = useMemo(() => {
+    return [
+      { value: "", label: "Semua" },
+      ...categories.map((c) => ({
+        value: String(c.id),
+        label: c.categoryName,
+      })),
+    ];
+  }, [categories]);
+
+  const handleAddToCart = async (food) => {
+    try {
+      await api.post("/food-order/cart", { foodId: food.id });
+      showSnackbar(`${food.name} ditambahkan ke keranjang!`);
+    } catch {
+      showSnackbar("Gagal menambahkan ke keranjang", "error");
+    }
+  };
+
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "linear-gradient(135deg, #FF9A9E, #FECFEF)", // Warna background beda sebagai penanda
-        padding: 2,
-      }}
-    >
-      <Paper
-        elevation={6}
-        sx={{
-          width: "100%",
-          maxWidth: 400,
-          padding: 4,
-          borderRadius: "16px",
-          textAlign: "center",
-        }}
+    <Box sx={{ maxWidth: 1000, margin: "0 auto", padding: "16px 0" }}>
+      <Typography
+        variant="h5"
+        sx={{ fontWeight: 700, textAlign: "center", marginBottom: "4px" }}
       >
-        <Typography component="h1" variant="h5" sx={{ marginBottom: 3 }}>
-          Tambah Menu Makanan
-        </Typography>
+        Food Menu
+      </Typography>
+      <Box sx={{ display: "flex", gap: "12px", marginBottom: "20px" }}>
+        <TextField
+          variant="outlined"
+          label="Search for food..."
+          name="search"
+          value={formik.values.search}
+          onChange={formik.handleChange}
+          size="small"
+          sx={{
+            marginBottom: 0,
+            flex: 1,
+            "& .MuiInputBase-input": {
+              color: isDark ? "#fff" : "#000",
+            },
+            "& .MuiInputLabel-root": {
+              color: isDark ? "#aaa" : "#555",
+            },
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": { borderColor: isDark ? "#555" : "#ccc" },
+              "&:hover fieldset": { borderColor: isDark ? "#888" : "#999" },
+              "&.Mui-focused fieldset": { borderColor: "#6D5BD0" },
+            },
+          }}
+        />
+        <AppSelect
+          label="Kategori"
+          name="category"
+          value={formik.values.category}
+          onChange={formik.handleChange}
+          options={categoryOptions}
+          sx={{ flex: 1 }}
+          size="small"
+        />
+        <AppSelect
+          label="Sort By"
+          name="sortBy"
+          value={formik.values.sortBy}
+          onChange={formik.handleChange}
+          options={SORT_OPTIONS}
+          sx={{ flex: 1 }}
+          size="small"
+        />
+      </Box>
 
-        <Box component="form" onSubmit={formik.handleSubmit}>
-          <TextField
-            fullWidth
-            id="foodName"
-            name="foodName"
-            label="Nama Makanan"
-            margin="normal"
-            value={formik.values.foodName}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched.foodName && Boolean(formik.errors.foodName)}
-            helperText={formik.touched.foodName && formik.errors.foodName}
-          />
-
-          <TextField
-            fullWidth
-            id="price"
-            name="price"
-            label="Harga (Rp)"
-            type="number"
-            margin="normal"
-            value={formik.values.price}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched.price && Boolean(formik.errors.price)}
-            helperText={formik.touched.price && formik.errors.price}
-          />
-
-          <TextField
-            select
-            fullWidth
-            id="category"
-            name="category"
-            label="Kategori"
-            margin="normal"
-            value={formik.values.category}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched.category && Boolean(formik.errors.category)}
-            helperText={formik.touched.category && formik.errors.category}
-          >
-            <MenuItem value="Makanan Utama">Makanan Utama</MenuItem>
-            <MenuItem value="Minuman">Minuman</MenuItem>
-            <MenuItem value="Camilan">Camilan</MenuItem>
-            <MenuItem value="Dessert">Dessert</MenuItem>
-          </TextField>
-
-          <Box sx={{ marginTop: 3 }}>
-            <AppButton type="submit">Simpan Menu</AppButton>
-          </Box>
+      {loading ? (
+        <Box
+          sx={{ display: "flex", justifyContent: "center", marginTop: "40px" }}
+        >
+          <CircularProgress />
         </Box>
-      </Paper>
+      ) : error ? (
+        <Alert severity="error" sx={{ marginTop: "20px" }}>
+          {error}
+        </Alert>
+      ) : (
+        <>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+              gap: "16px",
+            }}
+          >
+            {foods.map((food) => (
+              <FoodCard
+                key={food.id}
+                food={food}
+                isDark={isDark}
+                onAddToCart={handleAddToCart}
+              />
+            ))}
+          </Box>
+          {foods.length === 0 && (
+            <Typography
+              variant="body2"
+              sx={{ textAlign: "center", color: "#888", marginTop: "40px" }}
+            >
+              Tidak ada makanan ditemukan.
+            </Typography>
+          )}
+        </>
+      )}
+
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={closeSnackbar}
+      />
     </Box>
   );
 }
 
-export default FoodMenuPage;
+export default FoodOrderPage;

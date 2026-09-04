@@ -1,15 +1,21 @@
-import { Routes, Route } from "react-router";
+import { Routes, Route } from "react-router-dom";
+import AppLayout from "./components/AppLayout";
 import LoginPage from "./pages/Login";
-import ExamplePage from "./pages/Example";
 import RegisterPage from "./pages/Register";
+import FoodOrderPage from "./pages/FoodMenuPage";
+import ExamplePage from "./pages/Example";
 
 function App() {
   return (
-    <Routes>
-      <Route index element={<LoginPage />} />
-      <Route path="login" element={<Login />} />
-      <Route path="example" element={<Example />} />
-    </Routes>
+    <AppLayout>
+      <Routes>
+        <Route index element={<LoginPage />} />
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+        <Route path="food-menu" element={<FoodOrderPage />} />
+        <Route path="example" element={<ExamplePage />} />
+      </Routes>
+    </AppLayout>
   );
 }
 

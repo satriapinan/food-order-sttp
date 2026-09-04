@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import AppButton from "../components/AppButton";
@@ -30,14 +30,12 @@ function ExamplePage() {
   const navigate = useNavigate();
 
   const toLogin = () => {
-    // window.location.href = "/login";
     navigate("/login");
   };
 
   if (show) {
     return (
       <Grid container>
-        {/* MANUAL */}
         <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
           <button
             onClick={toLogin}
@@ -47,7 +45,6 @@ function ExamplePage() {
           </button>
         </Grid>
 
-        {/* MENGGUNAKAN MUI */}
         {count > 1 && (
           <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
             <Button
@@ -66,7 +63,6 @@ function ExamplePage() {
           </Grid>
         )}
 
-        {/* MENGGUNAKAN CUSTOM COMPONENT */}
         <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
           <AppButton onClick={() => setCount((count) => count + 1)}>
             Tambah 1
@@ -76,7 +72,6 @@ function ExamplePage() {
           </AppButton>
         </Grid>
 
-        {/* HASIL */}
         <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
           {count}
         </Grid>

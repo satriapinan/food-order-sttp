@@ -1,24 +1,41 @@
-import React from "react";
+import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { Link, useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import AppButton from "../components/AppButton";
+import AppSnackbar from "../components/AppSnackbar";
+import { registerUser } from "../services/api";
 
 const registerSchema = Yup.object({
-  username: Yup.string().required("Username harus diisi"),
+  username: Yup.string()
+    .min(3, "Username minimal 3 karakter")
+    .required("Username harus diisi"),
   fullName: Yup.string().required("Nama lengkap harus diisi"),
   password: Yup.string()
     .min(6, "Password minimal 6 karakter")
     .required("Password harus diisi"),
   confirmPassword: Yup.string()
-    .oneOf([Yup.ref("password"), null], "Password tidak cocok")
+    .oneOf([Yup.ref("password")], "Konfirmasi password tidak cocok")
     .required("Konfirmasi password harus diisi"),
 });
 
 function RegisterPage() {
+  const navigate = useNavigate();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") return;
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
+
   const formik = useFormik({
     initialValues: {
       username: "",
@@ -27,8 +44,38 @@ function RegisterPage() {
       confirmPassword: "",
     },
     validationSchema: registerSchema,
-    onSubmit: (values) => {
-      console.log("Data Register:", values);
+    onSubmit: async (values, { setSubmitting, resetForm }) => {
+      try {
+        const data = await registerUser({
+          username: values.username,
+          fullname: values.fullName,
+          password: values.password,
+          retypePassword: values.confirmPassword,
+        });
+
+        setSnackbar({
+          open: true,
+          message: data.message || "Registrasi berhasil! Silakan login.",
+          severity: "success",
+        });
+
+        resetForm();
+
+        setTimeout(() => {
+          navigate("/login");
+        }, 1500);
+      } catch (error) {
+        setSnackbar({
+          open: true,
+          message:
+            error.response?.data?.message ||
+            error.message ||
+            "Terjadi kesalahan saat registrasi",
+          severity: "error",
+        });
+      } finally {
+        setSubmitting(false);
+      }
     },
   });
 
@@ -53,7 +100,11 @@ function RegisterPage() {
           textAlign: "center",
         }}
       >
-        <Typography component="h1" variant="h5" sx={{ marginBottom: 3 }}>
+        <Typography
+          component="h1"
+          variant="h5"
+          sx={{ marginBottom: 3, fontWeight: 700 }}
+        >
           Daftar Akun
         </Typography>
 
@@ -118,14 +169,37 @@ function RegisterPage() {
           />
 
           <Box sx={{ marginTop: 3 }}>
-            <AppButton type="submit">Daftar</AppButton>
+            <AppButton
+              type="submit"
+              disabled={formik.isSubmitting}
+              sx={{ width: "100%", py: 1.2 }}
+            >
+              {formik.isSubmitting ? "Mendaftarkan..." : "Daftar"}
+            </AppButton>
           </Box>
         </Box>
 
         <Typography variant="body2" sx={{ marginTop: 3 }}>
-          Sudah punya akun? <a href="/login">Login</a>
+          Sudah punya akun?{" "}
+          <Link
+            to="/login"
+            style={{
+              color: "#6D5BD0",
+              textDecoration: "none",
+              fontWeight: 600,
+            }}
+          >
+            Login
+          </Link>
         </Typography>
       </Paper>
+
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={handleCloseSnackbar}
+      />
     </Box>
   );
 }
