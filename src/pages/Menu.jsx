@@ -99,29 +99,64 @@ const api = {
           image:
             "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=500&q=80",
         },
+        {
+          id: 6,
+          categoryId: "indo",
+          categoryName: "Indonesian Food",
+          name: "Sate Ayam Madura",
+          price: "Rp. 28.000",
+          status: "Bestseller",
+          rating: 4.9,
+          image:
+            "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500&q=80",
+        },
+        {
+          id: 7,
+          categoryId: "western",
+          categoryName: "Western Food",
+          name: "Burger Keju Leleh",
+          price: "Rp. 30.000",
+          status: "Promo",
+          rating: 4.6,
+          image:
+            "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+        },
+        {
+          id: 8,
+          categoryId: "asian",
+          categoryName: "Asian Food",
+          name: "Ramen Kuah Gurih",
+          price: "Rp. 32.000",
+          status: "Tersedia",
+          rating: 4.8,
+          image:
+            "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=500&q=80",
+        },
       ];
 
       if (params?.foodName) {
         allFoods = allFoods.filter((f) =>
-          f.name.toLowerCase().includes(params.foodName.toLowerCase()),
+          f.name.toLowerCase().includes(params.foodName.trim().toLowerCase()),
         );
       }
       if (params?.categoryId) {
         allFoods = allFoods.filter((f) => f.categoryId === params.categoryId);
       }
       if (params?.sortBy === "price") {
-        allFoods.sort((a, b) => {
-          const priceA = parseInt(a.price.replace(/\D/g, ""));
-          const priceB = parseInt(b.price.replace(/\D/g, ""));
-          return priceA - priceB;
-        });
+        allFoods.sort(
+          (a, b) =>
+            parseInt(a.price.replace(/[^0-9]/g, ""), 10) -
+            parseInt(b.price.replace(/[^0-9]/g, ""), 10),
+        );
       } else if (params?.sortBy === "name") {
         allFoods.sort((a, b) => a.name.localeCompare(b.name));
       }
+
       return { data: { data: allFoods } };
     }
+    return { data: { data: [] } };
   },
-  post: async (url, body) => {
+  post: async () => {
     await new Promise((resolve) => setTimeout(resolve, 300));
     return { data: "success" };
   },
@@ -131,6 +166,7 @@ const MenuPage = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { mode, toggleTheme } = useTheme();
+  const isDark = mode === "dark";
 
   const [foods, setFoods] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -147,12 +183,25 @@ const MenuPage = () => {
   const { search, category, sortBy } = formik.values;
 
   useEffect(() => {
-    api.get("/food-order/categories").then((res) => {
-      setCategories(res.data.data || []);
-    });
+    let isMounted = true;
+    api
+      .get("/food-order/categories")
+      .then((res) => {
+        if (isMounted) {
+          setCategories(res?.data?.data || []);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setCategories([]);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
     setLoading(true);
     const params = { pageSize: 100 };
     if (search) params.foodName = search;
@@ -162,11 +211,22 @@ const MenuPage = () => {
     api
       .get("/food-order/foods", { params })
       .then((res) => {
-        setFoods(res.data.data || []);
+        if (isMounted) {
+          setFoods(res?.data?.data || []);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setFoods([]);
       })
       .finally(() => {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       });
+
+    return () => {
+      isMounted = false;
+    };
   }, [search, category, sortBy]);
 
   const categoryOptions = useMemo(() => {
@@ -203,29 +263,44 @@ const MenuPage = () => {
 
   const handleCloseSnackbar = (event, reason) => {
     if (reason === "clickaway") return;
-    setSnackbar({ ...snackbar, open: false });
+    setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
   const inputStyle = {
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    backgroundColor: isDark
+      ? "rgba(255, 255, 255, 0.07)"
+      : "rgba(255, 255, 255, 0.8)",
+    color: isDark ? "#f5f6fa" : "#2d3436",
     borderRadius: "14px",
     "& .MuiOutlinedInput-root": {
       borderRadius: "14px",
       transition: "all 0.3s",
-      "& fieldset": { borderColor: "transparent" },
+      "& fieldset": {
+        borderColor: isDark ? "rgba(255, 255, 255, 0.15)" : "transparent",
+      },
       "&:hover fieldset": { borderColor: "rgba(255, 126, 95, 0.5)" },
       "&.Mui-focused fieldset": { borderColor: "#ff7e5f", borderWidth: "2px" },
       "&.Mui-focused": { boxShadow: "0 0 15px rgba(255, 126, 95, 0.2)" },
+    },
+    "& .MuiSelect-select": {
+      color: isDark ? "#f5f6fa" : "#2d3436",
+    },
+    "& .MuiInputBase-input": {
+      color: isDark ? "#f5f6fa" : "#2d3436",
     },
   };
 
   return (
     <Box
       sx={{
-        background: "linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%)",
+        background: isDark
+          ? "radial-gradient(ellipse at top, #1e1e24 0%, #121212 100%)"
+          : "linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%)",
         minHeight: "100vh",
         py: 4,
         fontFamily: "'Inter', 'Segoe UI', sans-serif",
+        color: isDark ? "#f5f6fa" : "#2d3436",
+        transition: "all 0.3s ease-in-out",
       }}
     >
       <Container maxWidth="lg">
@@ -235,40 +310,54 @@ const MenuPage = () => {
           <Button
             size="small"
             onClick={toggleTheme}
-            startIcon={mode === "light" ? <DarkModeIcon /> : <LightModeIcon />}
+            startIcon={isDark ? <LightModeIcon /> : <DarkModeIcon />}
             sx={{
-              backgroundColor: "rgba(255,255,255,0.9)",
-              color: "#ff7e5f",
+              backgroundColor: isDark
+                ? "rgba(255, 255, 255, 0.08)"
+                : "rgba(255, 255, 255, 0.9)",
+              color: isDark ? "#feca57" : "#ff7e5f",
               textTransform: "none",
               px: 2,
               py: 1,
               borderRadius: "12px",
               fontWeight: "900",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+              boxShadow: isDark
+                ? "0 4px 15px rgba(0,0,0,0.4)"
+                : "0 4px 15px rgba(0,0,0,0.1)",
+              border: "1px solid",
+              borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "transparent",
               "&:hover": {
-                backgroundColor: "#fff",
+                backgroundColor: isDark ? "rgba(255, 255, 255, 0.15)" : "#fff",
                 transform: "translateY(-2px)",
               },
               transition: "all 0.2s",
             }}
           >
-            {mode === "light" ? "Dark" : "Light"}
+            {isDark ? "Light" : "Dark"}
           </Button>
           <Button
             size="small"
             onClick={handleLogout}
             startIcon={<LogoutIcon />}
             sx={{
-              backgroundColor: "rgba(255,255,255,0.9)",
-              color: "#d63031",
+              backgroundColor: isDark
+                ? "rgba(255, 255, 255, 0.08)"
+                : "rgba(255, 255, 255, 0.9)",
+              color: isDark ? "#ff6b6b" : "#d63031",
               textTransform: "none",
               px: 2,
               py: 1,
               borderRadius: "12px",
               fontWeight: "900",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+              boxShadow: isDark
+                ? "0 4px 15px rgba(0,0,0,0.4)"
+                : "0 4px 15px rgba(0,0,0,0.1)",
+              border: "1px solid",
+              borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "transparent",
               "&:hover": {
-                backgroundColor: "#ffebee",
+                backgroundColor: isDark
+                  ? "rgba(255, 107, 107, 0.15)"
+                  : "#ffebee",
                 transform: "translateY(-2px)",
               },
               transition: "all 0.2s",
@@ -281,13 +370,21 @@ const MenuPage = () => {
         <Box
           component="form"
           sx={{
-            backgroundColor: "rgba(255, 255, 255, 0.85)",
+            backgroundColor: isDark
+              ? "rgba(30, 30, 36, 0.85)"
+              : "rgba(255, 255, 255, 0.85)",
             backdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.5)",
+            border: "1px solid",
+            borderColor: isDark
+              ? "rgba(255, 255, 255, 0.1)"
+              : "rgba(255,255,255,0.5)",
             borderRadius: "24px",
             p: { xs: 3, md: 5 },
             mb: 5,
-            boxShadow: "0 15px 35px rgba(255, 126, 95, 0.2)",
+            boxShadow: isDark
+              ? "0 20px 45px rgba(0, 0, 0, 0.7), 0 0 25px rgba(255, 126, 95, 0.15)"
+              : "0 15px 35px rgba(255, 126, 95, 0.2)",
+            transition: "all 0.3s ease-in-out",
           }}
         >
           <Box
@@ -304,7 +401,12 @@ const MenuPage = () => {
               variant="h3"
               align="center"
               fontWeight="900"
-              sx={{ color: "#ff7e5f", letterSpacing: "-1px" }}
+              sx={{
+                background: "linear-gradient(45deg, #ff7e5f, #feb47b)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                letterSpacing: "-1px",
+              }}
             >
               Food Margi
             </Typography>
@@ -313,13 +415,16 @@ const MenuPage = () => {
             variant="subtitle1"
             align="center"
             fontWeight="600"
-            sx={{ color: "#636e72", mb: 4 }}
+            sx={{
+              color: isDark ? "#a4b0be" : "#636e72",
+              mb: 4,
+            }}
           >
             Eksplorasi rasa, temukan makanan favoritmu hari ini! ✨
           </Typography>
 
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid item xs={12} md={6} size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 name="search"
@@ -339,7 +444,7 @@ const MenuPage = () => {
                 }}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid item xs={12} sm={6} md={3} size={{ xs: 12, sm: 6, md: 3 }}>
               <Select
                 fullWidth
                 displayEmpty
@@ -348,9 +453,9 @@ const MenuPage = () => {
                 onChange={formik.handleChange}
                 sx={inputStyle}
               >
-                {categoryOptions.map((opt, index) => (
+                {categoryOptions.map((opt) => (
                   <MenuItem
-                    key={index}
+                    key={opt.value || "all"}
                     value={opt.value}
                     sx={{ fontWeight: "600" }}
                   >
@@ -359,7 +464,7 @@ const MenuPage = () => {
                 ))}
               </Select>
             </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid item xs={12} sm={6} md={3} size={{ xs: 12, sm: 6, md: 3 }}>
               <Select
                 fullWidth
                 displayEmpty
@@ -391,40 +496,64 @@ const MenuPage = () => {
               py: 10,
             }}
           >
-            <CircularProgress sx={{ color: "#fff" }} size={60} thickness={4} />
+            <CircularProgress
+              sx={{ color: "#ff7e5f" }}
+              size={60}
+              thickness={4}
+            />
           </Box>
         ) : (
           <Grid container rowSpacing={5} columnSpacing={3}>
             {foods.length > 0 ? (
               foods.map((item) => (
-                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={item.id}>
+                <Grid
+                  item
+                  xs={12}
+                  sm={6}
+                  md={4}
+                  lg={3}
+                  size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
+                  key={item.id}
+                >
                   <FoodCard item={item} onAddToCart={handleAddToCart} />
                 </Grid>
               ))
             ) : (
-              <Grid size={{ xs: 12 }}>
+              <Grid item xs={12} size={{ xs: 12 }}>
                 <Box
                   sx={{
                     textAlign: "center",
                     py: 8,
-                    backgroundColor: "rgba(255,255,255,0.2)",
+                    backgroundColor: isDark
+                      ? "rgba(30, 30, 36, 0.6)"
+                      : "rgba(255, 255, 255, 0.2)",
                     borderRadius: "24px",
                     backdropFilter: "blur(10px)",
+                    border: "1px solid",
+                    borderColor: isDark
+                      ? "rgba(255, 255, 255, 0.08)"
+                      : "transparent",
                   }}
                 >
                   <Typography
                     variant="h5"
                     fontWeight="900"
                     sx={{
-                      color: "#fff",
-                      textShadow: "0 2px 10px rgba(0,0,0,0.2)",
+                      color: isDark ? "#f5f6fa" : "#fff",
+                      textShadow: isDark
+                        ? "none"
+                        : "0 2px 10px rgba(0,0,0,0.2)",
                     }}
                   >
                     Yah, makanan yang kamu cari tidak ditemukan 🥲
                   </Typography>
                   <Typography
                     variant="body1"
-                    sx={{ color: "#fff", mt: 1, opacity: 0.9 }}
+                    sx={{
+                      color: isDark ? "#a4b0be" : "#fff",
+                      mt: 1,
+                      opacity: 0.9,
+                    }}
                   >
                     Coba gunakan kata kunci pencarian yang lain.
                   </Typography>

@@ -9,11 +9,16 @@ import {
   InputAdornment,
   IconButton,
   CircularProgress,
+  Button,
+  Tooltip,
 } from "@mui/material";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
 
+import { useTheme } from "../hooks/useTheme";
 import AppButton from "../components/AppButton";
 import AppTextField from "../components/AppTextField";
 
@@ -30,6 +35,9 @@ const registerSchema = Yup.object({
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const { mode, toggleTheme } = useTheme();
+  const isDark = mode === "dark";
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,24 +72,75 @@ const RegisterPage = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%)",
+        background: isDark
+          ? "radial-gradient(ellipse at top, #1e1e24 0%, #121212 100%)"
+          : "linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%)",
+        color: isDark ? "#f5f6fa" : "#2d3436",
         p: 2,
+        position: "relative",
+        transition: "all 0.3s ease-in-out",
       }}
     >
+      {/* Tombol Dark Mode di Pojok Kanan Atas */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: { xs: 16, sm: 24 },
+          right: { xs: 16, sm: 24 },
+        }}
+      >
+        <Tooltip title={isDark ? "Ganti ke Light Mode" : "Ganti ke Dark Mode"}>
+          <Button
+            onClick={toggleTheme}
+            size="small"
+            startIcon={isDark ? <LightModeIcon /> : <DarkModeIcon />}
+            sx={{
+              backgroundColor: isDark
+                ? "rgba(255, 255, 255, 0.08)"
+                : "rgba(255, 255, 255, 0.85)",
+              color: isDark ? "#feca57" : "#ff7e5f",
+              textTransform: "none",
+              px: 2,
+              py: 0.8,
+              borderRadius: "12px",
+              fontWeight: "700",
+              boxShadow: isDark
+                ? "0 4px 15px rgba(0,0,0,0.4)"
+                : "0 4px 15px rgba(0,0,0,0.1)",
+              backdropFilter: "blur(8px)",
+              border: "1px solid",
+              borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.5)",
+              "&:hover": {
+                backgroundColor: isDark
+                  ? "rgba(255, 255, 255, 0.15)"
+                  : "#ffffff",
+                transform: "translateY(-2px)",
+              },
+              transition: "all 0.2s ease-in-out",
+            }}
+          >
+            {isDark ? "Light" : "Dark"}
+          </Button>
+        </Tooltip>
+      </Box>
+
       <Box
         sx={{
           maxWidth: 450,
           width: "100%",
           p: { xs: 4, sm: 5 },
           borderRadius: "24px",
-          boxShadow:
-            "0 15px 35px rgba(255, 126, 95, 0.5), inset 0 0 10px rgba(255,255,255,0.5)",
-          bgcolor: "rgba(255, 255, 255, 0.85)",
+          boxShadow: isDark
+            ? "0 20px 45px rgba(0, 0, 0, 0.7), 0 0 25px rgba(255, 126, 95, 0.15)"
+            : "0 15px 35px rgba(255, 126, 95, 0.5), inset 0 0 10px rgba(255,255,255,0.5)",
+          bgcolor: isDark ? "rgba(30, 30, 36, 0.85)" : "rgba(255, 255, 255, 0.85)",
           backdropFilter: "blur(16px) saturate(180%)",
-          border: "1px solid rgba(255, 255, 255, 0.6)",
+          border: "1px solid",
+          borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.6)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
+          transition: "all 0.3s ease-in-out",
         }}
       >
         <Avatar
@@ -99,17 +158,26 @@ const RegisterPage = () => {
         <Typography
           component="h1"
           variant="h4"
-          color="#e65c00"
-          mb={0.5}
-          sx={{ fontWeight: "900", textAlign: "center" }}
+          sx={{
+            fontWeight: "900",
+            textAlign: "center",
+            mb: 0.5,
+            background: "linear-gradient(45deg, #ff7e5f, #feb47b)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}
         >
           Food Margi
         </Typography>
         <Typography
           variant="body2"
-          color="text.secondary"
           mb={4}
-          sx={{ fontSize: "15px", fontWeight: "500", textAlign: "center" }}
+          sx={{
+            fontSize: "15px",
+            fontWeight: "500",
+            textAlign: "center",
+            color: isDark ? "#a4b0be" : "text.secondary",
+          }}
         >
           Buat akun baru untuk mulai memesan
         </Typography>
@@ -155,6 +223,7 @@ const RegisterPage = () => {
                 <IconButton
                   onClick={() => setShowPassword(!showPassword)}
                   edge="end"
+                  sx={{ color: isDark ? "#a4b0be" : "inherit" }}
                 >
                   {showPassword ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
@@ -182,6 +251,7 @@ const RegisterPage = () => {
                 <IconButton
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   edge="end"
+                  sx={{ color: isDark ? "#a4b0be" : "inherit" }}
                 >
                   {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
@@ -209,13 +279,17 @@ const RegisterPage = () => {
 
         <Typography
           variant="body2"
-          sx={{ textAlign: "center", fontWeight: "500" }}
+          sx={{
+            textAlign: "center",
+            fontWeight: "500",
+            color: isDark ? "#ced6e0" : "inherit",
+          }}
         >
           Sudah punya akun?{" "}
           <Box
             component="span"
             sx={{
-              color: "#e65c00",
+              color: isDark ? "#feb47b" : "#e65c00",
               fontWeight: "900",
               cursor: "pointer",
               "&:hover": {
