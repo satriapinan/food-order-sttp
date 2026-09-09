@@ -424,7 +424,7 @@ const MenuPage = () => {
           </Typography>
 
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6} size={{ xs: 12, md: 6 }}>
+            <Grid xs={12} md={6} size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 name="search"
@@ -444,7 +444,7 @@ const MenuPage = () => {
                 }}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3} size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid xs={12} sm={6} md={3} size={{ xs: 12, sm: 6, md: 3 }}>
               <Select
                 fullWidth
                 displayEmpty
@@ -464,7 +464,7 @@ const MenuPage = () => {
                 ))}
               </Select>
             </Grid>
-            <Grid item xs={12} sm={6} md={3} size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid xs={12} sm={6} md={3} size={{ xs: 12, sm: 6, md: 3 }}>
               <Select
                 fullWidth
                 displayEmpty
@@ -507,7 +507,6 @@ const MenuPage = () => {
             {foods.length > 0 ? (
               foods.map((item) => (
                 <Grid
-                  item
                   xs={12}
                   sm={6}
                   md={4}
@@ -519,7 +518,7 @@ const MenuPage = () => {
                 </Grid>
               ))
             ) : (
-              <Grid item xs={12} size={{ xs: 12 }}>
+              <Grid xs={12} size={{ xs: 12 }}>
                 <Box
                   sx={{
                     textAlign: "center",
