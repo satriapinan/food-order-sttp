@@ -18,55 +18,105 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 
-// Import hooks & reusable custom components
-import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
 import AppButton from "../components/AppButton";
 import AppTextField from "../components/AppTextField";
 
-// Skema Validasi
-const loginSchema = Yup.object({
-  username: Yup.string().required("Username wajib diisi"),
+// IMPORT API
+import api from "../services/api";
+
+const registerSchema = Yup.object({
+  username: Yup.string().required("Nama pengguna wajib diisi"),
+  fullname: Yup.string().required("Nama lengkap wajib diisi"),
   password: Yup.string()
-    .min(6, "Password minimal 6 karakter")
-    .required("Password wajib diisi"),
+    .min(6, "Kata sandi minimal 6 karakter")
+    .required("Kata sandi wajib diisi"),
+  retypePassword: Yup.string()
+    .oneOf([Yup.ref("password"), null], "Konfirmasi kata sandi harus sama")
+    .required("Konfirmasi kata sandi wajib diisi"),
 });
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const { mode, toggleTheme } = useTheme();
   const isDark = mode === "dark";
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const formik = useFormik({
-    initialValues: { username: "", password: "" },
-    validationSchema: loginSchema,
+    initialValues: {
+      username: "",
+      fullname: "",
+      password: "",
+      retypePassword: "",
+    },
+    validationSchema: registerSchema,
     onSubmit: async (values) => {
       setIsLoading(true);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        // ✅ PATH DAN FIELD YANG BENAR (sesuai Swagger)
+        const response = await api.post("/user-management/users/sign-up", {
+          username: values.username,
+          fullname: values.fullname,
+          password: values.password,
+          retypePassword: values.retypePassword,
+        });
 
-        const userData = {
-          token: "token-rahasia-12345",
-          user: {
-            id: 99,
-            username: values.username,
-            fullname: "Pengguna Setia",
-          },
-        };
+        console.log("Response register:", response.data);
 
-        login(userData);
-        navigate("/menu");
+        alert("Yeay! Akun berhasil dibuat. Silakan login.");
+        navigate("/login");
       } catch (error) {
-        console.error("Gagal login:", error);
+        console.error("Gagal mendaftar:", error);
+
+        const errorData = error.response?.data;
+        const errorMessage =
+          errorData?.message ||
+          errorData?.error ||
+          (errorData
+            ? JSON.stringify(errorData)
+            : error.message || "Gagal mendaftar! Periksa server kamu.");
+        alert("Pesan dari server: " + errorMessage);
       } finally {
         setIsLoading(false);
       }
     },
   });
+
+  // ===== END ADORNMENT (FITUR MATA) =====
+  const passwordEndAdornment = (
+    <InputAdornment position="end">
+      <IconButton
+        onClick={() => setShowPassword((prev) => !prev)}
+        onMouseDown={(e) => e.preventDefault()}
+        edge="end"
+        aria-label={
+          showPassword ? "Sembunyikan password" : "Tampilkan password"
+        }
+        sx={{ color: isDark ? "#a4b0be" : "inherit" }}
+      >
+        {showPassword ? <VisibilityOff /> : <Visibility />}
+      </IconButton>
+    </InputAdornment>
+  );
+
+  const confirmPasswordEndAdornment = (
+    <InputAdornment position="end">
+      <IconButton
+        onClick={() => setShowConfirmPassword((prev) => !prev)}
+        onMouseDown={(e) => e.preventDefault()}
+        edge="end"
+        aria-label={
+          showConfirmPassword ? "Sembunyikan password" : "Tampilkan password"
+        }
+        sx={{ color: isDark ? "#a4b0be" : "inherit" }}
+      >
+        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+      </IconButton>
+    </InputAdornment>
+  );
 
   return (
     <Box
@@ -84,7 +134,7 @@ const LoginPage = () => {
         transition: "all 0.3s ease-in-out",
       }}
     >
-      {/* Tombol Dark Mode di Pojok Kanan Atas */}
+      {/* Tombol Dark Mode */}
       <Box
         sx={{
           position: "absolute",
@@ -112,7 +162,9 @@ const LoginPage = () => {
                 : "0 4px 15px rgba(0,0,0,0.1)",
               backdropFilter: "blur(8px)",
               border: "1px solid",
-              borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.5)",
+              borderColor: isDark
+                ? "rgba(255, 255, 255, 0.1)"
+                : "rgba(255, 255, 255, 0.5)",
               "&:hover": {
                 backgroundColor: isDark
                   ? "rgba(255, 255, 255, 0.15)"
@@ -129,17 +181,21 @@ const LoginPage = () => {
 
       <Box
         sx={{
-          maxWidth: 420,
+          maxWidth: 450,
           width: "100%",
           p: { xs: 4, sm: 5 },
           borderRadius: "24px",
           boxShadow: isDark
             ? "0 20px 45px rgba(0, 0, 0, 0.7), 0 0 25px rgba(255, 126, 95, 0.15)"
             : "0 15px 35px rgba(255, 126, 95, 0.5), inset 0 0 10px rgba(255,255,255,0.5)",
-          bgcolor: isDark ? "rgba(30, 30, 36, 0.85)" : "rgba(255, 255, 255, 0.85)",
+          bgcolor: isDark
+            ? "rgba(30, 30, 36, 0.85)"
+            : "rgba(255, 255, 255, 0.85)",
           backdropFilter: "blur(16px) saturate(180%)",
           border: "1px solid",
-          borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.6)",
+          borderColor: isDark
+            ? "rgba(255, 255, 255, 0.1)"
+            : "rgba(255, 255, 255, 0.6)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -158,6 +214,7 @@ const LoginPage = () => {
         >
           <RestaurantIcon fontSize="large" />
         </Avatar>
+
         <Typography
           component="h1"
           variant="h4"
@@ -172,6 +229,7 @@ const LoginPage = () => {
         >
           Food Margi
         </Typography>
+
         <Typography
           variant="body2"
           mb={4}
@@ -182,7 +240,7 @@ const LoginPage = () => {
             color: isDark ? "#a4b0be" : "text.secondary",
           }}
         >
-          Masuk ke akun kamu untuk memesan
+          Buat akun baru untuk mulai memesan
         </Typography>
 
         <Box
@@ -191,9 +249,9 @@ const LoginPage = () => {
           sx={{ width: "100%" }}
         >
           <AppTextField
-            label="Username"
-            type="text"
             name="username"
+            label="Nama Pengguna"
+            placeholder="Ketik username kamu"
             value={formik.values.username}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
@@ -202,40 +260,58 @@ const LoginPage = () => {
           />
 
           <AppTextField
-            label="Password"
-            type={showPassword ? "text" : "password"}
+            name="fullname"
+            label="Nama Lengkap"
+            placeholder="Ketik nama lengkap kamu"
+            value={formik.values.fullname}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.fullname && Boolean(formik.errors.fullname)}
+            helperText={formik.touched.fullname && formik.errors.fullname}
+          />
+
+          {/* ✅ PASSWORD — pakai endAdornment (sesuai AppTextField) */}
+          <AppTextField
             name="password"
+            label="Kata Sandi"
+            placeholder="Ketik kata sandi"
+            type={showPassword ? "text" : "password"}
             value={formik.values.password}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             error={formik.touched.password && Boolean(formik.errors.password)}
             helperText={formik.touched.password && formik.errors.password}
-            endAdornment={
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={() => setShowPassword(!showPassword)}
-                  edge="end"
-                  sx={{ color: isDark ? "#a4b0be" : "inherit" }}
-                >
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            }
+            endAdornment={passwordEndAdornment}
           />
 
-          <Box sx={{ mt: 3, mb: 3 }}>
-            <AppButton
-              type="submit"
-              disabled={isLoading}
-              onClick={formik.handleSubmit}
-            >
+          {/* ✅ CONFIRM PASSWORD — pakai endAdornment */}
+          <AppTextField
+            name="retypePassword"
+            label="Konfirmasi Kata Sandi"
+            placeholder="Ketik ulang kata sandi"
+            type={showConfirmPassword ? "text" : "password"}
+            value={formik.values.retypePassword}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={
+              formik.touched.retypePassword &&
+              Boolean(formik.errors.retypePassword)
+            }
+            helperText={
+              formik.touched.retypePassword && formik.errors.retypePassword
+            }
+            endAdornment={confirmPasswordEndAdornment}
+          />
+
+          <Box sx={{ mt: 2, mb: 3 }}>
+            <AppButton type="submit" disabled={isLoading}>
               {isLoading ? (
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <CircularProgress size={20} color="inherit" />
-                  Memproses...
+                  Mendaftar...
                 </Box>
               ) : (
-                "Login"
+                "Daftar"
               )}
             </AppButton>
           </Box>
@@ -249,7 +325,7 @@ const LoginPage = () => {
             color: isDark ? "#ced6e0" : "inherit",
           }}
         >
-          Belum punya akun?{" "}
+          Sudah punya akun?{" "}
           <Box
             component="span"
             sx={{
@@ -261,9 +337,9 @@ const LoginPage = () => {
                 textShadow: "0 0 8px rgba(255, 126, 95, 0.6)",
               },
             }}
-            onClick={() => navigate("/register")}
+            onClick={() => navigate("/login")}
           >
-            Daftar di sini
+            Masuk di sini
           </Box>
         </Typography>
       </Box>
@@ -271,4 +347,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;

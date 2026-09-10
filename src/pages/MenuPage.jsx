@@ -23,144 +23,10 @@ import SearchIcon from "@mui/icons-material/Search";
 
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
-
 import FoodCard from "../components/FoodCard";
 
-// API
-const api = {
-  get: async (url, { params } = {}) => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    if (url === "/food-order/categories") {
-      return {
-        data: {
-          data: [
-            { id: "indo", categoryName: "Indonesian Food" },
-            { id: "western", categoryName: "Western Food" },
-            { id: "asian", categoryName: "Asian Food" },
-            { id: "dessert", categoryName: "Desserts" },
-          ],
-        },
-      };
-    }
-    if (url === "/food-order/foods") {
-      let allFoods = [
-        {
-          id: 1,
-          categoryId: "indo",
-          categoryName: "Indonesian Food",
-          name: "Nasi Goreng Spesial",
-          price: "Rp. 25.000",
-          status: "Bestseller",
-          rating: 4.8,
-          image:
-            "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=500&q=80",
-        },
-        {
-          id: 2,
-          categoryId: "indo",
-          categoryName: "Indonesian Food",
-          name: "Mie Ayam Pangsit",
-          price: "Rp. 20.000",
-          status: "Tersedia",
-          rating: 4.5,
-          image:
-            "https://images.unsplash.com/photo-1552611052-33e04de081de?w=500&q=80",
-        },
-        {
-          id: 3,
-          categoryId: "western",
-          categoryName: "Western Food",
-          name: "Steak Ayam BBQ",
-          price: "Rp. 35.000",
-          status: "Promo",
-          rating: 4.9,
-          image:
-            "https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?w=500&q=80",
-        },
-        {
-          id: 4,
-          categoryId: "asian",
-          categoryName: "Asian Food",
-          name: "Gado-Gado Segar",
-          price: "Rp. 18.000",
-          status: "Tersedia",
-          rating: 4.6,
-          image:
-            "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500&q=80",
-        },
-        {
-          id: 5,
-          categoryId: "dessert",
-          categoryName: "Desserts",
-          name: "Es Krim Vanilla Oreo",
-          price: "Rp. 15.000",
-          status: "Bestseller",
-          rating: 4.7,
-          image:
-            "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=500&q=80",
-        },
-        {
-          id: 6,
-          categoryId: "indo",
-          categoryName: "Indonesian Food",
-          name: "Sate Ayam Madura",
-          price: "Rp. 28.000",
-          status: "Bestseller",
-          rating: 4.9,
-          image:
-            "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500&q=80",
-        },
-        {
-          id: 7,
-          categoryId: "western",
-          categoryName: "Western Food",
-          name: "Burger Keju Leleh",
-          price: "Rp. 30.000",
-          status: "Promo",
-          rating: 4.6,
-          image:
-            "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
-        },
-        {
-          id: 8,
-          categoryId: "asian",
-          categoryName: "Asian Food",
-          name: "Ramen Kuah Gurih",
-          price: "Rp. 32.000",
-          status: "Tersedia",
-          rating: 4.8,
-          image:
-            "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=500&q=80",
-        },
-      ];
-
-      if (params?.foodName) {
-        allFoods = allFoods.filter((f) =>
-          f.name.toLowerCase().includes(params.foodName.trim().toLowerCase()),
-        );
-      }
-      if (params?.categoryId) {
-        allFoods = allFoods.filter((f) => f.categoryId === params.categoryId);
-      }
-      if (params?.sortBy === "price") {
-        allFoods.sort(
-          (a, b) =>
-            parseInt(a.price.replace(/[^0-9]/g, ""), 10) -
-            parseInt(b.price.replace(/[^0-9]/g, ""), 10),
-        );
-      } else if (params?.sortBy === "name") {
-        allFoods.sort((a, b) => a.name.localeCompare(b.name));
-      }
-
-      return { data: { data: allFoods } };
-    }
-    return { data: { data: [] } };
-  },
-  post: async () => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return { data: "success" };
-  },
-};
+// IMPORT API
+import api from "../services/api";
 
 const MenuPage = () => {
   const navigate = useNavigate();
@@ -182,16 +48,27 @@ const MenuPage = () => {
   });
   const { search, category, sortBy } = formik.values;
 
+  // 1. Ambil Kategori dari API
+  // ⚠️ Kalau backend tidak punya endpoint /food-order/categories,
+  //    kategori akan kosong, tapi makanan tetap tampil.
   useEffect(() => {
     let isMounted = true;
+
     api
       .get("/food-order/categories")
       .then((res) => {
-        if (isMounted) {
-          setCategories(res?.data?.data || []);
-        }
+        if (!isMounted) return;
+        // Handle berbagai struktur response
+        const data =
+          res?.data?.data ||
+          res?.data?.content ||
+          (Array.isArray(res?.data) ? res.data : []);
+        setCategories(data);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Gagal mengambil kategori:", err);
+        // Tidak tampilkan snackbar error biar tidak ganggu.
+        // Kategori opsional, jadi silent fail aja.
         if (isMounted) setCategories([]);
       });
 
@@ -200,6 +77,7 @@ const MenuPage = () => {
     };
   }, []);
 
+  // 2. Ambil Makanan dari API
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
@@ -211,17 +89,27 @@ const MenuPage = () => {
     api
       .get("/food-order/foods", { params })
       .then((res) => {
-        if (isMounted) {
-          setFoods(res?.data?.data || []);
-        }
+        if (!isMounted) return;
+        // Handle berbagai struktur response
+        const data =
+          res?.data?.data ||
+          res?.data?.content ||
+          (Array.isArray(res?.data) ? res.data : []);
+        setFoods(data);
       })
-      .catch(() => {
-        if (isMounted) setFoods([]);
+      .catch((err) => {
+        console.error("Gagal mengambil data makanan:", err);
+        if (isMounted) {
+          setFoods([]);
+          setSnackbar({
+            open: true,
+            message: "Gagal memuat daftar makanan. Pastikan kamu sudah login.",
+            type: "error",
+          });
+        }
       })
       .finally(() => {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       });
 
     return () => {
@@ -234,23 +122,30 @@ const MenuPage = () => {
       { value: "", label: "🔥 Semua Kategori" },
       ...categories.map((c) => ({
         value: String(c.id),
-        label: c.categoryName,
+        // Handle berbagai nama field kategori
+        label: c.categoryName || c.name || c.category || "Kategori",
       })),
     ];
   }, [categories]);
 
   const handleAddToCart = async (food) => {
     try {
-      await api.post("/food-order/cart", { foodId: food.id });
+      // ⚠️ Cek Swagger: apakah backend minta quantity?
+      await api.post("/food-order/cart", {
+        foodId: food.id,
+        // quantity: 1,  // ← uncomment kalau backend minta
+      });
       setSnackbar({
         open: true,
-        message: `Yummy! ${food.name} masuk ke keranjang 🛒`,
+        message: `Yummy! ${food.name || food.foodName} masuk ke keranjang 🛒`,
         type: "success",
       });
     } catch (error) {
+      const errorMsg =
+        error.response?.data?.message || "Gagal menambahkan ke keranjang";
       setSnackbar({
         open: true,
-        message: "Gagal menambahkan makanan",
+        message: errorMsg,
         type: "error",
       });
     }
@@ -278,16 +173,12 @@ const MenuPage = () => {
       "& fieldset": {
         borderColor: isDark ? "rgba(255, 255, 255, 0.15)" : "transparent",
       },
-      "&:hover fieldset": { borderColor: "rgba(255, 126, 95, 0.5)" },
+      "& :hover fieldset": { borderColor: "rgba(255, 126, 95, 0.5)" },
       "&.Mui-focused fieldset": { borderColor: "#ff7e5f", borderWidth: "2px" },
       "&.Mui-focused": { boxShadow: "0 0 15px rgba(255, 126, 95, 0.2)" },
     },
-    "& .MuiSelect-select": {
-      color: isDark ? "#f5f6fa" : "#2d3436",
-    },
-    "& .MuiInputBase-input": {
-      color: isDark ? "#f5f6fa" : "#2d3436",
-    },
+    "& .MuiSelect-select": { color: isDark ? "#f5f6fa" : "#2d3436" },
+    "& .MuiInputBase-input": { color: isDark ? "#f5f6fa" : "#2d3436" },
   };
 
   return (
@@ -415,16 +306,13 @@ const MenuPage = () => {
             variant="subtitle1"
             align="center"
             fontWeight="600"
-            sx={{
-              color: isDark ? "#a4b0be" : "#636e72",
-              mb: 4,
-            }}
+            sx={{ color: isDark ? "#a4b0be" : "#636e72", mb: 4 }}
           >
             Eksplorasi rasa, temukan makanan favoritmu hari ini! ✨
           </Typography>
 
           <Grid container spacing={2}>
-            <Grid xs={12} md={6} size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 name="search"
@@ -444,7 +332,7 @@ const MenuPage = () => {
                 }}
               />
             </Grid>
-            <Grid xs={12} sm={6} md={3} size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Select
                 fullWidth
                 displayEmpty
@@ -464,7 +352,7 @@ const MenuPage = () => {
                 ))}
               </Select>
             </Grid>
-            <Grid xs={12} sm={6} md={3} size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Select
                 fullWidth
                 displayEmpty
@@ -473,14 +361,20 @@ const MenuPage = () => {
                 onChange={formik.handleChange}
                 sx={inputStyle}
               >
-                <MenuItem value="" disabled sx={{ fontWeight: "600" }}>
+                <MenuItem value="" sx={{ fontWeight: "600" }}>
                   Urutkan Berdasarkan
                 </MenuItem>
-                <MenuItem value="price" sx={{ fontWeight: "600" }}>
+                <MenuItem value="price,asc" sx={{ fontWeight: "600" }}>
                   💰 Harga Termurah
                 </MenuItem>
-                <MenuItem value="name" sx={{ fontWeight: "600" }}>
+                <MenuItem value="price,desc" sx={{ fontWeight: "600" }}>
+                  💰 Harga Termahal
+                </MenuItem>
+                <MenuItem value="name,asc" sx={{ fontWeight: "600" }}>
                   🔤 Nama A - Z
+                </MenuItem>
+                <MenuItem value="name,desc" sx={{ fontWeight: "600" }}>
+                  🔤 Nama Z - A
                 </MenuItem>
               </Select>
             </Grid>
@@ -506,19 +400,12 @@ const MenuPage = () => {
           <Grid container rowSpacing={5} columnSpacing={3}>
             {foods.length > 0 ? (
               foods.map((item) => (
-                <Grid
-                  xs={12}
-                  sm={6}
-                  md={4}
-                  lg={3}
-                  size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
-                  key={item.id}
-                >
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={item.id}>
                   <FoodCard item={item} onAddToCart={handleAddToCart} />
                 </Grid>
               ))
             ) : (
-              <Grid xs={12} size={{ xs: 12 }}>
+              <Grid size={{ xs: 12 }}>
                 <Box
                   sx={{
                     textAlign: "center",
@@ -544,17 +431,7 @@ const MenuPage = () => {
                         : "0 2px 10px rgba(0,0,0,0.2)",
                     }}
                   >
-                    Yah, makanan yang kamu cari tidak ditemukan 🥲
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      color: isDark ? "#a4b0be" : "#fff",
-                      mt: 1,
-                      opacity: 0.9,
-                    }}
-                  >
-                    Coba gunakan kata kunci pencarian yang lain.
+                    Yah, data makanan kosong atau gagal dimuat 🥲
                   </Typography>
                 </Box>
               </Grid>
@@ -565,7 +442,7 @@ const MenuPage = () => {
 
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={3000}
+        autoHideDuration={4000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
@@ -577,8 +454,6 @@ const MenuPage = () => {
             width: "100%",
             fontWeight: "900",
             borderRadius: "16px",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
-            fontSize: "15px",
             py: 1.5,
           }}
         >

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useMemo, useState } from "react";
 import { ThemeContext } from "./ThemeContext";
 
@@ -10,7 +11,10 @@ export const ThemeProvider = ({ children }) => {
     setMode(newMode);
   };
 
-  const contextValue = useMemo(() => ({ mode, toggleTheme }), [mode]);
+  const contextValue = useMemo(
+    () => ({ mode, toggleTheme }),
+    [mode, toggleTheme],
+  );
 
   return (
     <ThemeContext.Provider value={contextValue}>

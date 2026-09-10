@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import LoginPage from "./pages/Login.jsx";
-import RegisterPage from "./pages/Register.jsx";
-import MenuPage from "./pages/Menu.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import RegisterPage from "./pages/RegisterPage.jsx";
+import MenuPage from "./pages/MenuPage.jsx";
 
 function App() {
   return (
