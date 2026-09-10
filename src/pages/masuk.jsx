@@ -2,7 +2,7 @@ import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import {Link, useNavigate} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from 'react';
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -15,72 +15,110 @@ import AppSnackbar from "../components/AppSnackbar";
 import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
 
 const masukSchema = Yup.object({
-  email:Yup.string()
-  .email("Format email tidak valid")
-  .required("Email harus diisi"),
+  email: Yup.string()
+    .email("Format email tidak valid")
+    .required("Email harus diisi"),
   password: Yup.string()
-  .min(6, "Password minimal 6 karakter")
-  .required("Password harus diisi"),
+    .min(6, "Password minimal 6 karakter")
+    .required("Password harus diisi"),
 });
 
 export default function MasukPage() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const { masuk } = useAuth();
-    const { mode } = useTheme();
-    const isDark = mode === "dark";
-    
-    const [notification, setNotification] = useState({
-      open: false,
-      message: "",
-      severity: "success",
-    });
+  const { masuk } = useAuth();
+  const { mode } = useTheme();
+  const isDark = mode === "dark";
 
-    const handleCloseNotification = () => {
-      setNotification((prev) => ({...prev, open: false}));
-    };
+  const [notification, setNotification] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
-    const formik = useFormik({
-      initialValues:{
-        email:"tiara@gmail.com",
-        password:"taf12345",
-      },
-      validationSchema:masukSchema,
-      onSubmit: async (values) =>{
+  const handleCloseNotification = () => {
+    setNotification((prev) => ({ ...prev, open: false }));
+  };
+
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validationSchema: masukSchema,
+    onSubmit: async (values, { setSubmitting }) => {
+      const cleanedEmail = values.email.trim();
+      const cleanedPassword = values.password;
+
+      try {
+        let loggedInUser = null;
+
+        // 1. Try signing in via API backend
         try {
           const payload = {
-            username: values.email,
-            email: values.email,
-            password: values.password,
+            username: cleanedEmail,
+            email: cleanedEmail,
+            password: cleanedPassword,
           };
           const res = await api.post("/user-management/users/sign-in", payload);
-          const userData = res.data?.data || res.data;
-
-          if (masuk) {
-            masuk(userData);
+          if (res.data) {
+            const resUserData = res.data.user || res.data?.data || res.data;
+            loggedInUser = {
+              ...resUserData,
+              token: res.data.token || resUserData.token,
+              email: cleanedEmail,
+            };
           }
-
-          setNotification({
-            open:true,
-            message:'Login berhasil!',
-            severity:"success",
-          });
-
-          setTimeout(() => {
-            navigate("/beranda");
-          }, 1500);
-
-        } catch (err) {
-          const errorMessage =
-          err.response?.data?.message ||
-          "Login gagal! Periksa email dan password Anda.";
-          setNotification({
-            open:true,
-            message:errorMessage,
-            severity:"error",
-          });
+        } catch (apiErr) {
+          // If API fails (e.g. server offline or user only registered locally), fallback to local storage check
         }
-      },
+
+        // 2. Fallback: Validate against registered users in localStorage
+        if (!loggedInUser) {
+          const registeredUsers = JSON.parse(localStorage.getItem("registeredUsers")) || [];
+          const userFound = registeredUsers.find(
+            (u) => u.email?.trim()?.toLowerCase() === cleanedEmail.toLowerCase()
+          );
+
+          if (userFound) {
+            if (userFound.password === cleanedPassword) {
+              loggedInUser = userFound;
+            } else {
+              throw new Error("Password yang Anda masukkan salah!");
+            }
+          } else if (cleanedEmail.toLowerCase() === "tiara@gmail.com" && cleanedPassword === "taf12345") {
+            // Default demo account compatibility
+            loggedInUser = { name: "Tiara", email: cleanedEmail };
+          } else {
+            throw new Error("Email belum terdaftar! Silakan daftar akun baru terlebih dahulu.");
+          }
+        }
+
+        if (masuk && loggedInUser) {
+          masuk(loggedInUser);
+        }
+
+        setNotification({
+          open: true,
+          message: 'Login berhasil!',
+          severity: "success",
+        });
+
+        setTimeout(() => {
+          navigate("/beranda");
+        }, 1500);
+
+      } catch (err) {
+        const errorMessage = err.message || "Login gagal! Periksa email dan password Anda.";
+        setNotification({
+          open: true,
+          message: errorMessage,
+          severity: "error",
+        });
+      } finally {
+        setSubmitting(false);
+      }
+    },
   });
 
   return (
@@ -129,17 +167,17 @@ export default function MasukPage() {
               <RestaurantMenuIcon sx={{ color: "#fff", fontSize: 32 }} />
             </Box>
 
-        <Typography 
-        variant="h4"
+            <Typography
+              variant="h4"
               sx={{
                 fontWeight: "bold",
                 color: isDark ? "#e0e0e0" : "#1a1a2e",
                 mb: 0.5,
               }}
             >
-          Masuk
-        </Typography>
-        <Typography
+              Masuk
+            </Typography>
+            <Typography
               variant="body2"
               sx={{ color: isDark ? "#9e9e9e" : "#666" }}
             >
@@ -148,26 +186,27 @@ export default function MasukPage() {
           </Box>
 
           <Box component="form" onSubmit={formik.handleSubmit} noValidate>
+            <AppTextField
+              label="Email"
+              type='email'
+              name="email"
+              value={formik.values.email}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.email && Boolean(formik.errors.email)}
+              helperText={formik.touched.email && formik.errors.email}
+            />
 
             <AppTextField
-            label="Email"
-            type='email'
-            name="email"
-            value={formik.values.email}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched.email && Boolean(formik.errors.email)}
-            helperText={formik.touched.email && formik.errors.email}/>
-
-            <AppTextField
-            label="Password"
-            type='password'
-            name="password"
-            value={formik.values.password}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched.password && Boolean(formik.errors.password)}
-            helperText={formik.touched.password && formik.errors.password}/>
+              label="Password"
+              type='password'
+              name="password"
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.password && Boolean(formik.errors.password)}
+              helperText={formik.touched.password && formik.errors.password}
+            />
 
             <AppButton
               type="submit"
@@ -206,13 +245,14 @@ export default function MasukPage() {
               </Link>
             </Typography>
           </Box>
-      </Paper>
-    </Container>
-    <AppSnackbar
+        </Paper>
+      </Container>
+      <AppSnackbar
         open={notification.open}
         message={notification.message}
         severity={notification.severity}
-        onClose={handleCloseNotification}/>
+        onClose={handleCloseNotification}
+      />
     </Box>
   );
-};
+}
