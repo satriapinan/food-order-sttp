@@ -14,52 +14,23 @@ import AppSnackbar from "../components/AppSnackbar";
 import { useSnackbar } from "../hooks/useSnackbar";
 import api from "../services/api";
 
-// Import Assets Gambar Tradisional Lo
 import cenilImg from "../assets/cenil.jpg";
 import dadarGulungImg from "../assets/dadar gulung.png";
 import kueLapisImg from "../assets/kue lapis.png";
 import sateLilitImg from "../assets/sate lilit.jpg";
 import serabiImg from "../assets/serabi.jpg";
-import heroImg from "../assets/hero.png";
 
-// List makanan tradisional yang mau lo jadiin pengganti data API
-const TRADITIONAL_FOODS = [
-  {
-    name: "Cenil",
-    description: "Kue tradisional kenyal warna-warni dengan taburan kelapa parut.",
-    image: cenilImg,
-    category: "Jajanan Pasar",
-  },
-  {
-    name: "Dadar Gulung",
-    description: "Kue gulung hijau aroma pandan dengan isian kelapa manis.",
-    image: dadarGulungImg,
-    category: "Jajanan Pasar",
-  },
-  {
-    name: "Kue Lapis",
-    description: "Kue basah berlapis-lapis dengan tekstur lembut dan manis pas.",
-    image: kueLapisImg,
-    category: "Kue Basah",
-  },
-  {
-    name: "Sate Lilit",
-    description: "Sate khas Bali dari daging cincang rempah yang dililit di batang sereh.",
-    image: sateLilitImg,
-    category: "Makanan Utama",
-  },
-  {
-    name: "Serabi",
-    description: "Kue serabi tradisional yang gurih disiram kuah kencana manis.",
-    image: serabiImg,
-    category: "Jajanan Pasar",
-  },
-];
+const IMAGE_MAP = {
+  54: cenilImg,
+  55: dadarGulungImg,
+  56: kueLapisImg,
+  57: sateLilitImg,
+  58: serabiImg,
+};
 
 function FoodMenu() {
   const [foods, setFoods] = useState([]);
   const [categories, setCategories] = useState([]);
-
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [sort, setSort] = useState("");
@@ -68,58 +39,53 @@ function FoodMenu() {
 
   const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
 
-  // Load Data dari API & Merge dengan Gambar/Nama Tradisional
   useEffect(() => {
     setLoading(true);
     setError("");
 
-    api.get("/food-order/foods")
-      .then((res) => {
-        const rawData = res.data?.data || res.data || [];
+    const fetchFoods = api.get("/food-order/foods");
+    const fetchCategories = api.get("/food-order/categories");
 
-        // Gabungin ID/Harga dari API dengan Nama & Gambar Tradisional lo
-        const mappedFoods = rawData.map((item, index) => {
-          const trad = TRADITIONAL_FOODS[index % TRADITIONAL_FOODS.length];
-          return {
-            ...item, // Tetap bawa ID & Price asli backend buat transaksi
-            name: trad.name,
-            description: trad.description,
-            image: trad.image,
-            category: trad.category,
-          };
-        });
+    Promise.all([fetchFoods, fetchCategories])
+      .then(([resFoods, resCategories]) => {
+        const rawFoods = resFoods.data?.data || resFoods.data || [];
+        const foodsWithImages = rawFoods.map((food) => ({
+          ...food,
+          image: IMAGE_MAP[food.id] || "https://via.placeholder.com/300x180?text=No+Image",
+        }));
+        setFoods(foodsWithImages);
 
-        setFoods(mappedFoods);
-        setCategories(["Jajanan Pasar", "Kue Basah", "Makanan Utama"]);
+        const rawCategories = resCategories.data?.data || resCategories.data || [];
+        const categoryNames = rawCategories.map((cat) => cat.categoryName);
+        setCategories(categoryNames);
+
         setLoading(false);
       })
       .catch((err) => {
         console.error("Gagal load data:", err);
-        setError("Gagal memuat menu makanan.");
+        setError("Gagal memuat menu makanan dan kategori dari server.");
         setLoading(false);
       });
   }, []);
 
-  // Filter & Sort FULL berdasarkan Makanan Tradisional
   const filteredAndSortedFoods = useMemo(() => {
     let result = [...foods];
 
-    // 1. SEARCH (Sekarang Murni nyari "Cenil", "Dadar Gulung", dll)
     if (search.trim() !== "") {
       const q = search.trim().toLowerCase();
       result = result.filter(
         (item) =>
           item.name.toLowerCase().includes(q) ||
-          item.description.toLowerCase().includes(q)
+          (item.description && item.description.toLowerCase().includes(q))
       );
     }
 
-    // 2. KATEGORI
     if (selectedCategory !== "") {
-      result = result.filter((item) => item.category === selectedCategory);
+      result = result.filter(
+        (item) => item.categories?.categoryName === selectedCategory
+      );
     }
 
-    // 3. SORTING
     if (sort === "price_asc") {
       result.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
     } else if (sort === "price_desc") {
@@ -133,7 +99,6 @@ function FoodMenu() {
     return result;
   }, [foods, search, selectedCategory, sort]);
 
-  // Handle Add to Cart tetap bawa ID API backend
   const handleAddToCart = async (foodItem) => {
     const actualFoodId = foodItem.id || foodItem._id || foodItem.foodId;
 
@@ -158,10 +123,9 @@ function FoodMenu() {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Dynamic Controls */}
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 4 }}>
         <TextField
-          label="🔍 Cari Makanan Tradisional"
+          label="🔍 Cari Makanan"
           variant="outlined"
           value={search}
           onChange={(e) => setSearch(e.target.value)}

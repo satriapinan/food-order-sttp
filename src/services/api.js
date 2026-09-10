@@ -4,7 +4,7 @@ const api = axios.create({
   baseURL: "http://localhost:8080",
 });
 
-// Otomatis tempelkan Bearer Token dari localStorage di SETIAP request
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");

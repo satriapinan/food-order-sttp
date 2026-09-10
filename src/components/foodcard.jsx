@@ -5,6 +5,7 @@ import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
+import Chip from "@mui/material/Chip";
 import AddIcon from "@mui/icons-material/Add";
 
 function FoodCard({ food, onAddToCart }) {
@@ -15,6 +16,9 @@ function FoodCard({ food, onAddToCart }) {
       maximumFractionDigits: 0,
     }).format(price || 0);
   };
+
+  const placeholderImage = "https://via.placeholder.com/300x180?text=No+Image";
+  const categoryName = food.categories?.categoryName || food.category || "Umum";
 
   return (
     <Card
@@ -34,7 +38,7 @@ function FoodCard({ food, onAddToCart }) {
       <CardMedia
         component="img"
         height="180"
-        image={food.image}
+        image={food.image || placeholderImage}
         alt={food.name}
         sx={{
           borderRadius: "20px",
@@ -54,6 +58,12 @@ function FoodCard({ food, onAddToCart }) {
         }}
       >
         <Box>
+          <Chip
+            label={categoryName}
+            size="small"
+            sx={{ mb: 1, backgroundColor: "#8CB369", color: "#fff", fontWeight: "bold" }}
+          />
+
           <Typography
             variant="h6"
             sx={{
@@ -69,7 +79,7 @@ function FoodCard({ food, onAddToCart }) {
             variant="body2"
             sx={{ color: "#5A7052", fontSize: "0.85rem", mb: 2 }}
           >
-            {food.description}
+            {food.description || "Tidak ada deskripsi."}
           </Typography>
         </Box>
 
