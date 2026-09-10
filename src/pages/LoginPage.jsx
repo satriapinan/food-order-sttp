@@ -18,16 +18,13 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 
-// Import hooks & reusable custom components
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
 import AppButton from "../components/AppButton";
 import AppTextField from "../components/AppTextField";
 
-// IMPORT API (tidak diubah)
 import api from "../services/api";
 
-// Skema Validasi
 const loginSchema = Yup.object({
   username: Yup.string().required("Username wajib diisi"),
   password: Yup.string()
@@ -50,15 +47,11 @@ const LoginPage = () => {
     onSubmit: async (values) => {
       setIsLoading(true);
       try {
-        // ✅ ENDPOINT YANG BENAR (sesuai Swagger)
         const response = await api.post("/user-management/users/sign-in", {
           username: values.username,
           password: values.password,
         });
 
-        console.log("Response login:", response.data);
-
-        // Ambil token dari berbagai kemungkinan struktur response
         const token =
           response.data?.token ||
           response.data?.data?.token ||
@@ -66,17 +59,12 @@ const LoginPage = () => {
           response.data?.data?.accessToken;
 
         if (!token) {
-          throw new Error(
-            "Token tidak ditemukan di response. Cek struktur response backend.",
-          );
+          throw new Error("Token tidak ditemukan di response.");
         }
 
-        // Ambil info user kalau ada
         const userInfo = response.data?.user ||
           response.data?.data?.user || { username: values.username };
 
-        // PENTING: token WAJIB di ROOT object
-        // karena api.js membaca user?.token dari localStorage
         const userData = {
           token,
           ...userInfo,
@@ -85,8 +73,6 @@ const LoginPage = () => {
         login(userData);
         navigate("/menu");
       } catch (error) {
-        console.error("Gagal login:", error);
-
         const errorData = error.response?.data;
         const errorMessage =
           errorData?.message ||
@@ -102,7 +88,6 @@ const LoginPage = () => {
     },
   });
 
-  // ===== END ADORNMENT (FITUR MATA) =====
   const passwordEndAdornment = (
     <InputAdornment position="end">
       <IconButton
@@ -142,7 +127,6 @@ const LoginPage = () => {
         transition: "all 0.3s ease-in-out",
       }}
     >
-      {/* Tombol Dark Mode */}
       <Box
         sx={{
           position: "absolute",
@@ -267,8 +251,6 @@ const LoginPage = () => {
             helperText={formik.touched.username && formik.errors.username}
           />
 
-          {/* ✅ PASSWORD dengan fitur mata — pakai `endAdornment` 
-              karena AppTextField mengharapkan prop ini */}
           <AppTextField
             label="Password"
             type={showPassword ? "text" : "password"}

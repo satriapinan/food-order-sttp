@@ -21,8 +21,6 @@ import LightModeIcon from "@mui/icons-material/LightMode";
 import { useTheme } from "../hooks/useTheme";
 import AppButton from "../components/AppButton";
 import AppTextField from "../components/AppTextField";
-
-// IMPORT API
 import api from "../services/api";
 
 const registerSchema = Yup.object({
@@ -56,21 +54,16 @@ const RegisterPage = () => {
     onSubmit: async (values) => {
       setIsLoading(true);
       try {
-        // ✅ PATH DAN FIELD YANG BENAR (sesuai Swagger)
-        const response = await api.post("/user-management/users/sign-up", {
+        await api.post("/user-management/users/sign-up", {
           username: values.username,
           fullname: values.fullname,
           password: values.password,
           retypePassword: values.retypePassword,
         });
 
-        console.log("Response register:", response.data);
-
         alert("Yeay! Akun berhasil dibuat. Silakan login.");
         navigate("/login");
       } catch (error) {
-        console.error("Gagal mendaftar:", error);
-
         const errorData = error.response?.data;
         const errorMessage =
           errorData?.message ||
@@ -85,7 +78,6 @@ const RegisterPage = () => {
     },
   });
 
-  // ===== END ADORNMENT (FITUR MATA) =====
   const passwordEndAdornment = (
     <InputAdornment position="end">
       <IconButton
@@ -134,7 +126,6 @@ const RegisterPage = () => {
         transition: "all 0.3s ease-in-out",
       }}
     >
-      {/* Tombol Dark Mode */}
       <Box
         sx={{
           position: "absolute",
@@ -270,7 +261,6 @@ const RegisterPage = () => {
             helperText={formik.touched.fullname && formik.errors.fullname}
           />
 
-          {/* ✅ PASSWORD — pakai endAdornment (sesuai AppTextField) */}
           <AppTextField
             name="password"
             label="Kata Sandi"
@@ -284,7 +274,6 @@ const RegisterPage = () => {
             endAdornment={passwordEndAdornment}
           />
 
-          {/* ✅ CONFIRM PASSWORD — pakai endAdornment */}
           <AppTextField
             name="retypePassword"
             label="Konfirmasi Kata Sandi"

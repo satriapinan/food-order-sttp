@@ -24,8 +24,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
 import FoodCard from "../components/FoodCard";
-
-// IMPORT API
 import api from "../services/api";
 
 const MenuPage = () => {
@@ -48,9 +46,6 @@ const MenuPage = () => {
   });
   const { search, category, sortBy } = formik.values;
 
-  // 1. Ambil Kategori dari API
-  // ⚠️ Kalau backend tidak punya endpoint /food-order/categories,
-  //    kategori akan kosong, tapi makanan tetap tampil.
   useEffect(() => {
     let isMounted = true;
 
@@ -58,17 +53,13 @@ const MenuPage = () => {
       .get("/food-order/categories")
       .then((res) => {
         if (!isMounted) return;
-        // Handle berbagai struktur response
         const data =
           res?.data?.data ||
           res?.data?.content ||
           (Array.isArray(res?.data) ? res.data : []);
         setCategories(data);
       })
-      .catch((err) => {
-        console.error("Gagal mengambil kategori:", err);
-        // Tidak tampilkan snackbar error biar tidak ganggu.
-        // Kategori opsional, jadi silent fail aja.
+      .catch(() => {
         if (isMounted) setCategories([]);
       });
 
@@ -77,7 +68,6 @@ const MenuPage = () => {
     };
   }, []);
 
-  // 2. Ambil Makanan dari API
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
@@ -90,15 +80,13 @@ const MenuPage = () => {
       .get("/food-order/foods", { params })
       .then((res) => {
         if (!isMounted) return;
-        // Handle berbagai struktur response
         const data =
           res?.data?.data ||
           res?.data?.content ||
           (Array.isArray(res?.data) ? res.data : []);
         setFoods(data);
       })
-      .catch((err) => {
-        console.error("Gagal mengambil data makanan:", err);
+      .catch(() => {
         if (isMounted) {
           setFoods([]);
           setSnackbar({
@@ -122,7 +110,6 @@ const MenuPage = () => {
       { value: "", label: "🔥 Semua Kategori" },
       ...categories.map((c) => ({
         value: String(c.id),
-        // Handle berbagai nama field kategori
         label: c.categoryName || c.name || c.category || "Kategori",
       })),
     ];
@@ -130,10 +117,8 @@ const MenuPage = () => {
 
   const handleAddToCart = async (food) => {
     try {
-      // ⚠️ Cek Swagger: apakah backend minta quantity?
       await api.post("/food-order/cart", {
         foodId: food.id,
-        // quantity: 1,  // ← uncomment kalau backend minta
       });
       setSnackbar({
         open: true,
