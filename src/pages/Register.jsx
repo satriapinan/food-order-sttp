@@ -8,17 +8,37 @@ import {
   TextField,
   Button,
 } from "@mui/material";
+import api from "../services/api";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    // Simulasi daftar sukses, arahkan kembali ke halaman Login
-    navigate("/login");
+    setError("");
+    setIsLoading(true);
+
+    try {
+      await api.post("/user-management/users/sign-up", {
+        username: email,
+        fullname: name,
+        password,
+        retypePassword: password,
+      });
+      navigate("/login", { state: { message: "Pendaftaran berhasil. Silakan login." } });
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+          "Pendaftaran gagal. Pastikan server backend sedang berjalan."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -28,7 +48,7 @@ const RegisterPage = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #4da1a9 0%, #7db9b6 100%)",
+        background: "linear-gradient(135deg, var(--accent-dark), var(--page-bg))",
       }}
     >
       <Card
@@ -36,7 +56,8 @@ const RegisterPage = () => {
           maxWidth: 400,
           width: "100%",
           borderRadius: 3,
-          boxShadow: 3,
+          boxShadow: "var(--shadow)",
+          backgroundColor: "var(--surface)",
           mx: 2,
         }}
       >
@@ -45,11 +66,15 @@ const RegisterPage = () => {
             variant="h4"
             fontWeight="bold"
             textAlign="center"
-            color="#5297a1"
-            mb={1}
+            sx={{ color: "var(--accent)", mb: 1 }}
           >
             Register
           </Typography>
+          {error && (
+            <Typography role="alert" variant="body2" sx={{ color: "#d84343", mb: 2, textAlign: "center" }}>
+              {error}
+            </Typography>
+          )}
           <Typography
             variant="body2"
             textAlign="center"
@@ -63,6 +88,7 @@ const RegisterPage = () => {
             <TextField
               fullWidth
               label="Nama Lengkap"
+              autoComplete="name"
               variant="outlined"
               margin="normal"
               required
@@ -72,6 +98,8 @@ const RegisterPage = () => {
             <TextField
               fullWidth
               label="Email"
+              type="email"
+              autoComplete="email"
               variant="outlined"
               margin="normal"
               required
@@ -82,6 +110,7 @@ const RegisterPage = () => {
               fullWidth
               label="Password"
               type="password"
+              autoComplete="new-password"
               variant="outlined"
               margin="normal"
               required
@@ -95,13 +124,13 @@ const RegisterPage = () => {
               sx={{
                 mt: 3,
                 mb: 2,
-                backgroundColor: "#5297a1",
+                backgroundColor: "var(--accent)",
                 py: 1.5,
                 fontWeight: "bold",
-                "&:hover": { backgroundColor: "#3e7982" },
+                "&:hover": { backgroundColor: "var(--accent-dark)" },
               }}
             >
-              Daftar
+              {isLoading ? "Memproses..." : "Daftar"}
             </Button>
           </form>
 
@@ -110,7 +139,7 @@ const RegisterPage = () => {
             <Button
               variant="text"
               sx={{
-                color: "#5297a1",
+                color: "var(--accent)",
                 textTransform: "none",
                 fontWeight: "bold",
               }}
