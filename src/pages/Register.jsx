@@ -1,13 +1,13 @@
-import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Link, useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
-import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import AppButton from "../components/AppButton";
+import AppCard from "../components/AppCard";
+import AppTextField from "../components/AppTextField";
 import AppSnackbar from "../components/AppSnackbar";
+import { useSnackbar } from "../hooks/useSnackbar";
 import { registerUser } from "../services/api";
 
 const registerSchema = Yup.object({
@@ -25,16 +25,7 @@ const registerSchema = Yup.object({
 
 function RegisterPage() {
   const navigate = useNavigate();
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "info",
-  });
-
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === "clickaway") return;
-    setSnackbar((prev) => ({ ...prev, open: false }));
-  };
+  const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
 
   const formik = useFormik({
     initialValues: {
@@ -53,11 +44,10 @@ function RegisterPage() {
           retypePassword: values.confirmPassword,
         });
 
-        setSnackbar({
-          open: true,
-          message: data.message || "Registrasi berhasil! Silakan login.",
-          severity: "success",
-        });
+        showSnackbar(
+          data.message || "Registrasi berhasil! Silakan login.",
+          "success",
+        );
 
         resetForm();
 
@@ -65,14 +55,12 @@ function RegisterPage() {
           navigate("/login");
         }, 1500);
       } catch (error) {
-        setSnackbar({
-          open: true,
-          message:
-            error.response?.data?.message ||
+        showSnackbar(
+          error.response?.data?.message ||
             error.message ||
             "Terjadi kesalahan saat registrasi",
-          severity: "error",
-        });
+          "error",
+        );
       } finally {
         setSubmitting(false);
       }
@@ -82,21 +70,17 @@ function RegisterPage() {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
+        minHeight: "calc(100vh - 80px)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        background: "linear-gradient(135deg, #6D5BD0, #8E7CF0)",
         padding: 2,
       }}
     >
-      <Paper
-        elevation={6}
+      <AppCard
         sx={{
           width: "100%",
-          maxWidth: 360,
-          padding: 4,
-          borderRadius: "16px",
+          maxWidth: 380,
           textAlign: "center",
         }}
       >
@@ -109,8 +93,7 @@ function RegisterPage() {
         </Typography>
 
         <Box component="form" onSubmit={formik.handleSubmit}>
-          <TextField
-            fullWidth
+          <AppTextField
             id="username"
             name="username"
             label="Username"
@@ -122,8 +105,7 @@ function RegisterPage() {
             helperText={formik.touched.username && formik.errors.username}
           />
 
-          <TextField
-            fullWidth
+          <AppTextField
             id="fullName"
             name="fullName"
             label="Nama Lengkap"
@@ -135,8 +117,7 @@ function RegisterPage() {
             helperText={formik.touched.fullName && formik.errors.fullName}
           />
 
-          <TextField
-            fullWidth
+          <AppTextField
             id="password"
             name="password"
             label="Password"
@@ -149,8 +130,7 @@ function RegisterPage() {
             helperText={formik.touched.password && formik.errors.password}
           />
 
-          <TextField
-            fullWidth
+          <AppTextField
             id="confirmPassword"
             name="confirmPassword"
             label="Konfirmasi Password"
@@ -192,13 +172,13 @@ function RegisterPage() {
             Login
           </Link>
         </Typography>
-      </Paper>
+      </AppCard>
 
       <AppSnackbar
         open={snackbar.open}
         message={snackbar.message}
         severity={snackbar.severity}
-        onClose={handleCloseSnackbar}
+        onClose={closeSnackbar}
       />
     </Box>
   );

@@ -4,10 +4,11 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import Alert from "@mui/material/Alert";
 import { useFormik } from "formik";
-import TextField from "@mui/material/TextField";
+import AppTextField from "../components/AppTextField";
 import AppSelect from "../components/AppSelect";
 import FoodCard from "../components/FoodCard";
-import AppSnackbar, { useSnackbar } from "../components/AppSnackbar";
+import AppSnackbar from "../components/AppSnackbar";
+import { useSnackbar } from "../hooks/useSnackbar";
 import { useTheme } from "../hooks/useTheme";
 import api from "../services/api";
 
@@ -100,29 +101,21 @@ function FoodOrderPage() {
       >
         Food Menu
       </Typography>
-      <Box sx={{ display: "flex", gap: "12px", marginBottom: "20px" }}>
-        <TextField
-          variant="outlined"
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          gap: "12px",
+          marginBottom: "20px",
+        }}
+      >
+        <AppTextField
           label="Search for food..."
           name="search"
           value={formik.values.search}
           onChange={formik.handleChange}
           size="small"
-          sx={{
-            marginBottom: 0,
-            flex: 1,
-            "& .MuiInputBase-input": {
-              color: isDark ? "#fff" : "#000",
-            },
-            "& .MuiInputLabel-root": {
-              color: isDark ? "#aaa" : "#555",
-            },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": { borderColor: isDark ? "#555" : "#ccc" },
-              "&:hover fieldset": { borderColor: isDark ? "#888" : "#999" },
-              "&.Mui-focused fieldset": { borderColor: "#6D5BD0" },
-            },
-          }}
+          sx={{ flex: 1 }}
         />
         <AppSelect
           label="Kategori"

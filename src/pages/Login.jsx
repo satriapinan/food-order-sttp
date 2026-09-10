@@ -1,13 +1,13 @@
-import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Link, useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
-import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import AppButton from "../components/AppButton";
+import AppCard from "../components/AppCard";
+import AppTextField from "../components/AppTextField";
 import AppSnackbar from "../components/AppSnackbar";
+import { useSnackbar } from "../hooks/useSnackbar";
 import { useAuth } from "../hooks/useAuth";
 import { loginUser } from "../services/api";
 
@@ -21,16 +21,7 @@ const loginSchema = Yup.object({
 function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "info",
-  });
-
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === "clickaway") return;
-    setSnackbar((prev) => ({ ...prev, open: false }));
-  };
+  const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
 
   const formik = useFormik({
     initialValues: {
@@ -45,11 +36,10 @@ function LoginPage() {
           password: values.password,
         });
 
-        setSnackbar({
-          open: true,
-          message: data.message || "Login berhasil! Mengalihkan...",
-          severity: "success",
-        });
+        showSnackbar(
+          data.message || "Login berhasil! Mengalihkan...",
+          "success",
+        );
 
         if (login) {
           login(data.user || { username: values.username }, data.token);
@@ -59,14 +49,12 @@ function LoginPage() {
           navigate("/food-menu");
         }, 1200);
       } catch (error) {
-        setSnackbar({
-          open: true,
-          message:
-            error.response?.data?.message ||
+        showSnackbar(
+          error.response?.data?.message ||
             error.message ||
             "Terjadi kesalahan saat login",
-          severity: "error",
-        });
+          "error",
+        );
       } finally {
         setSubmitting(false);
       }
@@ -76,21 +64,17 @@ function LoginPage() {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
+        minHeight: "calc(100vh - 80px)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        background: "linear-gradient(135deg, #6D5BD0, #8E7CF0)",
         padding: 2,
       }}
     >
-      <Paper
-        elevation={6}
+      <AppCard
         sx={{
           width: "100%",
-          maxWidth: 360,
-          padding: 4,
-          borderRadius: "16px",
+          maxWidth: 380,
           textAlign: "center",
         }}
       >
@@ -103,8 +87,7 @@ function LoginPage() {
         </Typography>
 
         <Box component="form" onSubmit={formik.handleSubmit}>
-          <TextField
-            fullWidth
+          <AppTextField
             id="username"
             name="username"
             label="Username"
@@ -116,8 +99,7 @@ function LoginPage() {
             helperText={formik.touched.username && formik.errors.username}
           />
 
-          <TextField
-            fullWidth
+          <AppTextField
             id="password"
             name="password"
             label="Password"
@@ -154,13 +136,13 @@ function LoginPage() {
             Daftar disini
           </Link>
         </Typography>
-      </Paper>
+      </AppCard>
 
       <AppSnackbar
         open={snackbar.open}
         message={snackbar.message}
         severity={snackbar.severity}
-        onClose={handleCloseSnackbar}
+        onClose={closeSnackbar}
       />
     </Box>
   );

@@ -1,26 +1,5 @@
-import { useState, useCallback } from "react";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function useSnackbar() {
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "info",
-  });
-
-  const showSnackbar = useCallback((message, severity = "info") => {
-    setSnackbar({ open: true, message, severity });
-  }, []);
-
-  const closeSnackbar = useCallback((event, reason) => {
-    if (reason === "clickaway") return;
-    setSnackbar((prev) => ({ ...prev, open: false }));
-  }, []);
-
-  return { snackbar, showSnackbar, closeSnackbar };
-}
 
 function AppSnackbar({
   open,
